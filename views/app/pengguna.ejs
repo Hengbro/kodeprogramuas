@@ -1,5 +1,5 @@
 <%- include('../partials/top') %>
-<div class="page-head"><div><h1>Pengguna &amp; Guru</h1><p>Guru hanya dapat mengakses kelas yang ia ampu. Atur wali kelas di menu Kelas.</p></div></div>
+<div class="page-head"><div><h1>Pengguna &amp; Guru</h1><p>Guru hanya dapat mengakses kelas yang ia ampu. Atur guru kelas di menu Kelas.</p></div></div>
 <div class="card flush">
   <div class="table-wrap">
   <table class="table">
@@ -7,7 +7,7 @@
     <tbody>
     <% users.forEach(u => { %>
       <tr>
-          <td><input form="u<%= u.id %>" name="nama" value="<%= u.nama %>"><% if (u.kelas) { %><small>Wali kelas: <%= u.kelas %></small><% } %></td>
+          <td><input form="u<%= u.id %>" name="nama" value="<%= u.nama %>"><% if (u.kelas) { %><small>Guru kelas: <%= u.kelas %></small><% } %></td>
           <td><code><%= u.username %></code></td>
           <td><input form="u<%= u.id %>" name="nip" value="<%= u.nip || '' %>"></td>
           <td><select form="u<%= u.id %>" name="role" <%= u.id === user.id ? 'disabled' : '' %>><option value="guru" <%= u.role === 'guru' ? 'selected' : '' %>>Guru</option><option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Admin</option></select></td>
@@ -28,7 +28,7 @@
   <div class="grid grid-3">
     <div class="field"><label>Nama lengkap (dengan gelar)</label><input name="nama" required></div>
     <div class="field"><label>NIP</label><input name="nip"></div>
-    <div class="field"><label>Peran</label><select name="role"><option value="guru">Guru / Wali kelas</option><option value="admin">Admin</option></select></div>
+    <div class="field"><label>Peran</label><select name="role"><option value="guru">Guru / Guru kelas</option><option value="admin">Admin</option></select></div>
     <div class="field"><label>Username</label><input name="username" required autocomplete="off"></div>
     <div class="field"><label>Kata sandi (min. 6)</label><input type="password" name="password" minlength="6" required autocomplete="new-password"></div>
     <div class="field"><label>&nbsp;</label><button class="btn btn-primary"><%- h.icon('plus') %> Tambah pengguna</button></div>

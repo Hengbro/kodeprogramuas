@@ -56,6 +56,12 @@ db.transaction(() => {
     n, p, 'Sukamaju', `2015-${String(1 + (i % 12)).padStart(2, '0')}-${String(3 + i * 2).padStart(2, '0')}`, jk, ag,
     `Jl. Melati No. ${i + 3}`, ayah[i], ibu[i], kerja[i % kerja.length], i % 3 ? 'Ibu Rumah Tangga' : 'Pedagang', `Jl. Melati No. ${i + 3}`).lastInsertRowid);
 
+  // contoh isian Buku Induk
+  db.prepare(`UPDATE students SET kewarganegaraan = 'Indonesia', bahasa = 'Bahasa Indonesia', tinggal_bersama = 'Orang tua',
+    asal_murid = 'TK', nama_tk = 'TK Tunas Bangsa', diterima_tanggal = '2023-07-17', diterima_kelas = 'I',
+    anak_ke = CAST(1 + (id % 3) AS TEXT), saudara_kandung = CAST(id % 4 AS TEXT), tinggi_diterima = '115', berat_diterima = '20'
+    WHERE class_id = ?`).run(classId);
+
   // TP & nilai
   const subjects = db.prepare(`SELECT s.* FROM subjects s JOIN class_subjects cs ON cs.subject_id = s.id AND cs.class_id = ? WHERE cs.aktif = 1`).all(classId);
   const keyMap = { 'AG-BUDDHA': 'Agama Budha', 'AG-KHONGHUCU': 'Agama Konghucu', PPKN: 'Pendidikan Pancasila dan Kewarganegaraan', PJOK: 'Pendidikan Jasmani, Olahraga dan Kesehatan' };
@@ -81,8 +87,8 @@ db.transaction(() => {
   const catatan = db.prepare("SELECT teks FROM bank_kalimat WHERE jenis = 'catatan'").all().map((r) => r.teks);
   const ekskulKet = db.prepare("SELECT teks FROM bank_kalimat WHERE jenis = 'ekskul'").all().map((r) => r.teks);
   studentIds.forEach((id, i) => {
-    db.prepare('INSERT INTO rapor_siswa (period_id, student_id, class_id, sakit, izin, alpa, catatan, naik) VALUES (?, ?, ?, ?, ?, ?, ?, 1)')
-      .run(period.id, id, classId, between(0, 3), between(0, 2), between(0, 1), catatan[i % catatan.length]);
+    db.prepare('INSERT INTO rapor_siswa (period_id, student_id, class_id, sakit, izin, alpa, catatan, naik, tinggi, berat) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)')
+      .run(period.id, id, classId, between(0, 3), between(0, 2), between(0, 1), catatan[i % catatan.length], String(between(128, 140)), String(between(25, 34)));
     db.prepare("INSERT INTO ekstrakurikuler (period_id, student_id, urutan, nama, keterangan) VALUES (?, ?, 1, 'Pramuka', ?)").run(period.id, id, ekskulKet[i % ekskulKet.length]);
     if (i % 3 === 0) db.prepare("INSERT INTO ekstrakurikuler (period_id, student_id, urutan, nama, keterangan) VALUES (?, ?, 2, 'Seni Tari', 'Aktif dan bersemangat dalam setiap latihan.')").run(period.id, id);
   });

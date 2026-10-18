@@ -15,9 +15,26 @@ db.pragma('busy_timeout = 5000');
 
 db.exec(fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8'));
 
+// Kolom tambahan (Buku Induk, keadaan jasmani) — ditambahkan otomatis pada database lama.
+const BUKU_INDUK_FIELDS = ['kewarganegaraan', 'anak_ke', 'saudara_kandung', 'saudara_tiri', 'saudara_angkat', 'bahasa', 'telp',
+  'tinggal_bersama', 'jarak_km', 'gol_darah', 'penyakit', 'kelainan', 'tinggi_diterima', 'berat_diterima', 'asal_murid', 'nama_tk',
+  'alamat_tk', 'sttb', 'pindahan_sekolah', 'pindahan_kelas', 'pindahan_nis', 'pindahan_alasan', 'diterima_tanggal', 'diterima_kelas',
+  'ayah_tahun_lahir', 'ayah_agama', 'ayah_pendidikan', 'ibu_tahun_lahir', 'ibu_agama', 'ibu_pendidikan', 'wali_tahun_lahir',
+  'wali_agama', 'wali_pendidikan', 'wali_hubungan', 'beasiswa', 'keluar_tanggal', 'keluar_kelas', 'keluar_alasan', 'keluar_tujuan',
+  'keluar_kecamatan', 'keluar_kabupaten', 'keluar_provinsi', 'lulus_tahun', 'no_ijazah', 'lanjut_ke'];
+
+function addColumns(table, cols) {
+  const have = new Set(db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name));
+  for (const c of cols) if (!have.has(c)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${c} TEXT`);
+}
+addColumns('students', BUKU_INDUK_FIELDS);
+addColumns('rapor_siswa', ['tinggi', 'berat']);
+
 const DEFAULT_SETTINGS = {
   kementerian: 'KEMENTERIAN PENDIDIKAN DASAR DAN MENENGAH',
   instansi: 'DINAS PENDIDIKAN',
+  korwil: '',
+  status_sekolah: 'Negeri',
   pemda: 'PEMERINTAH KABUPATEN',
   nama_sekolah: 'SD NEGERI CONTOH',
   nss: '',
@@ -59,7 +76,7 @@ const SUBJECTS = [
   ['AG-HINDU', 'Pendidikan Agama Hindu dan Budi Pekerti', 'PAH', 'agama', 'Hindu', 1],
   ['AG-BUDDHA', 'Pendidikan Agama Buddha dan Budi Pekerti', 'PAB', 'agama', 'Buddha', 1],
   ['AG-KHONGHUCU', 'Pendidikan Agama Khonghucu dan Budi Pekerti', 'PAKh', 'agama', 'Khonghucu', 1],
-  ['PPKN', 'Pendidikan Pancasila', 'PP', 'umum', null, 2],
+  ['PPKN', 'Pendidikan Pancasila dan Kewarganegaraan', 'PPKn', 'umum', null, 2],
   ['BIND', 'Bahasa Indonesia', 'B.Ind', 'umum', null, 3],
   ['MTK', 'Matematika', 'MTK', 'umum', null, 4],
   ['IPAS', 'Ilmu Pengetahuan Alam dan Sosial', 'IPAS', 'umum', null, 5],
@@ -67,7 +84,7 @@ const SUBJECTS = [
   ['SENI-TARI', 'Seni Tari', 'S.Tari', 'seni', null, 6],
   ['SENI-RUPA', 'Seni Rupa', 'S.Rupa', 'seni', null, 6],
   ['SENI-TEATER', 'Seni Teater', 'S.Teater', 'seni', null, 6],
-  ['PJOK', 'Pendidikan Jasmani, Olahraga, dan Kesehatan', 'PJOK', 'umum', null, 7],
+  ['PJOK', 'Pendidikan Jasmani, Olahraga dan Kesehatan', 'PJOK', 'umum', null, 7],
   ['BING', 'Bahasa Inggris', 'B.Ing', 'umum', null, 8],
 ];
 
@@ -105,6 +122,9 @@ function seedBase() {
     'INSERT OR IGNORE INTO subjects (kode, nama, singkat, kelompok, agama, urutan) VALUES (?, ?, ?, ?, ?, ?)'
   );
   for (const s of SUBJECTS) insSubject.run(...s);
+  // samakan nama mapel bawaan lama dengan istilah di aplikasi Excel
+  db.prepare("UPDATE subjects SET nama = 'Pendidikan Pancasila dan Kewarganegaraan', singkat = 'PPKn' WHERE kode = 'PPKN' AND nama = 'Pendidikan Pancasila'").run();
+  db.prepare("UPDATE subjects SET nama = 'Pendidikan Jasmani, Olahraga dan Kesehatan' WHERE kode = 'PJOK' AND nama = 'Pendidikan Jasmani, Olahraga, dan Kesehatan'").run();
 
   if (!db.prepare('SELECT 1 FROM users LIMIT 1').get()) {
     const password = process.env.ADMIN_PASSWORD || 'admin123';
@@ -141,4 +161,4 @@ function seedBase() {
 
 db.transaction(seedBase)();
 
-module.exports = { db, DB_PATH };
+module.exports = { db, DB_PATH, BUKU_INDUK_FIELDS };

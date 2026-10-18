@@ -11,6 +11,7 @@
       <div class="nav-label">Pembelajaran</div>
       <a href="/app/kelas" class="<%= path.startsWith('/kelas') ? 'active' : '' %>"><%- h.icon('class') %> Kelas &amp; Penilaian</a>
       <a href="/app/siswa" class="<%= path.startsWith('/siswa') ? 'active' : '' %>"><%- h.icon('users') %> Data Siswa</a>
+      <a href="/app/panduan" class="<%= path === '/panduan' ? 'active' : '' %>"><%- h.icon('file') %> Panduan dari Excel</a>
       <% if (user.role === 'admin') { %>
       <div class="nav-label">Administrasi</div>
       <a href="/app/sekolah" class="<%= path === '/sekolah' ? 'active' : '' %>"><%- h.icon('school') %> Profil Sekolah</a>

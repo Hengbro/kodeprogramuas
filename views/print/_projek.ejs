@@ -1,4 +1,24 @@
 <% const s = r.settings, st = r.student, L = r.P5_LEVEL; %>
+<% if (parts.includes('cover')) { %>
+<section class="page">
+  <div class="cover">
+    <div>
+      <div style="margin-top:8mm"><%- include('_emblem') %></div>
+      <h1 style="margin-top:12mm;font-size:20pt">RAPOR</h1>
+      <div class="sub">PROJEK PENGUATAN</div>
+      <div class="sub">PROFIL PELAJAR PANCASILA</div>
+      <div class="sub" style="margin-top:6mm">SEKOLAH DASAR (SD)</div>
+    </div>
+    <div>
+      <div>Nama Peserta Didik:</div>
+      <div class="box upper"><%= st.nama %></div>
+      <div style="margin-top:8mm">NISN / NIS:</div>
+      <div class="box"><%= st.nisn || '-' %> / <%= st.nis || '-' %></div>
+    </div>
+    <div class="sub" style="font-size:12pt"><%= s.kementerian %><br>REPUBLIK INDONESIA</div>
+  </div>
+</section>
+<% } %>
 <section class="page">
   <div class="doc-title" style="font-size:12.5pt">RAPOR PROJEK PENGUATAN<br>PROFIL PELAJAR PANCASILA</div>
   <table class="info" style="margin-bottom:8px">
@@ -17,18 +37,18 @@
   <% }) %>
 
   <% if (r.projects.length) { %>
-  <table class="grid mt2 avoid">
-    <thead><tr><th style="text-align:left">Ringkasan per dimensi</th><% r.projects.forEach(p => { %><th style="width:22mm">Projek <%= p.urutan %></th><% }) %></tr></thead>
-    <tbody>
-    <% r.allDims.forEach(d => { const vals = r.projects.map(p => { const x = p.dimensi.find(y => y.id === d.id); return x ? x.nilai : undefined; }); if (vals.every(v => v === undefined)) return; %>
-      <tr><td><%= d.nama %></td><% vals.forEach(v => { %><td class="center bold"><%= v ? L[v].kode : (v === undefined ? '' : '-') %></td><% }) %></tr>
-    <% }) %>
-    </tbody>
-  </table>
-  <table class="grid mt small avoid">
+  <table class="grid mt avoid small">
     <tbody><tr>
       <% [1,2,3,4].forEach(k => { %><td style="width:25%"><b><%= L[k].kode %>. <%= L[k].label %></b><br><%= L[k].ket %></td><% }) %>
     </tr></tbody>
+  </table>
+  <table class="grid mt2 avoid">
+    <thead><tr><th style="text-align:left">Projek Kelas <%= r.cls.nama %></th><% r.allDims.forEach(d => { %><th class="small" style="width:17mm"><%= d.nama.split(',')[0] %></th><% }) %></tr></thead>
+    <tbody>
+    <% r.projects.forEach(p => { %>
+      <tr><td class="bold upper"><%= p.nama %></td><% r.allDims.forEach(d => { const v = p.ringkasan.get(d.id); %><td class="center bold"><%= v ? L[v].kode : '-' %></td><% }) %></tr>
+    <% }) %>
+    </tbody>
   </table>
   <% } %>
 </section>
@@ -52,7 +72,7 @@
   </table>
   <table class="grid mt avoid"><thead><tr><th style="text-align:left">Catatan proses</th></tr></thead>
     <tbody><tr><td style="min-height:18mm;height:18mm"><% if (p.catatan) { %>Dalam mengerjakan projek ini, <%= st.panggilan || st.nama.split(' ')[0] %> <%= p.catatan.replace(/^\s+/, '') %><% } %></td></tr></tbody></table>
-  <%- include('_ttd', { r }) %>
+  <%- include('_ttd3', { r }) %>
   <div class="foot"><span>Rapor Projek Penguatan Profil Pelajar Pancasila · <%= st.nama %></span><span>Kelas <%= r.cls.nama %> · <%= r.period.tahun_pelajaran %></span></div>
 </section>
 <% }) %>

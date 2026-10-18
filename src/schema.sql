@@ -214,3 +214,12 @@ CREATE TABLE IF NOT EXISTS project_notes (
   catatan    TEXT,
   PRIMARY KEY (project_id, student_id)
 );
+
+-- Penilaian dimensi profil secara umum per projek (sheet PENILAIAN P.x, bagian "secara umum")
+CREATE TABLE IF NOT EXISTS project_dim_scores (
+  project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  dimensi_id INTEGER NOT NULL REFERENCES p5_dimensi(id) ON DELETE CASCADE,
+  nilai      INTEGER NOT NULL CHECK (nilai BETWEEN 1 AND 4),
+  PRIMARY KEY (project_id, student_id, dimensi_id)
+);

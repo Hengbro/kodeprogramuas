@@ -13,7 +13,7 @@
     <div style="margin-top:3mm;max-width:200mm">pada Kelas <%= r.cls.nama %> Semester <%= r.period.semester %> Tahun Pelajaran <%= r.period.tahun_pelajaran %> dengan rata-rata nilai <b><%= h.angka(r.rata, 2) %></b>.</div>
     <div class="ttd" style="grid-template-columns:1fr 1fr;width:100%;margin-top:8mm">
       <div>Mengetahui,<br>Kepala Sekolah<div class="space"></div><div class="name"><%= s.kepsek_nama || '.....................' %></div><div>NIP. <%= s.kepsek_nip || '-' %></div></div>
-      <div><%= r.period.tempat_rapor || s.kecamatan || '' %>, <%= h.tanggal(r.period.tanggal_rapor) || '.............' %><br>Wali Kelas<div class="space"></div><div class="name"><%= r.cls.guru_nama || '.....................' %></div><div>NIP. <%= r.cls.guru_nip || '-' %></div></div>
+      <div><%= r.period.tempat_rapor || s.kecamatan || '' %>, <%= h.tanggal(r.period.tanggal_rapor) || '.............' %><br>Guru Kelas<div class="space"></div><div class="name"><%= r.cls.guru_nama || '.....................' %></div><div>NIP. <%= r.cls.guru_nip || '-' %></div></div>
     </div>
   </div>
 </section>

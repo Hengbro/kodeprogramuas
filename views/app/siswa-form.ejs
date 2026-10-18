@@ -41,6 +41,47 @@
       <% f('wali_alamat', 'Alamat wali', { full: true }) %>
     </div>
   </fieldset>
+  <details class="box" <%= st.kewarganegaraan || st.anak_ke || st.diterima_tanggal ? 'open' : '' %>>
+    <summary>Data Buku Induk (opsional) — sama dengan sheet “Identitas Buku Induk”</summary>
+    <p class="muted" style="margin:.5rem 0">Diisi untuk mencetak Buku Induk dan Keterangan Pindah Sekolah. Boleh dikosongkan.</p>
+    <fieldset><legend>A. Keterangan diri</legend><div class="form-grid">
+      <% f('kewarganegaraan', 'Kewarganegaraan') %><% f('anak_ke', 'Anak keberapa') %>
+      <% f('saudara_kandung', 'Jumlah saudara kandung') %><% f('saudara_tiri', 'Jumlah saudara tiri') %>
+      <% f('saudara_angkat', 'Jumlah saudara angkat') %><% f('bahasa', 'Bahasa sehari-hari di keluarga') %>
+    </div></fieldset>
+    <fieldset><legend>B. Tempat tinggal</legend><div class="form-grid">
+      <% f('telp', 'Nomor telepon / HP') %><% f('tinggal_bersama', 'Bertempat tinggal pada/bersama') %>
+      <% f('jarak_km', 'Jarak tempat tinggal ke sekolah (km)') %>
+    </div></fieldset>
+    <fieldset><legend>C. Kesehatan</legend><div class="form-grid">
+      <% f('gol_darah', 'Golongan darah') %><% f('penyakit', 'Penyakit yang pernah diderita') %>
+      <% f('kelainan', 'Kelainan jasmani') %><div></div>
+      <% f('tinggi_diterima', 'Tinggi badan saat diterima (cm)') %><% f('berat_diterima', 'Berat badan saat diterima (kg)') %>
+    </div></fieldset>
+    <fieldset><legend>D. Pendidikan</legend><div class="form-grid">
+      <% f('asal_murid', 'Asal murid (Rumah tangga / TK)') %><% f('nama_tk', 'Nama Taman Kanak-Kanak') %>
+      <% f('alamat_tk', 'Alamat TK') %><% f('sttb', 'Tanggal dan nomor STTB') %>
+      <% f('pindahan_sekolah', 'Pindahan dari: nama sekolah asal') %><% f('pindahan_kelas', 'Dari tingkat / kelas') %>
+      <% f('pindahan_nis', 'NIS di sekolah asal') %><% f('pindahan_alasan', 'Alasan pindah') %>
+      <% f('diterima_tanggal', 'Diterima di sekolah ini: tanggal', { type: 'date' }) %><% f('diterima_kelas', 'Diterima di kelas / tingkat') %>
+    </div></fieldset>
+    <fieldset><legend>E–G. Ayah kandung, ibu kandung, wali</legend><div class="form-grid">
+      <% f('ayah_tahun_lahir', 'Ayah: tahun lahir') %><% f('ibu_tahun_lahir', 'Ibu: tahun lahir') %>
+      <% f('ayah_agama', 'Ayah: agama') %><% f('ibu_agama', 'Ibu: agama') %>
+      <% f('ayah_pendidikan', 'Ayah: pendidikan') %><% f('ibu_pendidikan', 'Ibu: pendidikan') %>
+      <% f('wali_tahun_lahir', 'Wali: tahun lahir') %><% f('wali_agama', 'Wali: agama') %>
+      <% f('wali_pendidikan', 'Wali: pendidikan') %><% f('wali_hubungan', 'Wali: hubungan keluarga') %>
+    </div></fieldset>
+    <fieldset><legend>H. Perkembangan peserta didik</legend><div class="form-grid">
+      <% f('beasiswa', 'Menerima beasiswa (tahun, dari)', { full: true }) %>
+      <% f('keluar_tanggal', 'Meninggalkan sekolah: tanggal', { type: 'date' }) %><% f('keluar_kelas', 'Kelas yang ditinggalkan') %>
+      <% f('keluar_alasan', 'Alasan meninggalkan sekolah') %><% f('keluar_tujuan', 'Sekolah yang dituju') %>
+      <% f('keluar_kecamatan', 'Kecamatan sekolah tujuan') %><% f('keluar_kabupaten', 'Kabupaten/kota sekolah tujuan') %>
+      <% f('keluar_provinsi', 'Provinsi sekolah tujuan') %><div></div>
+      <% f('lulus_tahun', 'Tamat belajar / lulus tahun') %><% f('no_ijazah', 'Nomor ijazah / STL') %>
+      <% f('lanjut_ke', 'Akan melanjutkan ke', { full: true }) %>
+    </div></fieldset>
+  </details>
   <div class="form-actions">
     <% if (!st.id) { %><button class="btn" name="lagi" value="1">Simpan &amp; tambah lagi</button><% } %>
     <button class="btn btn-primary"><%- h.icon('check') %> Simpan</button>

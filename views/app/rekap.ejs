@@ -1,0 +1,24 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head"><div><h1>Rekap Nilai &amp; Deskripsi</h1><p>Sama dengan sheet “REKAP SEMUA”, “REKAP AGAMA”, dan “Rekap SENI” di Excel · <%= h.periodLabel(period) %></p></div>
+  <a class="btn" href="?format=csv&period=<%= period.id %><%= pilih ? '&mapel=' + pilih.key : '' %>"><%- h.icon('download') %> Unduh CSV (Excel)</a></div>
+<div class="card" style="padding:.9rem 1.1rem"><div class="chips">
+  <a class="chip <%= !pilih ? 'active' : '' %>" href="?period=<%= period.id %>">Semua mapel</a>
+  <% cols.forEach(c => { %><a class="chip <%= pilih && pilih.key === c.key ? 'active' : '' %>" href="?period=<%= period.id %>&mapel=<%= c.key %>"><%= c.nama %></a><% }) %>
+</div></div>
+<div class="card flush">
+  <div class="table-wrap">
+  <table class="table" style="font-size:.84rem">
+    <thead><tr><th class="num">No</th><th>Nama siswa</th><% shown.forEach(c => { %><th class="num"><%= c.nama %><br>Nilai</th><th style="min-width:280px">Deskripsi capaian tertinggi</th><th style="min-width:280px">Deskripsi capaian terendah</th><% }) %></tr></thead>
+    <tbody>
+    <% report.students.forEach((r, i) => { %>
+      <tr><td class="num"><%= i + 1 %></td><td><b><%= r.student.nama %></b><% if (shown.some(c => c.key === 'agama')) { %><br><small><%= r.student.agama || '' %></small><% } %></td>
+      <% shown.forEach(c => { const m = cell(r, c); %>
+        <td class="num"><b><%= m && m.na != null ? m.na : '–' %></b></td><td><%= m ? m.deskripsi[0] || '' : '' %></td><td><%= m ? m.deskripsi[1] || '' : '' %></td>
+      <% }) %></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<%- include('../partials/bottom') %>

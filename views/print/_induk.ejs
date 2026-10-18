@@ -1,0 +1,62 @@
+<% const s = r.settings, st = r.student; let n = 0;
+   const row = (label, val, sub) => { %><tr><td style="width:9mm"><%= sub ? '' : (++n) + '.' %></td><td style="width:42%;<%= sub ? 'padding-left:6mm' : '' %>"><%= label %></td><td class="sep">:</td><td><%= (val === undefined || val === null || val === '') ? '-' : val %></td></tr><% };
+   const grp = (label) => { %><tr><td style="width:9mm"><%= (++n) + '.' %></td><td colspan="3"><%= label %></td></tr><% };
+   const head = (t) => { %><tr><td colspan="4" class="bold" style="padding-top:7px"><%= t %></td></tr><% }; %>
+<section class="page">
+  <div class="doc-title" style="font-size:13pt">IDENTITAS PESERTA DIDIK</div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8mm">
+    <table class="info" style="width:auto"><tr><td>NIS</td><td class="sep">:</td><td class="bold"><%= st.nis || '-' %></td></tr><tr><td>NISN</td><td class="sep">:</td><td class="bold"><%= st.nisn || '-' %></td></tr></table>
+    <div class="photo">Pas foto<br>3 × 4</div>
+  </div>
+  <table class="info small" style="line-height:1.45;margin-top:4px">
+    <% head('A. KETERANGAN TENTANG DIRI PESERTA DIDIK') %>
+    <% row('Nama lengkap peserta didik', st.nama) %><% row('Nama panggilan', st.panggilan, true) %>
+    <% row('Jenis kelamin', h.jk(st.jenis_kelamin)) %><% row('Tempat dan tanggal lahir', h.ttl(st)) %><% row('Agama', st.agama) %>
+    <% row('Kewarganegaraan', st.kewarganegaraan) %><% row('Anak keberapa', st.anak_ke) %><% row('Jumlah saudara kandung', st.saudara_kandung) %>
+    <% row('Jumlah saudara tiri', st.saudara_tiri) %><% row('Jumlah saudara angkat', st.saudara_angkat) %><% row('Bahasa sehari-hari di keluarga', st.bahasa) %>
+    <% head('B. KETERANGAN TEMPAT TINGGAL') %>
+    <% row('Alamat', st.alamat) %><% row('Nomor telepon / HP', st.telp) %><% row('Bertempat tinggal pada/bersama', st.tinggal_bersama) %>
+    <% row('Jarak tempat tinggal ke sekolah', st.jarak_km ? st.jarak_km + ' km' : '') %>
+    <% head('C. KETERANGAN TENTANG KESEHATAN') %>
+    <% row('Golongan darah', st.gol_darah) %><% row('Penyakit yang pernah diderita', st.penyakit) %><% row('Kelainan jasmani', st.kelainan) %>
+    <% row('Tinggi dan berat badan saat diterima', (st.tinggi_diterima ? st.tinggi_diterima + ' cm' : '-') + ' / ' + (st.berat_diterima ? st.berat_diterima + ' kg' : '-')) %>
+    <% grp('Keadaan jasmani') %>
+  </table>
+  <table class="grid small" style="width:auto;margin:3px 0 0 9mm">
+    <thead><tr><th>Tahun Pelajaran</th><th>Semester</th><th>Berat Badan</th><th>Tinggi Badan</th></tr></thead>
+    <tbody><% if (!r.jasmani.length) { %><tr><td colspan="4" class="center">-</td></tr><% } %>
+    <% r.jasmani.forEach(j => { %><tr><td><%= j.tahun_pelajaran %></td><td class="center"><%= j.semester %></td><td class="center"><%= j.berat ? j.berat + ' kg' : '-' %></td><td class="center"><%= j.tinggi ? j.tinggi + ' cm' : '-' %></td></tr><% }) %></tbody>
+  </table>
+  <table class="info small" style="line-height:1.45">
+    <% head('D. KETERANGAN TENTANG PENDIDIKAN') %>
+    <% grp('Pendidikan sebelumnya') %><% row('a. Asal murid', st.asal_murid || st.pendidikan_sebelumnya, true) %><% row('b. Nama Taman Kanak-Kanak', st.nama_tk, true) %>
+    <% row('c. Alamat', st.alamat_tk, true) %><% row('d. Tanggal dan nomor STTB', st.sttb, true) %>
+    <% grp('Pindahan dari sekolah lain') %><% row('a. Nama sekolah asal', st.pindahan_sekolah, true) %><% row('b. Dari tingkat / kelas', st.pindahan_kelas, true) %>
+    <% row('c. NIS', st.pindahan_nis, true) %><% row('d. Alasan pindah', st.pindahan_alasan, true) %>
+    <% grp('Diterima di sekolah ini') %><% row('a. Diterima tanggal', h.tanggal(st.diterima_tanggal), true) %><% row('b. Di kelas / tingkat', st.diterima_kelas, true) %>
+  </table>
+</section>
+<section class="page">
+  <table class="info small" style="line-height:1.5">
+    <% head('E. KETERANGAN TENTANG AYAH KANDUNG') %>
+    <% row('Nama', st.ayah_nama) %><% row('Tahun lahir', st.ayah_tahun_lahir) %><% row('Agama', st.ayah_agama) %><% row('Pendidikan', st.ayah_pendidikan) %><% row('Pekerjaan', st.ayah_pekerjaan) %>
+    <% head('F. KETERANGAN TENTANG IBU KANDUNG') %>
+    <% row('Nama', st.ibu_nama) %><% row('Tahun lahir', st.ibu_tahun_lahir) %><% row('Agama', st.ibu_agama) %><% row('Pendidikan', st.ibu_pendidikan) %><% row('Pekerjaan', st.ibu_pekerjaan) %>
+    <% head('G. KETERANGAN TENTANG WALI') %>
+    <% row('Nama', st.wali_nama) %><% row('Tahun lahir', st.wali_tahun_lahir) %><% row('Agama', st.wali_agama) %><% row('Pendidikan', st.wali_pendidikan) %>
+    <% row('Pekerjaan', st.wali_pekerjaan) %><% row('Alamat rumah', st.wali_alamat) %><% row('Hubungan keluarga', st.wali_hubungan) %>
+    <% head('H. KETERANGAN PERKEMBANGAN PESERTA DIDIK') %>
+    <% row('Menerima beasiswa', st.beasiswa) %>
+    <% grp('Meninggalkan sekolah') %><% row('a. Tanggal meninggalkan sekolah', h.tanggal(st.keluar_tanggal), true) %><% row('b. Kelas yang ditinggalkan', st.keluar_kelas, true) %>
+    <% row('c. Alasan', st.keluar_alasan, true) %><% row('d. Sekolah yang dituju', st.keluar_tujuan, true) %><% row('e. Kecamatan', st.keluar_kecamatan, true) %>
+    <% row('f. Kabupaten/Kota', st.keluar_kabupaten, true) %><% row('g. Provinsi', st.keluar_provinsi, true) %>
+    <% grp('Akhir pendidikan') %><% row('a. Tamat belajar / lulus tahun', st.lulus_tahun, true) %><% row('b. Nomor ijazah / STL', st.no_ijazah, true) %><% row('c. Akan melanjutkan ke', st.lanjut_ke, true) %>
+  </table>
+  <div style="display:flex;justify-content:flex-end;margin-top:10mm">
+    <div class="center" style="min-width:70mm"><%= s.kecamatan || '' %>, .........................<br>Kepala Sekolah<div style="height:58px"></div>
+      <div class="bold" style="text-decoration:underline"><%= s.kepsek_nama || '.............................' %></div><div>NIP. <%= s.kepsek_nip || '-' %></div></div>
+  </div>
+</section>
+<% r.rapor.forEach(rr => { %>
+  <%- include('_rapor', { r: rr, parts: ['nilai'], judulNilai: 'BUKU INDUK SISWA' }) %>
+<% }) %>

@@ -5,7 +5,7 @@
   <% classes.forEach(c => { %>
   <a class="stat" href="/app/kelas/<%= c.id %>" style="color:inherit;text-decoration:none">
     <div style="display:flex;justify-content:space-between"><b style="font-size:1.2rem">Kelas <%= c.nama %></b><span class="badge badge-primary">Fase <%= c.fase %></span></div>
-    <div class="muted">Wali kelas: <%= c.guru_nama || '—' %></div>
+    <div class="muted">Guru kelas: <%= c.guru_nama || '—' %></div>
     <div class="muted"><%= c.jumlah_siswa %> siswa aktif</div>
   </a>
   <% }) %>
@@ -18,7 +18,7 @@
   <div class="grid grid-4" style="align-items:end">
     <div class="field"><label>Nama kelas</label><input name="nama" placeholder="IV A" required></div>
     <div class="field"><label>Tingkat</label><select name="tingkat"><% for (let i = 1; i <= 6; i++) { %><option value="<%= i %>"><%= h.TERBILANG_KELAS[i] %></option><% } %></select></div>
-    <div class="field"><label>Wali kelas</label><select name="guru_id"><option value="">— pilih —</option><% gurus.forEach(g => { %><option value="<%= g.id %>"><%= g.nama %></option><% }) %></select></div>
+    <div class="field"><label>Guru kelas</label><select name="guru_id"><option value="">— pilih —</option><% gurus.forEach(g => { %><option value="<%= g.id %>"><%= g.nama %></option><% }) %></select></div>
     <div class="field"><button class="btn btn-primary"><%- h.icon('plus') %> Tambah kelas</button></div>
   </div>
 </form>

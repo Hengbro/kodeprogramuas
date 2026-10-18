@@ -32,6 +32,14 @@
     <div class="card">
       <div class="card-head"><h2>Tujuan Pembelajaran</h2><span class="badge badge-primary">Formatif per TP</span></div>
       <p class="muted">Deskripsi rapor otomatis memakai TP dengan nilai formatif tertinggi &amp; terendah. Tulis diawali kata kerja (mis. “mengidentifikasi …”).</p>
+      <details class="box"><summary>Contoh penulisan TP (dari sheet “contoh tp”)</summary>
+        <table class="table" style="font-size:.82rem;margin-top:.4rem"><thead><tr><th>TP di modul ajar</th><th>TP di aplikasi rapor</th></tr></thead><tbody>
+          <tr><td>Setelah mengamati lingkungan sekitar, siswa dapat menyebutkan jenis tanaman berdasarkan tempat tinggalnya</td><td><b>menyebutkan jenis tanaman berdasarkan tempat tinggalnya</b></td></tr>
+          <tr><td>Dengan mengamati contoh, siswa dapat mengklasifikasi tanaman berdasarkan tempat hidupnya</td><td><b>mengklasifikasi tanaman berdasarkan tempat hidupnya</b></td></tr>
+          <tr><td>Melalui wawancara, siswa dapat menyebutkan tanaman yang bermanfaat bagi manusia</td><td><b>menyebutkan tanaman yang bermanfaat bagi manusia</b></td></tr>
+        </tbody></table>
+        <p class="muted" style="margin:0">Buang bagian “Setelah…/Dengan…, siswa dapat”, mulai dari kata kerja dengan huruf kecil. Hasilnya di rapor: “Budi menunjukkan penguasaan yang baik dalam <b>menyebutkan jenis tanaman …</b>”.</p>
+      </details>
       <div class="list-editor" data-list="tp">
         <% tp.forEach((t, i) => { %>
         <div class="row"><span class="idx">TP<%= i + 1 %></span><input type="hidden" name="tp_id" value="<%= t.id %>"><textarea name="tp" rows="1"><%= t.deskripsi %></textarea><button type="button" class="btn btn-sm btn-ghost" data-remove title="Hapus">✕</button></div>

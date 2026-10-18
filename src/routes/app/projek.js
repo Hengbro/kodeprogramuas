@@ -85,16 +85,31 @@ router.get('/:classId/projek/:projectId/nilai', loadClass, loadProject, (req, re
     .map((r) => [`${r.subelemen_id}:${r.student_id}`, r.nilai]));
   const notes = new Map(db.prepare('SELECT * FROM project_notes WHERE project_id = ?').all(req.project.id).map((r) => [r.student_id, r.catatan]));
   const bank = db.prepare("SELECT teks FROM bank_kalimat WHERE jenis = 'proses' ORDER BY id").all().map((r) => r.teks);
-  res.render('app/projek-nilai', { title: `Penilaian ${req.project.nama}`, project: req.project, students, targets, scores, notes, bank, P5_LEVEL });
+  const dims = db.prepare('SELECT * FROM p5_dimensi ORDER BY urutan').all();
+  const dimScores = new Map(db.prepare('SELECT * FROM project_dim_scores WHERE project_id = ?').all(req.project.id)
+    .map((r) => [`${r.dimensi_id}:${r.student_id}`, r.nilai]));
+  res.render('app/projek-nilai', {
+    title: `Penilaian ${req.project.nama}`, project: req.project, students, targets, scores, notes, bank, P5_LEVEL, dims, dimScores,
+  });
 });
 
 router.post('/:classId/projek/:projectId/nilai', loadClass, loadProject, (req, res) => {
   const p = req.project;
   const students = studentsOfClass(p.period_id, req.cls.id);
   const targets = targetsOf(p.id, req.cls.fase);
+  const dims = db.prepare('SELECT id FROM p5_dimensi').all();
   const b = req.body;
   db.transaction(() => {
     for (const st of students) {
+      for (const d of dims) {
+        const v = Number(b[`d_${d.id}_${st.id}`]);
+        if (v >= 1 && v <= 4) {
+          db.prepare(`INSERT INTO project_dim_scores (project_id, student_id, dimensi_id, nilai) VALUES (?, ?, ?, ?)
+            ON CONFLICT DO UPDATE SET nilai = excluded.nilai`).run(p.id, st.id, d.id, v);
+        } else {
+          db.prepare('DELETE FROM project_dim_scores WHERE project_id = ? AND student_id = ? AND dimensi_id = ?').run(p.id, st.id, d.id);
+        }
+      }
       for (const t of targets) {
         const v = Number(b[`p_${t.id}_${st.id}`]);
         if (v >= 1 && v <= 4) {

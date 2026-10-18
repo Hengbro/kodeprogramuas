@@ -1,5 +1,5 @@
 const express = require('express');
-const { db } = require('../../db');
+const { db, BUKU_INDUK_FIELDS } = require('../../db');
 const { allowedClasses, canAccessClass } = require('../../lib/auth');
 const { buildStudentRapor } = require('../../lib/rapor');
 const { str } = require('./_util');
@@ -10,6 +10,8 @@ const router = express.Router();
 const FIELDS = ['nis', 'nisn', 'nama', 'panggilan', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama',
   'pendidikan_sebelumnya', 'alamat', 'ayah_nama', 'ibu_nama', 'ayah_pekerjaan', 'ibu_pekerjaan', 'ortu_jalan',
   'ortu_desa', 'ortu_kecamatan', 'ortu_kabupaten', 'ortu_provinsi', 'wali_nama', 'wali_pekerjaan', 'wali_alamat'];
+// semua kolom yang disimpan (identitas rapor + Buku Induk)
+const ALL_FIELDS = [...FIELDS, ...BUKU_INDUK_FIELDS];
 const AGAMA = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Khonghucu'];
 
 function normAgama(v) {
@@ -36,10 +38,12 @@ function normDate(v) {
 
 function studentFromBody(b) {
   const data = {};
-  for (const f of FIELDS) data[f] = str(b[f]);
+  for (const f of ALL_FIELDS) data[f] = str(b[f]);
   data.jenis_kelamin = normJK(data.jenis_kelamin);
   data.agama = normAgama(data.agama);
   data.tanggal_lahir = normDate(data.tanggal_lahir);
+  data.diterima_tanggal = normDate(data.diterima_tanggal);
+  data.keluar_tanggal = normDate(data.keluar_tanggal);
   return data;
 }
 
@@ -80,16 +84,16 @@ router.post('/siswa/baru', (req, res) => {
   if (!data.nama) { req.flash('error', 'Nama siswa wajib diisi.'); return res.redirect('/app/siswa/baru'); }
   if (classId && !canAccessClass(res.locals.user, classId)) return res.redirect('/app/siswa');
   if (!classId && res.locals.user.role !== 'admin') { req.flash('error', 'Pilih kelas.'); return res.redirect('/app/siswa/baru'); }
-  const cols = [...FIELDS, 'class_id'];
+  const cols = [...ALL_FIELDS, 'class_id'];
   const id = db.prepare(`INSERT INTO students (${cols.join(',')}) VALUES (${cols.map(() => '?').join(',')})`)
-    .run(...FIELDS.map((f) => data[f]), classId).lastInsertRowid;
+    .run(...ALL_FIELDS.map((f) => data[f]), classId).lastInsertRowid;
   req.flash('success', `Siswa ${data.nama} ditambahkan.`);
   res.redirect(req.body.lagi ? `/app/siswa/baru?kelas=${classId || ''}` : `/app/siswa/${id}`);
 });
 
 router.get('/siswa/impor', (req, res) => {
   const classes = allowedClasses(res.locals.user);
-  res.render('app/siswa-impor', { title: 'Impor Siswa', classes, FIELDS, kelas: req.query.kelas || '' });
+  res.render('app/siswa-impor', { title: 'Impor Siswa', classes, FIELDS, EXTRA: BUKU_INDUK_FIELDS, kelas: req.query.kelas || '' });
 });
 
 router.post('/siswa/impor', (req, res) => {
@@ -102,7 +106,7 @@ router.post('/siswa/impor', (req, res) => {
   if (rows.length < 2) { req.flash('error', 'Data kosong. Baris pertama harus berisi judul kolom.'); return res.redirect('/app/siswa/impor'); }
   const header = rows[0].map((h) => h.trim().toLowerCase().replace(/\s+/g, '_'));
   let n = 0;
-  const cols = [...FIELDS, 'class_id'];
+  const cols = [...ALL_FIELDS, 'class_id'];
   const ins = db.prepare(`INSERT INTO students (${cols.join(',')}) VALUES (${cols.map(() => '?').join(',')})`);
   db.transaction(() => {
     for (const r of rows.slice(1)) {
@@ -110,7 +114,7 @@ router.post('/siswa/impor', (req, res) => {
       header.forEach((h, i) => { obj[h] = r[i]; });
       const data = studentFromBody(obj);
       if (!data.nama) continue;
-      ins.run(...FIELDS.map((f) => data[f]), classId);
+      ins.run(...ALL_FIELDS.map((f) => data[f]), classId);
       n += 1;
     }
   })();
@@ -153,8 +157,8 @@ router.post('/siswa/:id', (req, res) => {
   let classId = Number(req.body.class_id) || null;
   if (classId && !canAccessClass(res.locals.user, classId)) classId = st.class_id;
   const status = ['aktif', 'pindah', 'lulus', 'keluar'].includes(req.body.status) ? req.body.status : st.status;
-  db.prepare(`UPDATE students SET ${FIELDS.map((f) => `${f} = ?`).join(', ')}, class_id = ?, status = ? WHERE id = ?`)
-    .run(...FIELDS.map((f) => data[f]), classId, status, st.id);
+  db.prepare(`UPDATE students SET ${ALL_FIELDS.map((f) => `${f} = ?`).join(', ')}, class_id = ?, status = ? WHERE id = ?`)
+    .run(...ALL_FIELDS.map((f) => data[f]), classId, status, st.id);
   req.flash('success', 'Data siswa disimpan.');
   res.redirect(`/app/siswa/${st.id}`);
 });

@@ -1,0 +1,34 @@
+<% const s = r.settings, st = r.student; %>
+<section class="page">
+  <div class="doc-title" style="font-size:13pt">KETERANGAN PINDAH SEKOLAH</div>
+  <p>Nama Peserta Didik : <b class="upper"><%= st.nama %></b></p>
+  <table class="grid">
+    <thead><tr><th colspan="4">KELUAR</th></tr>
+      <tr><th style="width:26mm">Tanggal</th><th style="width:30mm">Kelas yang Ditinggalkan</th><th>Alasan</th><th style="width:72mm">Tanda Tangan Kepala Sekolah, Stempel Sekolah, dan Tanda Tangan Orang Tua/Wali</th></tr></thead>
+    <tbody>
+      <% [0, 1].forEach(i => { const isi = i === 0 && st.keluar_tanggal; %>
+      <tr style="height:62mm"><td class="center"><%= isi ? h.tanggal(st.keluar_tanggal) : '' %></td><td class="center"><%= isi ? (st.keluar_kelas || '') : '' %></td>
+        <td><%= isi ? (st.keluar_alasan || '') : '' %><% if (isi && st.keluar_tujuan) { %><br><span class="small">Sekolah tujuan: <%= st.keluar_tujuan %><%= st.keluar_kabupaten ? ', ' + st.keluar_kabupaten : '' %></span><% } %></td>
+        <td class="small"><%= s.kecamatan || '...............' %>, ....................<br>Kepala Sekolah,<div style="height:40px"></div><b><%= isi ? (s.kepsek_nama || '') : '.......................' %></b><br>NIP. <%= isi ? (s.kepsek_nip || '') : '' %>
+          <div style="margin-top:8px">Orang Tua/Wali</div><div style="height:36px"></div><%= isi ? (st.ayah_nama || st.wali_nama || '') : '.......................' %></td></tr>
+      <% }) %>
+    </tbody>
+  </table>
+</section>
+<section class="page">
+  <div class="doc-title" style="font-size:13pt">KETERANGAN PINDAH SEKOLAH</div>
+  <p>Nama Peserta Didik : <b class="upper"><%= st.nama %></b></p>
+  <table class="grid">
+    <thead><tr><th style="width:9mm">NO</th><th colspan="2">MASUK</th><th style="width:62mm"></th></tr></thead>
+    <tbody>
+    <% [1, 2].forEach(i => { const isi = i === 1 && st.pindahan_sekolah; const v = (x) => isi ? (x || '-') : '.............................'; %>
+      <tr><td class="center" rowspan="1"><%= i %></td><td colspan="2">
+        <table class="info"><% [['Nama Peserta Didik', isi ? st.nama : null], ['Nomor Induk', isi ? st.nis : null], ['Nama Sekolah (asal)', isi ? st.pindahan_sekolah : null], ['Masuk di Sekolah ini:', ''],
+          ['a. Tanggal', isi ? h.tanggal(st.diterima_tanggal) : null], ['b. Di Kelas', isi ? st.diterima_kelas : null], ['c. Tahun Pelajaran', isi ? r.period.tahun_pelajaran : null]].forEach(([k, x]) => { %>
+          <tr><td style="width:45mm"><%= k %></td><td><%= x === '' ? '' : v(x) %></td></tr><% }) %></table></td>
+        <td class="small center"><%= s.kecamatan || '...............' %>, ....................<br>Kepala Sekolah,<div style="height:48px"></div><b><%= isi ? (s.kepsek_nama || '') : '.......................' %></b><br>NIP. <%= isi ? (s.kepsek_nip || '') : '' %></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  <%- include('_ttd', { r, tanggal: null }) %>
+</section>

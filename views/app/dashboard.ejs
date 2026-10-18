@@ -31,7 +31,7 @@
 <div class="card">
   <div class="card-head"><h2>Kelas <%= user.role === 'admin' ? '' : 'yang Anda ampu' %></h2></div>
   <% if (!classes.length) { %>
-    <div class="empty"><%- h.icon('class') %><p><%= user.role === 'admin' ? 'Belum ada kelas. Buat kelas pertama Anda.' : 'Anda belum ditetapkan sebagai wali kelas. Hubungi admin.' %></p>
+    <div class="empty"><%- h.icon('class') %><p><%= user.role === 'admin' ? 'Belum ada kelas. Buat kelas pertama Anda.' : 'Anda belum ditetapkan sebagai guru kelas. Hubungi admin.' %></p>
       <% if (user.role === 'admin') { %><a class="btn btn-primary" href="/app/kelas">Buat Kelas</a><% } %></div>
   <% } else { %>
   <div class="grid grid-3">
@@ -41,7 +41,7 @@
         <div style="font-size:1.25rem;font-weight:800">Kelas <%= c.nama %></div>
         <span class="badge badge-primary">Fase <%= c.fase %></span>
       </div>
-      <div class="muted" style="margin:.25rem 0 .75rem"><%= c.guru_nama || 'Belum ada wali kelas' %> · <%= c.jumlah_siswa %> siswa</div>
+      <div class="muted" style="margin:.25rem 0 .75rem"><%= c.guru_nama || 'Belum ada guru kelas' %> · <%= c.jumlah_siswa %> siswa</div>
       <div class="progress"><span style="width:<%= pct %>%"></span></div>
       <small><%= c.progress.nilai %> dari <%= c.progress.mapel %> mapel sudah dinilai · <%= c.progress.tp %> TP</small>
     </a>

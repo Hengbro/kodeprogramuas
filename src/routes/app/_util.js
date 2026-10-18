@@ -8,7 +8,7 @@ function loadClass(req, res, next) {
     LEFT JOIN users u ON u.id = c.guru_id WHERE c.id = ?`).get(req.params.classId);
   if (!cls) return res.status(404).render('error', { title: 'Kelas tidak ditemukan', message: 'Kelas tidak ditemukan.' });
   if (!canAccessClass(res.locals.user, cls.id)) {
-    return res.status(403).render('error', { title: 'Akses ditolak', message: 'Anda bukan wali kelas ini.' });
+    return res.status(403).render('error', { title: 'Akses ditolak', message: 'Anda bukan guru kelas ini.' });
   }
   ensureClassSubjects(cls);
   res.locals.cls = cls;

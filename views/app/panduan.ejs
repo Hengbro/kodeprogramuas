@@ -1,0 +1,26 @@
+<%- include('../partials/top') %>
+<div class="page-head"><div><h1>Panduan: dari Excel ke Website</h1>
+<p>Daftar setiap sheet di file <b>RAPOR SAH Kurikulum Merdeka Fase B &amp; C (Revisi 2023)</b> dan tempatnya di sistem ini. Urutan kerja tetap sama: <b>1. Data Utama → 2. Input Nilai → 3. Catatan Siswa → Rapor Projek → Cetak</b>.</p></div></div>
+<% PETA.forEach(([grup, rows]) => { %>
+<div class="card flush">
+  <div class="card-head" style="padding-bottom:.6rem"><h2><%= grup %></h2></div>
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th style="width:24%">Sheet di Excel</th><th style="width:28%">Isinya</th><th>Di website</th><th class="actions"></th></tr></thead>
+    <tbody>
+    <% rows.forEach(([sheet, isi, web, link]) => { %>
+      <tr><td><code><%= sheet %></code></td><td class="muted"><%= isi %></td><td><b><%= web %></b></td>
+        <td class="actions"><% if (link) { %><a class="btn btn-sm" href="<%= link %>">Buka</a><% } %></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<% }) %>
+<div class="card">
+  <h2>Kebiasaan lama → cara baru</h2>
+  <table class="table"><thead><tr><th style="width:45%">Di Excel</th><th>Di website</th></tr></thead><tbody>
+  <% ISTILAH.forEach(([a, b]) => { %><tr><td><%= a %></td><td><%= b %></td></tr><% }) %>
+  </tbody></table>
+</div>
+<%- include('../partials/bottom') %>

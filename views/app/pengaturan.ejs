@@ -36,8 +36,11 @@
       <label class="checkbox"><input type="checkbox" name="desk_nama" value="1" <%= settings.desk_nama === '1' ? 'checked' : '' %>> Awali deskripsi dengan nama panggilan siswa</label>
     </div>
     <div>
-      <div class="field"><label>Kalimat capaian tertinggi (mode tanpa predikat)</label><input name="kalimat_tinggi" value="<%= settings.kalimat_tinggi %>"></div>
-      <div class="field"><label>Kalimat capaian terendah (mode tanpa predikat)</label><input name="kalimat_rendah" value="<%= settings.kalimat_rendah %>"></div>
+      <div class="field"><label>Kalimat capaian tertinggi (mode tanpa predikat)</label><input name="kalimat_tinggi" list="opsi-tinggi" value="<%= settings.kalimat_tinggi %>"></div>
+      <div class="field"><label>Kalimat capaian terendah (mode tanpa predikat)</label><input name="kalimat_rendah" list="opsi-rendah" value="<%= settings.kalimat_rendah %>"></div>
+      <p class="hint muted">Pilihan sama seperti daftar di Excel; boleh juga diketik sendiri.</p>
+      <datalist id="opsi-tinggi"><% ['menunjukkan penguasaan dalam', 'menunjukkan penguasaan yang sangat baik dalam', 'menunjukkan pemahaman dalam', 'menunjukkan pemahaman yang sangat baik dalam'].forEach(o => { %><option value="<%= o %>"><% }) %></datalist>
+      <datalist id="opsi-rendah"><% ['perlu bimbingan dalam', 'perlu bantuan dalam', 'perlu pembinaan dalam', 'perlu pendampingan dalam'].forEach(o => { %><option value="<%= o %>"><% }) %></datalist>
     </div>
   </div>
   <hr>
@@ -45,9 +48,9 @@
   <div class="grid grid-3">
     <div class="field"><label>Peringkat pada catatan guru</label>
       <select name="catatan_ranking">
-        <option value="none" <%= settings.catatan_ranking === 'none' ? 'selected' : '' %>>Tidak ditampilkan</option>
-        <option value="top10" <%= settings.catatan_ranking === 'top10' ? 'selected' : '' %>>Tampilkan untuk peringkat 1–10</option>
-        <option value="all" <%= settings.catatan_ranking === 'all' ? 'selected' : '' %>>Tampilkan untuk semua siswa</option>
+        <option value="none" <%= settings.catatan_ranking === 'none' ? 'selected' : '' %>>Saran saja</option>
+        <option value="top10" <%= settings.catatan_ranking === 'top10' ? 'selected' : '' %>>Saran dan Ranking 1–10</option>
+        <option value="all" <%= settings.catatan_ranking === 'all' ? 'selected' : '' %>>Saran dan Ranking semua siswa</option>
       </select></div>
     <div class="field"><label>Label tanda tangan orang tua</label>
       <select name="ttd_ortu"><% ['Orang Tua/Wali', 'Ayah', 'Ibu', 'Wali'].forEach(o => { %><option <%= settings.ttd_ortu === o ? 'selected' : '' %>><%= o %></option><% }) %></select></div>
@@ -58,9 +61,9 @@
 
 <div class="card" id="bank">
   <h2>Bank kalimat</h2>
-  <p class="muted">Kalimat siap pakai yang muncul sebagai pilihan saat mengisi catatan wali kelas, keterangan ekstrakurikuler, dan catatan proses projek. Satu kalimat per baris.</p>
+  <p class="muted">Kalimat siap pakai yang muncul sebagai pilihan saat mengisi catatan guru, keterangan ekstrakurikuler, dan catatan proses projek. Satu kalimat per baris.</p>
   <div class="grid grid-3">
-  <% [['catatan', 'Catatan wali kelas'], ['ekskul', 'Keterangan ekstrakurikuler'], ['proses', 'Catatan proses projek']].forEach(([j, label]) => { %>
+  <% [['catatan', 'Catatan guru'], ['ekskul', 'Keterangan ekstrakurikuler'], ['proses', 'Catatan proses projek']].forEach(([j, label]) => { %>
     <form method="post" action="/app/pengaturan/bank">
       <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="jenis" value="<%= j %>">
       <label><%= label %></label>

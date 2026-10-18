@@ -3,7 +3,7 @@
 <body>
 <div class="toolbar"><a href="/app/kelas/<%= cls.id %>/leger">← Kembali</a><span class="sp"></span><button class="primary" onclick="window.print()">Cetak / Simpan PDF</button></div>
 <section class="page landscape">
-  <div class="doc-title">LEGER NILAI PESERTA DIDIK<br><%= settings.nama_sekolah %></div>
+  <div class="doc-title">REKAP NILAI SISWA (LEGER)<br><%= settings.nama_sekolah %></div>
   <table class="info" style="width:auto;margin-bottom:6px"><tr><td>Kelas</td><td>:</td><td><%= cls.nama %> (Fase <%= cls.fase %>)</td><td style="width:20mm"></td><td>Semester</td><td>:</td><td><%= period.semester %></td><td style="width:20mm"></td><td>Tahun Pelajaran</td><td>:</td><td><%= period.tahun_pelajaran %></td></tr></table>
   <table class="grid small">
     <thead><tr><th>No</th><th>NISN</th><th style="min-width:45mm">Nama</th><% cols.forEach(c => { %><th><%= c.singkat %></th><% }) %><th>Jml</th><th>Rata²</th><th>Rank</th></tr></thead>
@@ -18,7 +18,7 @@
   </table>
   <div class="ttd" style="grid-template-columns:1fr 1fr">
     <div>Mengetahui,<br>Kepala Sekolah<div class="space"></div><div class="name"><%= settings.kepsek_nama || '.....................' %></div><div>NIP. <%= settings.kepsek_nip || '-' %></div></div>
-    <div><%= period.tempat_rapor || settings.kecamatan || '' %>, <%= h.tanggal(period.tanggal_rapor) || '.............' %><br>Wali Kelas<div class="space"></div><div class="name"><%= cls.guru_nama || '.....................' %></div><div>NIP. <%= cls.guru_nip || '-' %></div></div>
+    <div><%= period.tempat_rapor || settings.kecamatan || '' %>, <%= h.tanggal(period.tanggal_rapor) || '.............' %><br>Guru Kelas<div class="space"></div><div class="name"><%= cls.guru_nama || '.....................' %></div><div>NIP. <%= cls.guru_nip || '-' %></div></div>
   </div>
 </section>
 </body></html>

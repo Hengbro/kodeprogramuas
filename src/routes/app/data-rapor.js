@@ -19,10 +19,10 @@ function int(v) {
   return Number.isFinite(n) && n >= 0 ? Math.min(n, 365) : 0;
 }
 
-// ===== Absensi, catatan wali kelas, kenaikan kelas =====
+// ===== Absensi, catatan guru, kenaikan kelas =====
 const PAGES = {
   absensi: { title: 'Ketidakhadiran' },
-  catatan: { title: 'Catatan Wali Kelas' },
+  catatan: { title: 'Catatan Guru' },
   kenaikan: { title: 'Kenaikan Kelas' },
 };
 
@@ -43,8 +43,9 @@ for (const [key, meta] of Object.entries(PAGES)) {
       for (const st of students) {
         touchRaporSiswa(period.id, st.id, req.cls.id);
         if (key === 'absensi') {
-          db.prepare('UPDATE rapor_siswa SET sakit = ?, izin = ?, alpa = ? WHERE period_id = ? AND student_id = ?')
-            .run(int(b[`sakit_${st.id}`]), int(b[`izin_${st.id}`]), int(b[`alpa_${st.id}`]), period.id, st.id);
+          db.prepare('UPDATE rapor_siswa SET sakit = ?, izin = ?, alpa = ?, tinggi = ?, berat = ? WHERE period_id = ? AND student_id = ?')
+            .run(int(b[`sakit_${st.id}`]), int(b[`izin_${st.id}`]), int(b[`alpa_${st.id}`]),
+              str(b[`tinggi_${st.id}`]), str(b[`berat_${st.id}`]), period.id, st.id);
         } else if (key === 'catatan') {
           db.prepare('UPDATE rapor_siswa SET catatan = ? WHERE period_id = ? AND student_id = ?').run(str(b[`catatan_${st.id}`]), period.id, st.id);
         } else {

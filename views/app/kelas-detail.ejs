@@ -2,7 +2,7 @@
 <%- include('_kelas-tabs') %>
 <div class="page-head">
   <div><h1>Kelas <%= cls.nama %> <span class="badge badge-primary">Fase <%= cls.fase %></span></h1>
-  <p>Wali kelas: <b><%= cls.guru_nama || 'belum ditetapkan' %></b> · <%= students.length %> siswa · <%= h.periodLabel(period) %></p></div>
+  <p>Guru kelas: <b><%= cls.guru_nama || 'belum ditetapkan' %></b> · <%= students.length %> siswa · <%= h.periodLabel(period) %></p></div>
   <div class="btn-group">
     <a class="btn" href="/app/siswa/baru?kelas=<%= cls.id %>"><%- h.icon('plus') %> Siswa</a>
     <a class="btn btn-primary" href="/app/kelas/<%= cls.id %>/cetak"><%- h.icon('print') %> Cetak rapor</a>
@@ -51,7 +51,7 @@
       <div class="grid grid-2">
         <a class="btn" href="/app/kelas/<%= cls.id %>/absensi">Ketidakhadiran</a>
         <a class="btn" href="/app/kelas/<%= cls.id %>/ekskul">Ekstrakurikuler</a>
-        <a class="btn" href="/app/kelas/<%= cls.id %>/catatan">Catatan wali kelas</a>
+        <a class="btn" href="/app/kelas/<%= cls.id %>/catatan">Catatan guru</a>
         <a class="btn" href="/app/kelas/<%= cls.id %>/projek">Projek P5 (<%= projects %>)</a>
         <% if (period.semester == 2) { %><a class="btn" href="/app/kelas/<%= cls.id %>/kenaikan">Kenaikan kelas</a><% } %>
         <a class="btn" href="/app/kelas/<%= cls.id %>/leger">Leger nilai</a>
@@ -64,7 +64,7 @@
       <div class="form-grid">
         <div class="field"><label>Nama</label><input name="nama" value="<%= cls.nama %>"></div>
         <div class="field"><label>Tingkat</label><select name="tingkat"><% for (let i = 1; i <= 6; i++) { %><option value="<%= i %>" <%= cls.tingkat === i ? 'selected' : '' %>><%= h.TERBILANG_KELAS[i] %></option><% } %></select></div>
-        <div class="field full"><label>Wali kelas</label><select name="guru_id"><option value="">—</option><% gurus.forEach(g => { %><option value="<%= g.id %>" <%= cls.guru_id === g.id ? 'selected' : '' %>><%= g.nama %></option><% }) %></select></div>
+        <div class="field full"><label>Guru kelas</label><select name="guru_id"><option value="">—</option><% gurus.forEach(g => { %><option value="<%= g.id %>" <%= cls.guru_id === g.id ? 'selected' : '' %>><%= g.nama %></option><% }) %></select></div>
       </div>
       <div class="form-actions">
         <button class="btn btn-danger" name="action" value="delete" data-confirm="Hapus kelas <%= cls.nama %>? Seluruh TP, nilai, dan projek kelas ini ikut terhapus.">Hapus kelas</button>

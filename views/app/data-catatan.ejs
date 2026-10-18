@@ -1,6 +1,6 @@
 <%- include('../partials/top') %>
 <%- include('_kelas-tabs') %>
-<div class="page-head"><div><h1>Catatan Wali Kelas</h1><p>Saran/catatan untuk setiap siswa. Ketik bebas atau pilih dari bank kalimat.</p></div></div>
+<div class="page-head"><div><h1>Catatan Guru</h1><p>Saran/catatan untuk setiap siswa. Ketik bebas atau pilih dari bank kalimat.</p></div></div>
 <datalist id="bank-catatan"><% bank.forEach(b => { %><option value="<%= b %>"><% }) %></datalist>
 <div class="card no-print" style="display:flex;gap:.5rem;align-items:end;flex-wrap:wrap">
   <div style="flex:1;min-width:260px"><label>Isi cepat semua siswa yang masih kosong</label><input id="fill-src" list="bank-catatan" placeholder="Pilih / ketik kalimat"></div>

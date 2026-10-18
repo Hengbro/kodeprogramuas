@@ -150,7 +150,7 @@ function buildStudentRapor(periodId, studentId) {
   let catatan = rs.catatan || '';
   const n = report.students.length;
   if (row && row.rank && (settings.catatan_ranking === 'all' || (settings.catatan_ranking === 'top10' && row.rank <= 10))) {
-    catatan = `${catatan} (Peringkat ${row.rank} dari ${n} siswa)`.trim();
+    catatan = `${catatan} (Ranking ${row.rank} dari ${n} siswa)`.trim();
   }
 
   // susun baris rapor sesuai urutan & kelompok
@@ -168,12 +168,8 @@ function buildStudentRapor(periodId, studentId) {
       mapelRows.push({ no: ++no, nama: agama.nama, kktp: agama.kktp, ...mapel[agama.id] });
     } else if (s.kelompok === 'seni') {
       if (seen.has('seni')) continue; seen.add('seni');
-      if (seni.length === 1) {
-        mapelRows.push({ no: ++no, nama: `Seni dan Budaya: ${seni[0].nama}`, kktp: seni[0].kktp, ...mapel[seni[0].id] });
-      } else {
-        mapelRows.push({ no: ++no, nama: 'Seni dan Budaya', header: true });
-        seni.forEach((x, i) => mapelRows.push({ sub: String.fromCharCode(97 + i), nama: x.nama, kktp: x.kktp, ...mapel[x.id] }));
-      }
+      mapelRows.push({ no: ++no, nama: 'Seni (Pilihan)', header: true });
+      seni.forEach((x, i) => mapelRows.push({ sub: String.fromCharCode(97 + i), nama: x.nama, kktp: x.kktp, ...mapel[x.id] }));
     } else if (s.kelompok === 'mulok') {
       if (seen.has('mulok')) continue; seen.add('mulok');
       mapelRows.push({ no: ++no, nama: 'Muatan Lokal', header: true });
@@ -216,6 +212,14 @@ function buildProjectRapor(periodId, studentId) {
       d.nilai = vals.length ? Math.max(...vals) : null;
     }
     p.dimensi = dims;
+    // ringkasan 6 dimensi: penilaian umum bila diisi, jika tidak pakai nilai tertinggi sub-elemen
+    const umum = new Map(db.prepare('SELECT dimensi_id, nilai FROM project_dim_scores WHERE project_id = ? AND student_id = ?')
+      .all(p.id, studentId).map((r) => [r.dimensi_id, r.nilai]));
+    p.ringkasan = new Map();
+    for (const d of db.prepare('SELECT id FROM p5_dimensi').all()) {
+      const fromSub = dims.find((x) => x.id === d.id);
+      p.ringkasan.set(d.id, umum.get(d.id) || (fromSub ? fromSub.nilai : null));
+    }
     const note = db.prepare('SELECT catatan FROM project_notes WHERE project_id = ? AND student_id = ?').get(p.id, studentId);
     p.catatan = note ? note.catatan : '';
   }
@@ -223,7 +227,22 @@ function buildProjectRapor(periodId, studentId) {
   return { ...base, projects, allDims, P5_LEVEL };
 }
 
+/** Data Buku Induk: identitas lengkap + rapor setiap periode yang pernah diikuti. */
+function buildBukuInduk(studentId) {
+  const student = db.prepare('SELECT * FROM students WHERE id = ?').get(studentId);
+  if (!student) return null;
+  const periods = db.prepare(`SELECT p.* FROM periods p JOIN rapor_siswa rs ON rs.period_id = p.id AND rs.student_id = ?
+    ORDER BY p.tahun_pelajaran, p.semester`).all(studentId);
+  const rapor = periods.map((p) => buildStudentRapor(p.id, studentId)).filter((r) => r && r.cls);
+  const active = getActivePeriod();
+  const base = buildStudentRapor(active.id, studentId);
+  const jasmani = db.prepare(`SELECT p.tahun_pelajaran, p.semester, rs.tinggi, rs.berat FROM rapor_siswa rs
+    JOIN periods p ON p.id = rs.period_id WHERE rs.student_id = ? ORDER BY p.tahun_pelajaran, p.semester`).all(studentId);
+  return { ...base, rapor, jasmani };
+}
+
 module.exports = {
+  buildBukuInduk,
   getSettings, getActivePeriod, getPeriod, classSubjects, ensureClassSubjects, studentsOfClass, classOfStudent,
   touchRaporSiswa, loadSubjectData, buildClassReport, buildStudentRapor, buildProjectRapor, legerColumns, legerValue,
 };

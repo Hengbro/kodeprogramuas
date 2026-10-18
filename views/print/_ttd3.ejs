@@ -1,0 +1,6 @@
+<% const s = r.settings; %>
+<div class="ttd" style="grid-template-columns:1fr 1fr 1fr">
+  <div>Mengetahui :<br><%= s.ttd_ortu %>,<div class="space"></div><div class="name"><%= s.ttd_ortu === 'Ibu' ? (r.student.ibu_nama || '') : s.ttd_ortu === 'Wali' ? (r.student.wali_nama || '') : (r.student.ayah_nama || r.student.wali_nama || '') %></div></div>
+  <div><br>Kepala Sekolah<div class="space"></div><div class="name"><%= s.kepsek_nama || '.....................' %></div><div>NIP. <%= s.kepsek_nip || '-' %></div></div>
+  <div><%= r.period.tempat_rapor || s.kecamatan || '' %>, <%= h.tanggal(r.period.tanggal_rapor) || '..........' %><br>Guru Kelas,<div class="space"></div><div class="name"><%= r.cls.guru_nama || '.....................' %></div><div>NIP. <%= r.cls.guru_nip || '-' %></div></div>
+</div>

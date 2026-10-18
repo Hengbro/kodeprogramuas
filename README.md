@@ -17,7 +17,17 @@ Versi website dari file Excel **RAPOR SAH Kurikulum Merdeka Fase B dan C (Revisi
 | Rapor TTS | **Rapor tengah semester** (dengan kolom KKTP) |
 | Grafik Capaian Siswa | Grafik batang di halaman detail siswa |
 | Piagam | **Piagam penghargaan** peringkat 1–3 |
-| DIMENSI, Skenario Projek, PENILAIAN P.1–3, Cat. Proses, R.Projek | **Projek P5**: rancangan (dimensi/elemen/sub-elemen fase A–C), penilaian BB/MB/BSH/SB, catatan proses, rapor projek |
+| DIMENSI, Skenario Projek, PENILAIAN P.1–3, Cat. Proses, R.Projek | **Projek P5**: rancangan (dimensi/elemen/sub-elemen fase A–C), penilaian umum per dimensi + fokus sub-elemen (BB/MB/BSH/SB), catatan proses, rapor projek (dengan sampul) |
+| REKAP SEMUA, REKAP AGAMA, Rekap SENI | **Rekap Deskripsi**: nilai + deskripsi capaian tertinggi/terendah semua mapel, ekspor CSV |
+| Progres | **Progres**: persentase ketuntasan pengisian (TUNTAS / DALAM PROSES) |
+| cover B Induk, Indenitas Buku Induk | **Buku Induk**: sampul, identitas A–H, keadaan jasmani per semester, rapor tiap semester |
+| Pindah Sekolah | **Keterangan Pindah Sekolah** (keluar & masuk) |
+| contoh tp | Petunjuk penulisan TP di halaman TP |
+
+Di dalam aplikasi ada menu **Panduan dari Excel** yang memetakan setiap sheet Excel ke menu web, agar guru mudah beradaptasi.
+
+### Kesesuaian dengan Excel (diuji otomatis)
+`test/excel-parity.test.js` menghitung ulang 236 baris nilai asli dari file Excel dengan mesin hitung website: nilai akhir (NA), TP tertinggi, dan TP terendah semuanya sama persis.
 
 ### Perbaikan dibanding versi Excel
 - **Multi-kelas & multi-guru**: admin mengelola semua kelas, guru hanya bisa membuka kelas yang ia ampu.

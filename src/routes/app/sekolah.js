@@ -5,7 +5,7 @@ const { str } = require('./_util');
 
 const router = express.Router();
 
-const PROFIL_FIELDS = ['kementerian', 'pemda', 'instansi', 'nama_sekolah', 'nss', 'npsn', 'alamat', 'desa', 'kecamatan', 'kabupaten',
+const PROFIL_FIELDS = ['kementerian', 'korwil', 'status_sekolah', 'pemda', 'instansi', 'nama_sekolah', 'nss', 'npsn', 'alamat', 'desa', 'kecamatan', 'kabupaten',
   'provinsi', 'kode_pos', 'telp', 'faks', 'website', 'email', 'kepsek_nama', 'kepsek_nip'];
 
 const setSetting = db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value');

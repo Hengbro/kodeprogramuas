@@ -1,0 +1,22 @@
+<% const s = r.settings; %>
+<section class="page">
+  <div class="cover">
+    <div style="align-self:flex-end;text-align:left">
+      <table class="info"><tr><td>No. Seri Buku Induk</td><td class="sep">:</td><td>..............</td></tr>
+      <tr><td>NIS</td><td class="sep">:</td><td>.......... s.d. ..........</td></tr></table>
+    </div>
+    <div>
+      <%- include('_emblem') %>
+      <h1 style="margin-top:10mm;font-size:22pt">BUKU INDUK</h1>
+      <div class="sub">PESERTA DIDIK SEKOLAH DASAR</div>
+      <div class="sub" style="margin-top:3mm">KURIKULUM MERDEKA</div>
+    </div>
+    <table class="info" style="width:auto;font-size:11.5pt;line-height:1.9;text-align:left">
+      <% [['NAMA SEKOLAH', s.nama_sekolah], ['NPSN', s.npsn], ['STATUS SEKOLAH', s.status_sekolah], ['ALAMAT SEKOLAH', s.alamat],
+          ['DESA/KELURAHAN', s.desa], ['KECAMATAN', s.kecamatan], ['KABUPATEN/KOTA', s.kabupaten], ['PROVINSI', s.provinsi]].forEach(([k, v]) => { %>
+        <tr><td style="padding-right:8mm"><%= k %></td><td class="sep">:</td><td><%= v || '' %></td></tr>
+      <% }) %>
+    </table>
+    <div class="sub" style="font-size:12pt"><%= s.kementerian %><br>REPUBLIK INDONESIA</div>
+  </div>
+</section>

@@ -2,7 +2,7 @@ const express = require('express');
 const { db } = require('../../db');
 const { canAccessClass } = require('../../lib/auth');
 const {
-  buildClassReport, buildStudentRapor, buildProjectRapor, studentsOfClass, legerColumns, legerValue, getPeriod, classOfStudent,
+  buildClassReport, buildStudentRapor, buildProjectRapor, buildBukuInduk, studentsOfClass, legerColumns, legerValue, getPeriod, classOfStudent,
 } = require('../../lib/rapor');
 const { toCSV } = require('../../lib/csv');
 const { loadClass, workingPeriod } = require('./_util');
@@ -14,10 +14,13 @@ const KINDS = {
   tts: { label: 'Rapor Tengah Semester', partial: 'tts' },
   projek: { label: 'Rapor Projek P5', partial: 'projek' },
   piagam: { label: 'Piagam Penghargaan', partial: 'piagam' },
+  induk: { label: 'Buku Induk', partial: 'induk' },
+  pindah: { label: 'Keterangan Pindah Sekolah', partial: 'pindah' },
 };
 const PARTS = ['cover', 'sekolah', 'identitas', 'nilai'];
 
 function buildFor(kind, periodId, studentId) {
+  if (kind === 'induk') return buildBukuInduk(studentId);
   return kind === 'projek' ? buildProjectRapor(periodId, studentId) : buildStudentRapor(periodId, studentId);
 }
 

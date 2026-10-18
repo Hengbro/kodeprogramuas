@@ -61,7 +61,7 @@
 
 <% if (parts.includes('nilai')) { %>
 <section class="page">
-  <div class="doc-title">LAPORAN HASIL BELAJAR</div>
+  <div class="doc-title"><%= locals.judulNilai || 'RAPOR DAN PROFIL PESERTA DIDIK' %></div>
   <%- include('_header-siswa', { r }) %>
   <table class="grid">
     <thead><tr><th style="width:8mm">No.</th><th style="width:52mm">Mata Pelajaran</th><th style="width:16mm">Nilai Akhir</th><th>Capaian Kompetensi</th></tr></thead>
@@ -86,27 +86,30 @@
     </tbody>
   </table>
 
-  <table class="grid mt avoid"><thead><tr><th style="text-align:left">Catatan Wali Kelas</th></tr></thead><tbody><tr><td style="height:16mm"><%= r.catatan || '' %></td></tr></tbody></table>
+  <table class="grid mt avoid"><thead><tr><th style="text-align:left">Catatan Guru</th></tr></thead><tbody><tr><td style="height:16mm"><%= r.catatan || '' %></td></tr></tbody></table>
 
   <div style="display:grid;grid-template-columns:<%= r.period.semester == 2 ? '1fr 1fr' : '95mm' %>;gap:6mm" class="mt avoid">
     <table class="grid">
       <thead><tr><th colspan="2" style="text-align:left">Ketidakhadiran</th></tr></thead>
       <tbody>
-        <tr><td>Sakit</td><td style="width:30mm"><%= r.rs.sakit || 0 %> hari</td></tr>
-        <tr><td>Izin</td><td><%= r.rs.izin || 0 %> hari</td></tr>
-        <tr><td>Tanpa Keterangan</td><td><%= r.rs.alpa || 0 %> hari</td></tr>
+        <tr><td>Sakit</td><td style="width:30mm"><%= r.rs.sakit || '-' %> hari</td></tr>
+        <tr><td>Izin</td><td><%= r.rs.izin || '-' %> hari</td></tr>
+        <tr><td>Tanpa Keterangan</td><td><%= r.rs.alpa || '-' %> hari</td></tr>
       </tbody>
     </table>
     <% if (r.period.semester == 2) { const t = r.cls.tingkat; const naik = r.rs.naik !== 0; %>
     <table class="grid">
-      <thead><tr><th style="text-align:left">Keputusan</th></tr></thead>
+      <thead><tr><th style="text-align:left">Keputusan :</th></tr></thead>
       <tbody><tr><td>
-        Berdasarkan pencapaian seluruh kompetensi, peserta didik dinyatakan:<br>
-        <% if (t === 6) { %><b><%= naik ? 'LULUS' : 'TIDAK LULUS' %></b>
-        <% } else { %>
-          <span style="<%= naik ? '' : 'text-decoration:line-through' %>">Naik ke kelas <b><%= h.TERBILANG_KELAS[t + 1] %></b></span><br>
-          <span style="<%= naik ? 'text-decoration:line-through' : '' %>">Tinggal di kelas <b><%= h.TERBILANG_KELAS[t] %></b></span>
-        <% } %>
+        Berdasarkan pencapaian kompetensi pada semester ke-1 dan ke-2, peserta didik<br>
+        <table class="info" style="margin-top:4px">
+          <% if (t === 6) { %>
+          <tr><td style="width:32mm">Dinyatakan</td><td class="sep">:</td><td class="bold"><%= naik ? 'LULUS' : 'TIDAK LULUS' %></td></tr>
+          <% } else { %>
+          <tr><td style="width:32mm">Naik ke kelas</td><td class="sep">:</td><td class="bold"><%= naik ? h.TERBILANG_KELAS[t + 1] : '-' %></td></tr>
+          <tr><td>Tinggal di kelas</td><td class="sep">:</td><td class="bold"><%= naik ? '-' : h.TERBILANG_KELAS[t] %></td></tr>
+          <% } %>
+        </table>
       </td></tr></tbody>
     </table>
     <% } %>

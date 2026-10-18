@@ -9,6 +9,27 @@
 <datalist id="bank-proses"><% bank.forEach(b => { %><option value="<%= b %>"><% }) %></datalist>
 <form method="post" data-track>
   <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2 style="margin-top:.5rem">A. Penilaian dimensi Profil Pelajar Pancasila (secara umum)</h2>
+  <p class="muted">Sama dengan bagian “secara umum” di sheet PENILAIAN P.1–3. Nilai ini tampil di tabel ringkasan rapor projek. Jika dikosongkan, ringkasan memakai nilai tertinggi dari sub-elemen di bawah.</p>
+  <div class="sheet-wrap" style="margin-bottom:1.25rem">
+  <table class="sheet">
+    <thead>
+      <tr><th class="no-col">No</th><th class="sticky-col" style="left:38px">Nama siswa</th>
+        <% dims.forEach(d => { %><th style="max-width:150px;white-space:normal"><%= d.nama %></th><% }) %></tr>
+      <tr class="no-print"><th class="no-col"></th><th class="sticky-col" style="left:38px;font-weight:500">Isi semua kolom ↓</th>
+        <% dims.forEach(d => { %><th><select class="level" onchange="document.querySelectorAll('select[name^=d_<%= d.id %>_]').forEach(s=>{s.value=this.value;s.dispatchEvent(new Event('change'))})"><option value="">—</option><% [1,2,3,4].forEach(k => { %><option value="<%= k %>"><%= P5_LEVEL[k].kode %></option><% }) %></select></th><% }) %></tr>
+    </thead>
+    <tbody>
+    <% students.forEach((s, i) => { %>
+      <tr><td class="no-col calc"><%= i + 1 %></td><td class="sticky-col" style="left:38px"><b><%= s.nama %></b></td>
+        <% dims.forEach(d => { const v = dimScores.get(d.id + ':' + s.id); %>
+          <td><select class="level" name="d_<%= d.id %>_<%= s.id %>"><option value="">—</option><% [1,2,3,4].forEach(k => { %><option value="<%= k %>" <%= v === k ? 'selected' : '' %>><%= P5_LEVEL[k].kode %></option><% }) %></select></td>
+        <% }) %></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+  <h2>B. Fokus capaian projek (dimensi, elemen, sub-elemen) &amp; catatan proses</h2>
   <div class="sheet-wrap">
   <table class="sheet">
     <thead>

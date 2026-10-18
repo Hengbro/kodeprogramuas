@@ -12,16 +12,17 @@
       <label class="checkbox"><input type="checkbox" name="part" value="cover"> Sampul</label>
       <label class="checkbox"><input type="checkbox" name="part" value="sekolah"> Identitas sekolah</label>
       <label class="checkbox"><input type="checkbox" name="part" value="identitas"> Identitas peserta didik</label>
-      <label class="checkbox"><input type="checkbox" name="part" value="nilai" checked> Laporan hasil belajar</label>
+      <label class="checkbox"><input type="checkbox" name="part" value="nilai" checked> Rapor &amp; profil peserta didik (nilai)</label>
       <div class="btn-group" style="margin-top:.6rem"><button class="btn btn-primary"><%- h.icon('print') %> Rapor akhir semester</button></div>
     </div>
     <div>
       <label>Dokumen lain</label>
       <div class="btn-group">
         <a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/tts?period=<%= period.id %>">Rapor tengah semester</a>
-        <% if (projects) { %><a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/projek?period=<%= period.id %>">Rapor projek P5</a><% } %>
+        <% if (projects) { %><a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/projek?period=<%= period.id %>">Rapor projek P5</a><a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/projek?period=<%= period.id %>&part=cover&part=nilai">Rapor P5 + sampul</a><% } %>
         <a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/piagam?period=<%= period.id %>&top=3"><%- h.icon('award') %> Piagam peringkat 1–3</a>
         <a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/leger?print=1&period=<%= period.id %>">Leger nilai</a>
+        <a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/induk?period=<%= period.id %>&part=cover&part=nilai"><%- h.icon('book') %> Buku Induk kelas (+ sampul)</a>
       </div>
     </div>
   </div>
@@ -41,6 +42,7 @@
         <a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/tts<%= q %>">TTS</a>
         <% if (projects) { %><a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/projek<%= q %>">P5</a><% } %>
         <% if (r.rank && r.rank <= 3) { %><a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/piagam<%= q %>">Piagam</a><% } %>
+        <a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/induk<%= q %>">Induk</a>
       </td></tr>
     <% }) %>
     </tbody>

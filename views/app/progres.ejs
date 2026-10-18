@@ -1,0 +1,24 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head"><div><h1>Progres Pengisian Rapor</h1><p>Sama dengan sheet “Progres / Ketuntasan Aplikasi” di Excel · <%= h.periodLabel(period) %> · <%= n %> siswa</p></div>
+  <div class="stat" style="min-width:200px"><div class="label">Ketuntasan keseluruhan</div><div class="value"><%= total %>%</div><div class="progress"><span style="width:<%= total %>%"></span></div></div></div>
+<% const groups = [...new Set(sections.map(s => s.grup))]; %>
+<div class="grid grid-2" style="align-items:start">
+<% groups.forEach(g => { %>
+  <div class="card flush">
+    <div class="card-head" style="padding-bottom:.6rem"><h3><%= g %></h3></div>
+    <table class="table">
+      <tbody>
+      <% sections.filter(s => s.grup === g).forEach(s => { %>
+        <tr>
+          <td><a href="<%= s.link %>"><%= s.nama %></a><% if (s.info) { %><br><small><%= s.info %></small><% } %></td>
+          <td style="width:34%"><div class="progress"><span style="width:<%= s.persen %>%"></span></div><small><%= s.persen %>%</small></td>
+          <td class="actions" style="width:120px"><span class="badge <%= s.persen >= 100 ? 'badge-success' : s.persen > 0 ? 'badge-warning' : 'badge-danger' %>"><%= s.persen >= 100 ? 'TUNTAS' : s.persen > 0 ? 'DALAM PROSES' : 'BELUM' %></span></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% }) %>
+</div>
+<%- include('../partials/bottom') %>

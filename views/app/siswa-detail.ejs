@@ -5,6 +5,8 @@
     <p>NIS <%= st.nis || '-' %> · NISN <%= st.nisn || '-' %> · <%= h.jk(st.jenis_kelamin) %> · <%= st.agama || '-' %></p></div>
   <div class="btn-group">
     <a class="btn" href="/app/siswa/<%= st.id %>/edit"><%- h.icon('edit') %> Ubah</a>
+    <a class="btn" target="_blank" href="/app/rapor/<%= st.id %>/induk?back=/app/siswa/<%= st.id %>"><%- h.icon('book') %> Buku Induk</a>
+    <a class="btn" target="_blank" href="/app/rapor/<%= st.id %>/pindah?back=/app/siswa/<%= st.id %>"><%- h.icon('file') %> Ket. Pindah Sekolah</a>
     <a class="btn btn-primary" href="/app/rapor/<%= st.id %>/akhir?part=cover&part=sekolah&part=identitas&part=nilai&back=/app/siswa/<%= st.id %>" target="_blank"><%- h.icon('print') %> Cetak rapor lengkap</a>
   </div>
 </div>
