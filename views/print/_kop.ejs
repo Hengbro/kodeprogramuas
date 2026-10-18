@@ -1,0 +1,11 @@
+<% const s = r.settings; %>
+<div class="kop">
+  <%- include('_emblem') %>
+  <div class="center">
+    <% if (s.pemda) { %><div class="t1 upper"><%= s.pemda %></div><% } %>
+    <% if (s.instansi) { %><div class="t1 upper"><%= s.instansi %></div><% } %>
+    <div class="t2 upper"><%= s.nama_sekolah %></div>
+    <div class="t3"><%= [s.alamat, s.desa, s.kecamatan ? 'Kec. ' + s.kecamatan : '', s.kabupaten, s.kode_pos].filter(Boolean).join(', ') %><%= s.telp ? ' · Telp. ' + s.telp : '' %><%= s.email ? ' · ' + s.email : '' %></div>
+  </div>
+  <div></div>
+</div>

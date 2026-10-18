@@ -1,0 +1,24 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head"><div><h1>Mapel &amp; KKTP Kelas <%= cls.nama %></h1>
+<p>Centang mapel yang diajarkan. Untuk Seni, aktifkan pilihan seni yang tersedia di kelas ini (siswa hanya muncul di rapor pada seni yang ia nilai).</p></div></div>
+<form method="post" class="card flush">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th style="width:60px">Aktif</th><th>Mata pelajaran</th><th>Kelompok</th><th style="width:160px">KKTP</th></tr></thead>
+    <tbody>
+    <% subjects.forEach(s => { %>
+      <tr>
+        <td class="num"><input type="checkbox" name="aktif_<%= s.id %>" value="1" <%= s.aktif ? 'checked' : '' %> style="width:18px;height:18px"></td>
+        <td><%= s.nama %></td>
+        <td><span class="badge"><%= s.kelompok %></span></td>
+        <td><input type="number" min="0" max="100" name="kktp_<%= s.id %>" value="<%= s.kktp %>"></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+  <div class="sticky-actions"><span class="muted">KKTP = Kriteria Ketercapaian Tujuan Pembelajaran (ditampilkan di rapor tengah semester &amp; grafik).</span><button class="btn btn-primary">Simpan</button></div>
+</form>
+<%- include('../partials/bottom') %>

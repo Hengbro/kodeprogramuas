@@ -1,0 +1,44 @@
+<%- include('../partials/top') %>
+<div class="page-head"><div><h1>Data Siswa</h1><p>Identitas peserta didik untuk halaman identitas rapor dan buku induk.</p></div>
+  <div class="btn-group">
+    <a class="btn" href="/app/siswa/impor<%= kelas && kelas !== 'none' ? '?kelas=' + kelas : '' %>"><%- h.icon('upload') %> Impor CSV</a>
+    <a class="btn btn-primary" href="/app/siswa/baru<%= kelas && kelas !== 'none' ? '?kelas=' + kelas : '' %>"><%- h.icon('plus') %> Tambah siswa</a>
+  </div></div>
+<div class="card" style="padding:.9rem 1.1rem">
+  <form class="grid" style="grid-template-columns:1fr auto;gap:.75rem;align-items:center">
+    <div class="chips">
+      <% if (user.role === 'admin') { %><a class="chip <%= !kelas ? 'active' : '' %>" href="/app/siswa">Semua</a><% } %>
+      <% classes.forEach(c => { %><a class="chip <%= String(c.id) === String(kelas) ? 'active' : '' %>" href="/app/siswa?kelas=<%= c.id %>"><%= c.nama %> (<%= c.jumlah_siswa %>)</a><% }) %>
+      <% if (user.role === 'admin') { %><a class="chip <%= kelas === 'none' ? 'active' : '' %>" href="/app/siswa?kelas=none">Tanpa kelas</a><% } %>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <input type="hidden" name="kelas" value="<%= kelas %>">
+      <input type="search" name="q" value="<%= q %>" placeholder="Cari nama / NISN" style="width:200px">
+      <label class="checkbox" style="white-space:nowrap"><input type="checkbox" name="semua" value="1" <%= semua ? 'checked' : '' %> onchange="this.form.submit()"> Termasuk nonaktif</label>
+    </div>
+  </form>
+</div>
+<div class="card flush">
+  <% if (!students.length) { %><div class="empty"><%- h.icon('users') %><p>Tidak ada data siswa.</p></div><% } else { %>
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th class="num">No</th><th>Nama</th><th>NIS / NISN</th><th>L/P</th><th>Tempat, tanggal lahir</th><th>Agama</th><th>Kelas</th><th class="actions"></th></tr></thead>
+    <tbody>
+    <% students.forEach((s, i) => { %>
+      <tr>
+        <td class="num"><%= i + 1 %></td>
+        <td><a href="/app/siswa/<%= s.id %>"><b><%= s.nama %></b></a><% if (s.status !== 'aktif') { %> <span class="badge badge-warning"><%= s.status %></span><% } %></td>
+        <td><%= s.nis || '-' %> / <%= s.nisn || '-' %></td>
+        <td><%= s.jenis_kelamin || '' %></td>
+        <td><%= h.ttl(s) %></td>
+        <td><%= s.agama || '' %></td>
+        <td><%= s.kelas_nama || '—' %></td>
+        <td class="actions"><a class="btn btn-sm" href="/app/siswa/<%= s.id %>/edit"><%- h.icon('edit') %></a></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+  <% } %>
+</div>
+<%- include('../partials/bottom') %>

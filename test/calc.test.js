@@ -1,0 +1,41 @@
+const test = require('node:test');
+const assert = require('node:assert');
+const { hitungMapel, deskripsiMapel, ranking } = require('../src/lib/calc');
+
+const settings = {
+  desk_mode: 'predikat', desk_nama: '1', kalimat_tinggi: 'menunjukkan penguasaan dalam', kalimat_rendah: 'perlu bimbingan dalam',
+  predikat: [
+    { min: 88, label: 'Sangat Baik', kalimat: 'menunjukkan penguasaan yang sangat baik dalam' },
+    { min: 74, label: 'Baik', kalimat: 'menunjukkan penguasaan yang baik dalam' },
+    { min: 60, label: 'Cukup', kalimat: 'menunjukkan penguasaan yang cukup dalam' },
+    { min: 0, label: 'Perlu Bimbingan', kalimat: 'perlu bimbingan dalam' },
+  ],
+};
+const bobot = { f: 1, s: 2, as: 2 };
+const tp = (vals) => vals.map((nilai, i) => ({ id: i + 1, urutan: i + 1, deskripsi: `materi ${i + 1}`, nilai }));
+
+test('rumus sama dengan baris contoh di Excel (NA 61)', () => {
+  const r = hitungMapel({ tp: tp([58, 60, 60, 65, 60, 60, 60, 60, 60, 60, 60]), lm: [58, 65, 60], sas: [65, 60], bobot });
+  assert.strictEqual(r.na, 61);
+  assert.strictEqual(r.tinggi.id, 4);
+  assert.strictEqual(r.rendah.id, 1);
+  const d = deskripsiMapel(r, { panggilan: 'Geger', settings });
+  assert.deepStrictEqual(d, ['Geger menunjukkan penguasaan yang cukup dalam materi 4.', 'Geger perlu bimbingan dalam materi 1.']);
+});
+
+test('komponen kosong tidak ikut pembagi (F + AS saja)', () => {
+  const r = hitungMapel({ tp: tp([90, 70, 75, 75]), lm: [], sas: [null, 80], bobot });
+  assert.strictEqual(r.na, 79); // (77.5 + 2*80) / 3
+});
+
+test('deskripsi tanpa nama & tanpa predikat', () => {
+  const r = hitungMapel({ tp: tp([80, 70]), lm: [], sas: [], bobot });
+  const d = deskripsiMapel(r, { panggilan: 'X', settings: { ...settings, desk_nama: '0', desk_mode: 'sederhana' } });
+  assert.deepStrictEqual(d, ['Menunjukkan penguasaan dalam materi 1.', 'Perlu bimbingan dalam materi 2.']);
+});
+
+test('ranking dengan nilai sama', () => {
+  const items = [{ j: 300 }, { j: 320 }, { j: 300 }, { j: null }];
+  const r = ranking(items, 'j');
+  assert.deepStrictEqual(items.map((i) => r.get(i) || null), [2, 1, 2, null]);
+});

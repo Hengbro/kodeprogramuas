@@ -1,0 +1,79 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head">
+  <div><h1><%= subject.nama %></h1>
+    <p>Kelas <%= cls.nama %> · KKTP <%= subject.kktp %> · <%= h.periodLabel(period) %><% if (subject.kelompok === 'agama') { %> · hanya siswa beragama <%= subject.agama %><% } %></p></div>
+  <div class="btn-group">
+    <select style="width:auto;max-width:300px" onchange="location.href='/app/kelas/<%= cls.id %>/nilai/'+this.value">
+      <% subjects.forEach(s => { %><option value="<%= s.id %>" <%= s.id === subject.id ? 'selected' : '' %>><%= s.nama %></option><% }) %>
+    </select>
+    <a class="btn" href="/app/kelas/<%= cls.id %>/tp/<%= subject.id %>"><%- h.icon('clipboard') %> Ubah TP</a>
+  </div>
+</div>
+
+<% if (!tp.length) { %>
+  <div class="card empty"><%- h.icon('clipboard') %><p>Belum ada Tujuan Pembelajaran untuk mapel ini.</p><a class="btn btn-primary" href="/app/kelas/<%= cls.id %>/tp/<%= subject.id %>">Isi TP &amp; lingkup materi</a></div>
+<% } else if (!rows.length) { %>
+  <div class="card empty"><%- h.icon('users') %><p>Tidak ada siswa untuk mapel ini.</p></div>
+<% } else { %>
+<details class="box no-print"><summary>Daftar TP &amp; lingkup materi</summary>
+  <div class="grid grid-2" style="margin-top:.5rem">
+    <ol style="margin:0;padding-left:1.4rem"><% tp.forEach(t => { %><li><%= t.deskripsi %></li><% }) %></ol>
+    <ol style="margin:0;padding-left:1.4rem"><% lm.forEach(l => { %><li><%= l.nama %></li><% }) %></ol>
+  </div>
+</details>
+<form method="post" id="nilai-form" data-kktp="<%= subject.kktp %>">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="sheet-wrap">
+  <table class="sheet" id="sheet">
+    <thead>
+      <tr>
+        <th rowspan="2" class="no-col">No</th>
+        <th rowspan="2" class="sticky-col" style="left:38px">Nama siswa</th>
+        <th colspan="<%= tp.length %>" class="group-f">Formatif (per TP)</th>
+        <% if (lm.length) { %><th colspan="<%= lm.length %>" class="group-s">Sumatif Lingkup Materi</th><% } %>
+        <th colspan="2" class="group-as">Sumatif Akhir Semester</th>
+        <th colspan="5">Hasil</th>
+        <th rowspan="2" style="min-width:360px">Deskripsi capaian kompetensi</th>
+      </tr>
+      <tr>
+        <% tp.forEach((t, i) => { %><th class="group-f tp-head" title="<%= t.deskripsi %>">TP<%= i + 1 %></th><% }) %>
+        <% lm.forEach((l, i) => { %><th class="group-s tp-head" title="<%= l.nama %>">LM<%= i + 1 %></th><% }) %>
+        <th class="group-as">Non-tes</th><th class="group-as">Tes</th>
+        <th>F</th><th>S</th><th>AS</th><th>NA</th><th>Predikat</th>
+      </tr>
+    </thead>
+    <tbody>
+    <% rows.forEach((r, ri) => { const st = r.st; %>
+      <tr data-student="<%= st.id %>" data-panggilan="<%= st.panggilan || st.nama.split(' ')[0] %>">
+        <td class="no-col calc"><%= ri + 1 %></td>
+        <td class="sticky-col" style="left:38px"><b><%= st.nama %></b></td>
+        <% r.tps.forEach(t => { %><td class="group-f"><input name="f_<%= t.id %>_<%= st.id %>" value="<%= t.nilai ?? '' %>" inputmode="decimal" data-kind="f" data-tp="<%= t.id %>" autocomplete="off"></td><% }) %>
+        <% lm.forEach((l, i) => { %><td class="group-s"><input name="s_<%= l.id %>_<%= st.id %>" value="<%= r.lms[i] ?? '' %>" inputmode="decimal" data-kind="s" autocomplete="off"></td><% }) %>
+        <td class="group-as"><input name="nt_<%= st.id %>" value="<%= r.akhir.sas_nontes ?? '' %>" inputmode="decimal" data-kind="as" autocomplete="off"></td>
+        <td class="group-as"><input name="t_<%= st.id %>" value="<%= r.akhir.sas_tes ?? '' %>" inputmode="decimal" data-kind="as" autocomplete="off"></td>
+        <td class="calc" data-out="f"><%= h.angka(r.hasil.naF, 1) %></td>
+        <td class="calc" data-out="s"><%= h.angka(r.hasil.naS, 1) %></td>
+        <td class="calc" data-out="as"><%= h.angka(r.hasil.naAS, 1) %></td>
+        <td class="calc na" data-out="na"><%= r.hasil.na ?? '' %></td>
+        <td class="calc" data-out="pred" style="font-weight:600;font-size:.76rem"><%= r.predikat ? r.predikat.label : '' %></td>
+        <td class="desk">
+          <div data-out="desk"><%= r.auto.join(' ') %></div>
+          <details <%= (r.akhir.desk_tinggi || r.akhir.desk_rendah) ? 'open' : '' %>><summary class="muted" style="cursor:pointer;font-size:.75rem">Tulis manual (opsional)</summary>
+            <textarea name="dt_<%= st.id %>" placeholder="Kalimat capaian tertinggi (kosongkan = otomatis)"><%= r.akhir.desk_tinggi || '' %></textarea>
+            <textarea name="dr_<%= st.id %>" placeholder="Kalimat capaian terendah (kosongkan = otomatis)"><%= r.akhir.desk_rendah || '' %></textarea>
+          </details>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+  <div class="sticky-actions" style="margin-top:.75rem;border-radius:10px;border:1px solid var(--border)">
+    <span class="muted">Navigasi: <code>Enter</code>/<code>↓</code> ke bawah, <code>←</code><code>→</code> antar kolom. Nilai merah = di bawah KKTP. Bisa tempel (paste) dari Excel.</span>
+    <button class="btn btn-primary"><%- h.icon('check') %> Simpan nilai</button>
+  </div>
+</form>
+<script type="application/json" id="calc-settings"><%- JSON.stringify({ ...calcSettings, tp: tp.map(t => ({ id: t.id, deskripsi: t.deskripsi })) }).replace(/</g, '\\u003c') %></script>
+<% } %>
+<%- include('../partials/bottom') %>

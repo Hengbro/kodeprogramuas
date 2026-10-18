@@ -1,0 +1,19 @@
+<% const s = r.settings, st = r.student; const juara = ['', 'Pertama', 'Kedua', 'Ketiga', 'Keempat', 'Kelima', 'Keenam', 'Ketujuh', 'Kedelapan', 'Kesembilan', 'Kesepuluh']; %>
+<section class="page landscape piagam">
+  <div class="piagam-frame">
+    <div class="upper bold"><%= s.pemda %></div>
+    <div class="upper bold"><%= s.instansi %></div>
+    <div class="upper bold" style="font-size:14pt"><%= s.nama_sekolah %></div>
+    <h1 style="margin-top:8mm">PIAGAM PENGHARGAAN</h1>
+    <div style="margin-top:5mm">Diberikan kepada:</div>
+    <div class="nama"><%= st.nama %></div>
+    <div>NISN <%= st.nisn || '-' %></div>
+    <div style="margin-top:5mm">Sebagai</div>
+    <div class="peringkat">Peringkat <%= juara[r.rank] || r.rank || '-' %></div>
+    <div style="margin-top:3mm;max-width:200mm">pada Kelas <%= r.cls.nama %> Semester <%= r.period.semester %> Tahun Pelajaran <%= r.period.tahun_pelajaran %> dengan rata-rata nilai <b><%= h.angka(r.rata, 2) %></b>.</div>
+    <div class="ttd" style="grid-template-columns:1fr 1fr;width:100%;margin-top:8mm">
+      <div>Mengetahui,<br>Kepala Sekolah<div class="space"></div><div class="name"><%= s.kepsek_nama || '.....................' %></div><div>NIP. <%= s.kepsek_nip || '-' %></div></div>
+      <div><%= r.period.tempat_rapor || s.kecamatan || '' %>, <%= h.tanggal(r.period.tanggal_rapor) || '.............' %><br>Wali Kelas<div class="space"></div><div class="name"><%= r.cls.guru_nama || '.....................' %></div><div>NIP. <%= r.cls.guru_nip || '-' %></div></div>
+    </div>
+  </div>
+</section>

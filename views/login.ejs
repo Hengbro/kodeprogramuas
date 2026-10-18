@@ -1,0 +1,22 @@
+<%- include('partials/head') %>
+<body class="public">
+  <nav class="public-nav">
+    <a href="/" class="brand" style="text-decoration:none"><div class="brand-logo">R</div><div><b>E-Rapor SD</b><small><%= settings.nama_sekolah %></small></div></a>
+  </nav>
+  <div class="auth-box">
+    <div class="card">
+      <h1>Masuk</h1>
+      <p class="muted">Khusus guru dan administrator sekolah.</p>
+      <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+      <%- include('partials/flash') %>
+      <form method="post" action="/login">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <div class="field"><label for="username">Nama pengguna</label><input id="username" name="username" value="<%= username %>" autocomplete="username" required autofocus></div>
+        <div class="field"><label for="password">Kata sandi</label><input id="password" type="password" name="password" autocomplete="current-password" required></div>
+        <button class="btn btn-primary" style="width:100%">Masuk</button>
+      </form>
+    </div>
+    <p class="muted" style="text-align:center"><a href="/">← Kembali ke portal</a></p>
+  </div>
+</body>
+</html>

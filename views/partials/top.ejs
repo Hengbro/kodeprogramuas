@@ -1,0 +1,41 @@
+<%- include('head') %>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <a href="/app" class="brand" style="text-decoration:none">
+      <div class="brand-logo">R</div>
+      <div><b>E-Rapor SD</b><small><%= settings.nama_sekolah %></small></div>
+    </a>
+    <nav class="nav">
+      <a href="/app" class="<%= path === '/app' || path === '/' ? 'active' : '' %>"><%- h.icon('home') %> Dasbor</a>
+      <div class="nav-label">Pembelajaran</div>
+      <a href="/app/kelas" class="<%= path.startsWith('/kelas') ? 'active' : '' %>"><%- h.icon('class') %> Kelas &amp; Penilaian</a>
+      <a href="/app/siswa" class="<%= path.startsWith('/siswa') ? 'active' : '' %>"><%- h.icon('users') %> Data Siswa</a>
+      <% if (user.role === 'admin') { %>
+      <div class="nav-label">Administrasi</div>
+      <a href="/app/sekolah" class="<%= path === '/sekolah' ? 'active' : '' %>"><%- h.icon('school') %> Profil Sekolah</a>
+      <a href="/app/periode" class="<%= path === '/periode' ? 'active' : '' %>"><%- h.icon('calendar') %> Tahun Pelajaran</a>
+      <a href="/app/mapel" class="<%= path === '/mapel' ? 'active' : '' %>"><%- h.icon('book') %> Mata Pelajaran</a>
+      <a href="/app/pengaturan" class="<%= path === '/pengaturan' ? 'active' : '' %>"><%- h.icon('settings') %> Pengaturan Nilai</a>
+      <a href="/app/pengguna" class="<%= path === '/pengguna' ? 'active' : '' %>"><%- h.icon('user') %> Pengguna &amp; Guru</a>
+      <a href="/app/backup"><%- h.icon('database') %> Unduh Cadangan DB</a>
+      <% } %>
+      <div class="nav-label">Akun</div>
+      <a href="/app/akun" class="<%= path === '/akun' ? 'active' : '' %>"><%- h.icon('user') %> <%= user.nama %></a>
+      <form method="post" action="/logout" class="inline-form">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <a href="#" onclick="this.closest('form').submit();return false;"><%- h.icon('logout') %> Keluar</a>
+      </form>
+    </nav>
+  </aside>
+  <div class="main">
+    <header class="topbar no-print">
+      <button class="menu-btn" type="button" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Menu"><%- h.icon('menu') %></button>
+      <span class="badge badge-primary" title="Periode aktif"><%- h.icon('calendar') %> <%= h.periodLabel(activePeriod) %></span>
+      <% if (activePeriod && activePeriod.is_published) { %><span class="badge badge-success hide-sm">Terpublikasi</span><% } %>
+      <div class="spacer"></div>
+      <a class="btn btn-sm btn-ghost hide-sm" href="/" target="_blank">Portal Orang Tua ↗</a>
+      <span class="badge"><%= user.role === 'admin' ? 'Admin' : 'Guru' %></span>
+    </header>
+    <main class="content">
+      <%- include('flash') %>

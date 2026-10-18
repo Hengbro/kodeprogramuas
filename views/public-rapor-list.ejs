@@ -1,0 +1,34 @@
+<%- include('partials/head') %>
+<body>
+<div class="public">
+  <nav class="public-nav">
+    <a href="/" class="brand" style="text-decoration:none"><div class="brand-logo">R</div><div><b>E-Rapor SD</b><small><%= settings.nama_sekolah %></small></div></a>
+    <form method="post" action="/keluar-portal"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm">Keluar</button></form>
+  </nav>
+  <div class="content" style="max-width:760px;margin:0 auto">
+    <div class="card">
+      <h1><%= student.nama %></h1>
+      <p class="muted">NISN <%= student.nisn || '-' %> · NIS <%= student.nis || '-' %></p>
+      <% if (!periods.length) { %>
+        <div class="empty">Belum ada rapor yang dipublikasikan oleh sekolah.</div>
+      <% } else { %>
+      <table class="table">
+        <thead><tr><th>Tahun Pelajaran</th><th>Semester</th><th class="actions">Rapor</th></tr></thead>
+        <tbody>
+        <% periods.forEach(p => { %>
+          <tr>
+            <td><%= p.tahun_pelajaran %></td><td><%= h.semesterLabel(p.semester) %></td>
+            <td class="actions">
+              <a class="btn btn-sm btn-primary" href="/rapor-saya/<%= p.id %>/akhir">Rapor</a>
+              <% if (hasProject.has(p.id)) { %><a class="btn btn-sm" href="/rapor-saya/<%= p.id %>/projek">Rapor Projek</a><% } %>
+            </td>
+          </tr>
+        <% }) %>
+        </tbody>
+      </table>
+      <% } %>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head"><div><h1>Catatan Wali Kelas</h1><p>Saran/catatan untuk setiap siswa. Ketik bebas atau pilih dari bank kalimat.</p></div></div>
+<datalist id="bank-catatan"><% bank.forEach(b => { %><option value="<%= b %>"><% }) %></datalist>
+<div class="card no-print" style="display:flex;gap:.5rem;align-items:end;flex-wrap:wrap">
+  <div style="flex:1;min-width:260px"><label>Isi cepat semua siswa yang masih kosong</label><input id="fill-src" list="bank-catatan" placeholder="Pilih / ketik kalimat"></div>
+  <button type="button" class="btn" data-fill="#fill-src" data-target="input[name^=catatan_]" data-only-empty>Terapkan</button>
+</div>
+<form method="post" data-track>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="sheet-wrap">
+  <table class="sheet">
+    <thead><tr><th class="no-col">No</th><th class="sticky-col" style="left:38px">Nama siswa</th><th style="min-width:520px">Catatan</th></tr></thead>
+    <tbody>
+    <% students.forEach((s, i) => { const d = data.get(s.id) || {}; %>
+      <tr><td class="no-col calc"><%= i + 1 %></td><td class="sticky-col" style="left:38px"><b><%= s.nama %></b></td>
+        <td class="text-cell"><input name="catatan_<%= s.id %>" value="<%= d.catatan || '' %>" list="bank-catatan"></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+  <div class="form-actions"><span class="muted" style="margin-right:auto">Peringkat dapat ditambahkan otomatis — atur di Pengaturan Nilai.</span><button class="btn btn-primary">Simpan</button></div>
+</form>
+<%- include('../partials/bottom') %>

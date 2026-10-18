@@ -1,0 +1,40 @@
+<%- include('../partials/top') %>
+<div class="page-head"><div><h1>Profil Sekolah</h1><p>Data ini tercetak pada sampul, identitas sekolah, dan kop rapor.</p></div></div>
+<form method="post" class="card">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <% const f = (name, label, hint) => { %>
+    <div class="field"><label for="<%= name %>"><%= label %></label><input id="<%= name %>" name="<%= name %>" value="<%= settings[name] || '' %>"><% if (hint) { %><div class="hint"><%= hint %></div><% } %></div>
+  <% } %>
+  <fieldset><legend>Identitas</legend>
+    <div class="form-grid">
+      <% f('kementerian', 'Kementerian (sampul rapor)', 'Contoh: KEMENTERIAN PENDIDIKAN DASAR DAN MENENGAH') %>
+      <% f('pemda', 'Pemerintah daerah', 'Contoh: PEMERINTAH KABUPATEN NIAS SELATAN') %>
+      <% f('instansi', 'Instansi', 'Contoh: DINAS PENDIDIKAN') %>
+      <% f('nama_sekolah', 'Nama sekolah') %>
+      <% f('npsn', 'NPSN') %>
+      <% f('nss', 'NIS/NSS/NDS') %>
+      <% f('email', 'E-mail sekolah') %>
+      <% f('website', 'Website sekolah') %>
+      <% f('telp', 'Telepon') %>
+      <% f('faks', 'Faks') %>
+    </div>
+  </fieldset>
+  <fieldset><legend>Alamat</legend>
+    <div class="form-grid">
+      <div class="full"><% f('alamat', 'Alamat (jalan)') %></div>
+      <% f('desa', 'Desa / Kelurahan') %>
+      <% f('kecamatan', 'Kecamatan') %>
+      <% f('kabupaten', 'Kabupaten / Kota') %>
+      <% f('provinsi', 'Provinsi') %>
+      <% f('kode_pos', 'Kode pos') %>
+    </div>
+  </fieldset>
+  <fieldset><legend>Kepala sekolah</legend>
+    <div class="form-grid">
+      <% f('kepsek_nama', 'Nama kepala sekolah') %>
+      <% f('kepsek_nip', 'NIP kepala sekolah') %>
+    </div>
+  </fieldset>
+  <div class="form-actions"><button class="btn btn-primary"><%- h.icon('check') %> Simpan</button></div>
+</form>
+<%- include('../partials/bottom') %>

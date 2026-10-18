@@ -1,0 +1,118 @@
+<% const s = r.settings, st = r.student; %>
+<% if (parts.includes('cover')) { %>
+<section class="page">
+  <div class="cover">
+    <div>
+      <div style="margin-top:8mm"><%- include('_emblem') %></div>
+      <h1 style="margin-top:14mm">RAPOR</h1>
+      <div class="sub">PESERTA DIDIK</div>
+      <div class="sub" style="margin-top:6mm">SEKOLAH DASAR</div>
+      <div class="sub">(SD)</div>
+    </div>
+    <div>
+      <div>Nama Peserta Didik:</div>
+      <div class="box upper"><%= st.nama %></div>
+      <div style="margin-top:8mm">NISN / NIS:</div>
+      <div class="box"><%= st.nisn || '-' %> / <%= st.nis || '-' %></div>
+    </div>
+    <div class="sub" style="font-size:12pt"><%= s.kementerian %><br>REPUBLIK INDONESIA</div>
+  </div>
+</section>
+<% } %>
+
+<% if (parts.includes('sekolah')) { %>
+<section class="page">
+  <div class="doc-title" style="margin-top:20mm;font-size:14pt">RAPOR<br>PESERTA DIDIK<br>SEKOLAH DASAR (SD)</div>
+  <table class="info mt3" style="font-size:11.5pt;line-height:2">
+    <% [['Nama Sekolah', s.nama_sekolah], ['NPSN', s.npsn], ['NIS/NSS/NDS', s.nss], ['Alamat Sekolah', s.alamat],
+        ['', [s.kode_pos ? 'Kode Pos ' + s.kode_pos : '', s.telp ? 'Telp. ' + s.telp : ''].filter(Boolean).join('   ')],
+        ['Kelurahan / Desa', s.desa], ['Kecamatan', s.kecamatan], ['Kabupaten / Kota', s.kabupaten], ['Provinsi', s.provinsi],
+        ['Website', s.website], ['E-mail', s.email]].forEach(([k, v]) => { %>
+      <tr><td class="lbl" style="padding-left:12mm"><%= k %></td><td class="sep"><%= k ? ':' : '' %></td><td><%= v || '' %></td></tr>
+    <% }) %>
+  </table>
+</section>
+<% } %>
+
+<% if (parts.includes('identitas')) { %>
+<section class="page">
+  <div class="doc-title" style="font-size:13pt">IDENTITAS PESERTA DIDIK</div>
+  <table class="info mt2" style="line-height:1.7">
+    <% const rows = [
+      ['1.', 'Nama Peserta Didik', st.nama], ['2.', 'NISN / NIS', (st.nisn || '-') + ' / ' + (st.nis || '-')],
+      ['3.', 'Tempat, Tanggal Lahir', h.ttl(st)], ['4.', 'Jenis Kelamin', h.jk(st.jenis_kelamin)], ['5.', 'Agama', st.agama],
+      ['6.', 'Pendidikan Sebelumnya', st.pendidikan_sebelumnya], ['7.', 'Alamat Peserta Didik', st.alamat],
+      ['8.', 'Nama Orang Tua', null], ['', 'a. Ayah', st.ayah_nama], ['', 'b. Ibu', st.ibu_nama],
+      ['9.', 'Pekerjaan Orang Tua', null], ['', 'a. Ayah', st.ayah_pekerjaan], ['', 'b. Ibu', st.ibu_pekerjaan],
+      ['10.', 'Alamat Orang Tua', null], ['', 'Jalan', st.ortu_jalan], ['', 'Kelurahan / Desa', st.ortu_desa], ['', 'Kecamatan', st.ortu_kecamatan],
+      ['', 'Kabupaten / Kota', st.ortu_kabupaten], ['', 'Provinsi', st.ortu_provinsi],
+      ['11.', 'Wali Peserta Didik', null], ['', 'a. Nama', st.wali_nama], ['', 'b. Pekerjaan', st.wali_pekerjaan], ['', 'c. Alamat', st.wali_alamat],
+    ]; rows.forEach(([n, k, v]) => { %>
+      <tr><td style="width:8mm"><%= n %></td><td style="width:40%;<%= n ? '' : 'padding-left:6mm' %>"><%= k %></td><td class="sep"><%= v === null ? '' : ':' %></td><td><%= v === null ? '' : (v || '-') %></td></tr>
+    <% }) %>
+  </table>
+  <div style="display:flex;justify-content:flex-end;gap:12mm;margin-top:14mm;align-items:flex-start">
+    <div class="photo">Pas foto<br>3 × 4</div>
+    <div class="center" style="min-width:70mm"><%= r.period.tempat_rapor || s.kecamatan || '' %>, <%= h.tanggal(r.period.tanggal_rapor) || '....................' %><br>Kepala Sekolah<div style="height:62px"></div>
+      <div class="bold" style="text-decoration:underline"><%= s.kepsek_nama || '.............................' %></div><div>NIP. <%= s.kepsek_nip || '-' %></div></div>
+  </div>
+</section>
+<% } %>
+
+<% if (parts.includes('nilai')) { %>
+<section class="page">
+  <div class="doc-title">LAPORAN HASIL BELAJAR</div>
+  <%- include('_header-siswa', { r }) %>
+  <table class="grid">
+    <thead><tr><th style="width:8mm">No.</th><th style="width:52mm">Mata Pelajaran</th><th style="width:16mm">Nilai Akhir</th><th>Capaian Kompetensi</th></tr></thead>
+    <tbody>
+    <% if (!r.mapelRows.length) { %><tr><td colspan="4" class="center">Belum ada nilai.</td></tr><% } %>
+    <% r.mapelRows.forEach(m => { %>
+      <% if (m.header) { %>
+        <tr><td class="center"><%= m.no %></td><td colspan="3"><%= m.nama %></td></tr>
+      <% } else { %>
+        <tr class="avoid"><td class="center"><%= m.no || '' %></td><td><%= m.sub ? m.sub + '. ' : '' %><%= m.nama %></td><td class="center bold"><%= m.na ?? '' %></td>
+          <td class="desk"><% (m.deskripsi || []).forEach(d => { %><p><%= d %></p><% }) %></td></tr>
+      <% } %>
+    <% }) %>
+    </tbody>
+  </table>
+
+  <table class="grid mt avoid">
+    <thead><tr><th style="width:8mm">No.</th><th style="width:60mm">Ekstrakurikuler</th><th>Keterangan</th></tr></thead>
+    <tbody>
+      <% if (!r.ekskul.length) { %><tr><td class="center">1</td><td>-</td><td>-</td></tr><% } %>
+      <% r.ekskul.forEach((e, i) => { %><tr><td class="center"><%= i + 1 %></td><td><%= e.nama %></td><td><%= e.keterangan || '' %></td></tr><% }) %>
+    </tbody>
+  </table>
+
+  <table class="grid mt avoid"><thead><tr><th style="text-align:left">Catatan Wali Kelas</th></tr></thead><tbody><tr><td style="height:16mm"><%= r.catatan || '' %></td></tr></tbody></table>
+
+  <div style="display:grid;grid-template-columns:<%= r.period.semester == 2 ? '1fr 1fr' : '95mm' %>;gap:6mm" class="mt avoid">
+    <table class="grid">
+      <thead><tr><th colspan="2" style="text-align:left">Ketidakhadiran</th></tr></thead>
+      <tbody>
+        <tr><td>Sakit</td><td style="width:30mm"><%= r.rs.sakit || 0 %> hari</td></tr>
+        <tr><td>Izin</td><td><%= r.rs.izin || 0 %> hari</td></tr>
+        <tr><td>Tanpa Keterangan</td><td><%= r.rs.alpa || 0 %> hari</td></tr>
+      </tbody>
+    </table>
+    <% if (r.period.semester == 2) { const t = r.cls.tingkat; const naik = r.rs.naik !== 0; %>
+    <table class="grid">
+      <thead><tr><th style="text-align:left">Keputusan</th></tr></thead>
+      <tbody><tr><td>
+        Berdasarkan pencapaian seluruh kompetensi, peserta didik dinyatakan:<br>
+        <% if (t === 6) { %><b><%= naik ? 'LULUS' : 'TIDAK LULUS' %></b>
+        <% } else { %>
+          <span style="<%= naik ? '' : 'text-decoration:line-through' %>">Naik ke kelas <b><%= h.TERBILANG_KELAS[t + 1] %></b></span><br>
+          <span style="<%= naik ? 'text-decoration:line-through' : '' %>">Tinggal di kelas <b><%= h.TERBILANG_KELAS[t] %></b></span>
+        <% } %>
+      </td></tr></tbody>
+    </table>
+    <% } %>
+  </div>
+
+  <%- include('_ttd', { r }) %>
+  <div class="foot"><span><%= st.nama %> · Kelas <%= r.cls.nama %></span><span>Semester <%= r.period.semester %> · <%= r.period.tahun_pelajaran %></span></div>
+</section>
+<% } %>

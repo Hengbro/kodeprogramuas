@@ -1,0 +1,50 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head"><div><h1>Cetak Rapor Kelas <%= cls.nama %></h1><p>Pilih periode dan jenis dokumen. Gunakan kertas A4; pada dialog cetak pilih “Simpan sebagai PDF” untuk arsip digital.</p></div>
+  <form><select name="period" onchange="this.form.submit()" style="width:auto"><% periods.forEach(p => { %><option value="<%= p.id %>" <%= p.id === period.id ? 'selected' : '' %>><%= h.periodLabel(p) %></option><% }) %></select></form></div>
+
+<form class="card" method="get" action="/app/kelas/<%= cls.id %>/cetak-semua/akhir" target="_blank">
+  <input type="hidden" name="period" value="<%= period.id %>">
+  <h2>Cetak satu kelas sekaligus</h2>
+  <div class="grid grid-2">
+    <div>
+      <label>Halaman rapor akhir semester</label>
+      <label class="checkbox"><input type="checkbox" name="part" value="cover"> Sampul</label>
+      <label class="checkbox"><input type="checkbox" name="part" value="sekolah"> Identitas sekolah</label>
+      <label class="checkbox"><input type="checkbox" name="part" value="identitas"> Identitas peserta didik</label>
+      <label class="checkbox"><input type="checkbox" name="part" value="nilai" checked> Laporan hasil belajar</label>
+      <div class="btn-group" style="margin-top:.6rem"><button class="btn btn-primary"><%- h.icon('print') %> Rapor akhir semester</button></div>
+    </div>
+    <div>
+      <label>Dokumen lain</label>
+      <div class="btn-group">
+        <a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/tts?period=<%= period.id %>">Rapor tengah semester</a>
+        <% if (projects) { %><a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/projek?period=<%= period.id %>">Rapor projek P5</a><% } %>
+        <a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/piagam?period=<%= period.id %>&top=3"><%- h.icon('award') %> Piagam peringkat 1–3</a>
+        <a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/leger?print=1&period=<%= period.id %>">Leger nilai</a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="card flush">
+  <div class="card-head"><h2>Per siswa</h2></div>
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th class="num">No</th><th>Nama</th><th class="num">Rata-rata</th><th class="num">Peringkat</th><th class="actions">Cetak</th></tr></thead>
+    <tbody>
+    <% report.students.forEach((r, i) => { const q = '?period=' + period.id; %>
+      <tr><td class="num"><%= i + 1 %></td><td><%= r.student.nama %></td><td class="num"><%= h.angka(r.rata, 2) %></td><td class="num"><%= r.rank || '' %></td>
+      <td class="actions">
+        <a class="btn btn-sm btn-primary" target="_blank" href="/app/rapor/<%= r.student.id %>/akhir<%= q %>&part=cover&part=sekolah&part=identitas&part=nilai">Lengkap</a>
+        <a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/akhir<%= q %>">Nilai</a>
+        <a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/tts<%= q %>">TTS</a>
+        <% if (projects) { %><a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/projek<%= q %>">P5</a><% } %>
+        <% if (r.rank && r.rank <= 3) { %><a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/piagam<%= q %>">Piagam</a><% } %>
+      </td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<%- include('../partials/bottom') %>

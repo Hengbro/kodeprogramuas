@@ -1,0 +1,47 @@
+<%- include('partials/head') %>
+<body>
+<div class="public">
+  <nav class="public-nav">
+    <a href="/" class="brand" style="text-decoration:none"><div class="brand-logo">R</div><div><b>E-Rapor SD</b><small><%= settings.nama_sekolah %></small></div></a>
+    <a class="btn btn-sm" href="<%= user ? '/app' : '/login' %>"><%= user ? 'Buka Aplikasi' : 'Masuk Guru / Admin' %></a>
+  </nav>
+  <section class="hero">
+    <div>
+      <span class="badge badge-primary">Kurikulum Merdeka · Fase A, B, C</span>
+      <h1 style="margin-top:.75rem">Rapor digital <%= settings.nama_sekolah %></h1>
+      <p class="lead">Sistem penilaian dan rapor peserta didik berbasis web: input nilai formatif & sumatif, deskripsi capaian otomatis, rapor projek P5, leger, hingga cetak rapor siap tanda tangan.</p>
+      <div class="features">
+        <div class="feature"><span class="ic">1</span><div><b>Nilai otomatis</b><br><span class="muted">NA = (F + 2S + 2AS) / 5, deskripsi TP tertinggi &amp; terendah.</span></div></div>
+        <div class="feature"><span class="ic">2</span><div><b>Rapor P5</b><br><span class="muted">Dimensi, elemen, sub-elemen Profil Pelajar Pancasila.</span></div></div>
+        <div class="feature"><span class="ic">3</span><div><b>Cetak A4</b><br><span class="muted">Sampul, identitas, nilai, TTS, piagam, leger.</span></div></div>
+        <div class="feature"><span class="ic">4</span><div><b>Portal orang tua</b><br><span class="muted">Lihat rapor dengan NISN &amp; tanggal lahir.</span></div></div>
+      </div>
+    </div>
+    <div class="hero-card">
+      <h2>Cek Rapor Siswa</h2>
+      <% if (!portal) { %>
+        <p class="muted">Portal rapor untuk orang tua sedang ditutup oleh sekolah.</p>
+      <% } else { %>
+        <p class="muted">Untuk orang tua/wali. Masukkan NISN atau NIS dan tanggal lahir peserta didik.</p>
+        <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+        <form method="post" action="/cek-rapor">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <div class="field"><label for="nisn">NISN / NIS</label><input id="nisn" name="nisn" inputmode="numeric" required></div>
+          <div class="field"><label for="tgl">Tanggal lahir</label><input id="tgl" type="date" name="tanggal_lahir" required></div>
+          <button class="btn btn-primary" style="width:100%">Lihat Rapor</button>
+        </form>
+      <% } %>
+      <% if (stats) { %>
+      <hr>
+      <div class="grid grid-3" style="text-align:center">
+        <div><div style="font-size:1.4rem;font-weight:800"><%= stats.siswa %></div><small>Siswa</small></div>
+        <div><div style="font-size:1.4rem;font-weight:800"><%= stats.kelas %></div><small>Rombel</small></div>
+        <div><div style="font-size:1.4rem;font-weight:800"><%= stats.guru %></div><small>Guru</small></div>
+      </div>
+      <% } %>
+    </div>
+  </section>
+  <footer class="footer"><%= settings.nama_sekolah %><%= settings.alamat ? ' · ' + settings.alamat : '' %> — E-Rapor SD Kurikulum Merdeka</footer>
+</div>
+</body>
+</html>

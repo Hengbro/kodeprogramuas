@@ -1,0 +1,34 @@
+<%- include('../partials/top') %>
+<div class="page-head"><div><h1>Mata Pelajaran</h1><p>Daftar mapel sekolah. Aktif/nonaktif dan KKTP diatur per kelas pada menu Kelas → Mapel &amp; KKTP.</p></div></div>
+<div class="card flush">
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th style="width:70px">Urutan</th><th>Nama mata pelajaran</th><th style="width:140px">Singkatan</th><th>Kelompok</th><th class="actions">Aksi</th></tr></thead>
+    <tbody>
+    <% subjects.forEach(s => { %>
+      <tr>
+          <td><input form="f<%= s.id %>" type="number" name="urutan" value="<%= s.urutan %>" min="1" max="20"></td>
+          <td><input form="f<%= s.id %>" name="nama" value="<%= s.nama %>"></td>
+          <td><input form="f<%= s.id %>" name="singkat" value="<%= s.singkat %>"></td>
+          <td><span class="badge <%= s.kelompok === 'agama' ? 'badge-primary' : s.kelompok === 'seni' ? 'badge-warning' : s.kelompok === 'mulok' ? 'badge-success' : '' %>"><%= s.kelompok %><%= s.agama ? ' · ' + s.agama : '' %></span></td>
+          <td class="actions"><form method="post" action="/app/mapel/<%= s.id %>" id="f<%= s.id %>" class="inline-form">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button class="btn btn-sm">Simpan</button>
+            <button class="btn btn-sm btn-danger" name="action" value="delete" data-confirm="Hapus mapel <%= s.nama %> beserta seluruh nilainya?"><%- h.icon('trash') %></button></form></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<form method="post" class="card">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2>Tambah mapel / muatan lokal</h2>
+  <div class="grid grid-4" style="align-items:end">
+    <div class="field"><label>Nama</label><input name="nama" placeholder="Bahasa Daerah" required></div>
+    <div class="field"><label>Singkatan</label><input name="singkat" placeholder="B.Daerah"></div>
+    <div class="field"><label>Kelompok</label><select name="kelompok"><option value="mulok">Muatan lokal</option><option value="umum">Mapel umum</option><option value="seni">Seni</option></select></div>
+    <div class="field"><button class="btn btn-primary"><%- h.icon('plus') %> Tambah</button></div>
+  </div>
+</form>
+<%- include('../partials/bottom') %>

@@ -1,0 +1,54 @@
+<%- include('../partials/top') %>
+<div class="page-head">
+  <div><div class="breadcrumb"><a href="/app/siswa">Data Siswa</a><% if (st.class_id) { %> / <a href="/app/kelas/<%= st.class_id %>">Kelas <%= st.kelas_nama %></a><% } %></div>
+    <h1><%= st.nama %> <% if (st.status !== 'aktif') { %><span class="badge badge-warning"><%= st.status %></span><% } %></h1>
+    <p>NIS <%= st.nis || '-' %> · NISN <%= st.nisn || '-' %> · <%= h.jk(st.jenis_kelamin) %> · <%= st.agama || '-' %></p></div>
+  <div class="btn-group">
+    <a class="btn" href="/app/siswa/<%= st.id %>/edit"><%- h.icon('edit') %> Ubah</a>
+    <a class="btn btn-primary" href="/app/rapor/<%= st.id %>/akhir?part=cover&part=sekolah&part=identitas&part=nilai&back=/app/siswa/<%= st.id %>" target="_blank"><%- h.icon('print') %> Cetak rapor lengkap</a>
+  </div>
+</div>
+<div class="grid grid-2">
+  <div class="card">
+    <div class="card-head"><h2>Grafik capaian — <%= h.periodLabel(activePeriod) %></h2>
+      <% if (rapor && rapor.rank) { %><span class="badge badge-primary">Peringkat <%= rapor.rank %> / <%= rapor.totalSiswa %></span><% } %></div>
+    <% const rows = rapor ? rapor.mapelRows.filter(r => !r.header && r.na != null) : []; %>
+    <% if (!rows.length) { %><div class="empty"><%- h.icon('chart') %><p>Belum ada nilai pada periode ini.</p></div><% } else { %>
+    <div class="bars">
+      <% rows.forEach(r => { const cls = r.na >= 88 ? 'sb' : r.na >= 74 ? '' : r.na >= 60 ? 'cukup' : 'kurang'; %>
+      <div class="bar-row"><span title="<%= r.nama %>" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= r.nama %></span>
+        <div class="bar-track"><div class="bar-fill <%= cls %>" style="width:<%= r.na %>%"></div><% if (r.kktp) { %><span class="bar-kktp" style="left:<%= r.kktp %>%" title="KKTP <%= r.kktp %>"></span><% } %></div>
+        <b style="text-align:right"><%= r.na %></b></div>
+      <% }) %>
+    </div>
+    <p class="muted" style="margin-top:.75rem">Rata-rata <b><%= h.angka(rapor.rata, 2) %></b> · Jumlah <b><%= rapor.jumlah %></b> · Garis hitam = KKTP</p>
+    <% } %>
+  </div>
+  <div class="card">
+    <h2>Identitas</h2>
+    <table class="table"><tbody>
+      <tr><th>Tempat, tgl lahir</th><td><%= h.ttl(st) || '-' %></td></tr>
+      <tr><th>Alamat</th><td><%= st.alamat || '-' %></td></tr>
+      <tr><th>Ayah / Ibu</th><td><%= st.ayah_nama || '-' %> / <%= st.ibu_nama || '-' %></td></tr>
+      <tr><th>Pekerjaan</th><td><%= st.ayah_pekerjaan || '-' %> / <%= st.ibu_pekerjaan || '-' %></td></tr>
+      <tr><th>Wali</th><td><%= st.wali_nama || '-' %></td></tr>
+    </tbody></table>
+  </div>
+</div>
+<div class="card">
+  <h2>Arsip rapor</h2>
+  <table class="table">
+    <thead><tr><th>Periode</th><th class="actions">Cetak</th></tr></thead>
+    <tbody>
+    <% periods.forEach(p => { const q = '?period=' + p.id + '&back=/app/siswa/' + st.id; %>
+      <tr><td><%= h.periodLabel(p) %> <% if (p.is_active) { %><span class="badge badge-primary">aktif</span><% } %></td>
+      <td class="actions">
+        <a class="btn btn-sm" target="_blank" href="/app/rapor/<%= st.id %>/tts<%= q %>">Tengah semester</a>
+        <a class="btn btn-sm" target="_blank" href="/app/rapor/<%= st.id %>/akhir<%= q %>">Akhir semester</a>
+        <a class="btn btn-sm" target="_blank" href="/app/rapor/<%= st.id %>/projek<%= q %>">Projek P5</a>
+      </td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/bottom') %>

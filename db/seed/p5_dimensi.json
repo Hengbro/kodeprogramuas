@@ -1,0 +1,384 @@
+[
+ {
+  "nama": "Beriman, Bertakwa Kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia",
+  "elemen": [
+   {
+    "nama": "Akhlak Beragama",
+    "subelemen": [
+     {
+      "nama": "Mencintai Tuhan Yang Maha Esa",
+      "fase_a": "Mengenal sifat-sifat utama Tuhan Yang Maha Esa bahwa Dia adalah Sang Pencipta yang Maha Pengasih dan Maha Penyayang dan mengenali kebaikan dirinya sebagai cerminan sifat Tuhan.",
+      "fase_b": "Memahami sifat-sifat Tuhan utama lainnya dan mengaitkan sifat-sifat tersebut dengan konsep dirinya dan ciptaan-Nya.",
+      "fase_c": "Memahami berbagai kualitas atau sifat-sifat Tuhan Yang Maha Esa yang diutarakan dalam kitab suci agama masing-masing dan menghubungkan kualitas-kualitas positif Tuhan dengan sikap pribadinya, serta meyakini firman Tuhan sebagai kebenaran."
+     },
+     {
+      "nama": "Pemahaman Agama/ Kepercayaan",
+      "fase_a": "Mengenal unsur unsur utama agama/kepercayaan (ajaran, ritual keagamaan, kitab suci, dan orang suci/ utusan Tuhan YME).",
+      "fase_b": "Mengenal unsur-unsur utama agama/kepercayaan (simbol-simbol keagamaan dan sejarah agama/ kepercayaan).",
+      "fase_c": "Memahami unsur unsur utama agama/kepercayaan, dan mengenali peran agama/kepercayaan dalam kehidupan serta memahami ajaran moral agama."
+     },
+     {
+      "nama": "Pelaksanaan Ritual Ibadah",
+      "fase_a": "Terbiasa melaksanakan ibadah sesuai ajaran agama/ kepercayaannya.",
+      "fase_b": "Terbiasa melaksanakan ibadah wajib sesuai tuntunan agama/kepercayaannya.",
+      "fase_c": "Melaksanakan ibadah secara rutin sesuai dengan tuntunan agama/kepercayaan, berdoa mandiri, merayakan, dan memahami makna hari hari besar."
+     }
+    ]
+   },
+   {
+    "nama": "Akhlak Pribadi",
+    "subelemen": [
+     {
+      "nama": "Integritas",
+      "fase_a": "Membiasakan bersikap jujur terhadap diri sendiri dan orang lain dan berani menyampaikan kebenaran atau fakta.",
+      "fase_b": "Membiasakan melakukan refleksi tentang pentingnya bersikap jujur dan berani menyampaikan kebenaran atau fakta.",
+      "fase_c": "Berani dan konsisten menyampaikan kebenaran atau fakta serta memahami konsekuensi-konsekuensinya untuk diri sendiri."
+     },
+     {
+      "nama": "Merawat Diri secara Fisik, Mental, dan Spiritual",
+      "fase_a": "Memiliki rutinitas sederhana yang diatur secara mandiri dan dijalankan sehari-hari serta menjaga kesehatan dan keselamatan/keamanan diri dalam semua aktivitas kesehariannya.",
+      "fase_b": "Mulai membiasakan diri untuk disiplin, rapi, membersihkan dan merawat tubuh, menjaga tingkah laku dan perkataan dalam semua aktivitas kesehariannya.",
+      "fase_c": "Memperhatikan kesehatan jasmani, mental, dan rohani dengan melakukan aktivitas fisik, sosial, dan ibadah."
+     }
+    ]
+   },
+   {
+    "nama": "Akhlak Kepada Manusia",
+    "subelemen": [
+     {
+      "nama": "Mengutamakan persamaan dengan orang lain dan menghargai perbedaan",
+      "fase_a": "Mengenali hal-hal yang sama dan berbeda yang dimiliki diri dan temannya dalam berbagai hal, serta memberikan respons secara positif.",
+      "fase_b": "Terbiasa mengidentifikasi hal-hal yang sama dan berbeda yang dimiliki diri dan temannya dalam berbagai hal serta memberikan respons secara positif.",
+      "fase_c": "Mengidentifikasi kesamaan dengan orang lain sebagai perekat hubungan sosial dan mewujudkannya dalam aktivitas kelompok. Mulai mengenal berbagai kemungkinan interpretasi dan cara pandang yang berbeda ketika dihadapkan dengan dilema."
+     },
+     {
+      "nama": "Berempati kepada orang lain",
+      "fase_a": "Mengidentifikasi emosi, minat, dan kebutuhan orang orang terdekat dan meresponsnya secara positif.",
+      "fase_b": "Terbiasa memberikan apresiasi di lingkungan sekolah dan masyarakat",
+      "fase_c": "Mulai memandang sesuatu dari perspektif orang lain serta mengidentifikasi kebaikan dan kelebihan orang sekitarnya."
+     }
+    ]
+   },
+   {
+    "nama": "Akhlak Kepada Alam",
+    "subelemen": [
+     {
+      "nama": "Memahami Keterhubungan Ekosistem Bumi",
+      "fase_a": "Mengidentifikasi berbagai ciptaan Tuhan.",
+      "fase_b": "Memahami keterhubungan antara satu ciptaan dengan ciptaan Tuhan yang lainnya.",
+      "fase_c": "Memahami konsep harmoni dan mengidentifikasi adanya saling kebergantungan antara berbagai ciptaan Tuhan."
+     },
+     {
+      "nama": "Menjaga Lingkungan Alam Sekitar",
+      "fase_a": "Membiasakan bersyukur atas lingkungan alam sekitar dan berlatih untuk menjaganya.",
+      "fase_b": "Terbiasa memahami tindakan-tindakan yang ramah dan tidak ramah lingkungan serta membiasakan diri untuk berperilaku ramah lingkungan.",
+      "fase_c": "Mewujudkan rasa syukur dengan terbiasa berperilaku ramah lingkungan dan memahami akibat perbuatan tidak ramah lingkungan dalam lingkup kecil maupun besar."
+     }
+    ]
+   },
+   {
+    "nama": "Akhlak Bernegara",
+    "subelemen": [
+     {
+      "nama": "Melaksanakan Hak dan Kewajiban sebagai Warga Negara Indonesia",
+      "fase_a": "Mengidentifikasi hak dan tanggung jawabnya di rumah, sekolah, dan lingkungan sekitar serta kaitannya dengan keimanan kepada Tuhan YME.",
+      "fase_b": "Mengidentifikasi hak dan tanggung jawab orang-orang di sekitarnya serta kaitannya dengan keimanan kepada Tuhan YME.",
+      "fase_c": "Mengidentifikasi dan memahami peran, hak, dan kewajiban dasar sebagai warga negara serta kaitannya dengan keimanan kepada Tuhan YME dan secara sadar mempraktikkannya dalam kehidupan sehari-hari."
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "nama": "Berkebhinekaan Global",
+  "elemen": [
+   {
+    "nama": "Mengenal Dan Menghargai Budaya",
+    "subelemen": [
+     {
+      "nama": "Mendalami budaya dan identitas budaya",
+      "fase_a": "Mengidentifikasi dan mendeskripsikan ide-ide tentang dirinya dan beberapa kelompok di lingkungan sekitarnya.",
+      "fase_b": "Mengidentifikasi dan mendeskripsikan ide-ide tentang dirinya dan berbagai kelompok di lingkungan sekitarnya, serta cara orang lain berperilaku dan berkomunikasi dengannya.",
+      "fase_c": "Mengidentifikasi dan mendeskripsikan keragaman budaya di sekitarnya; serta menjelaskan peran budaya dan bahasa dalam membentuk identitas dirinya."
+     },
+     {
+      "nama": "Mengeksplorasi dan membandingkan pengetahuan budaya, kepercayaan, serta praktiknya",
+      "fase_a": "Mengidentifikasi dan mendeskripsikan praktik keseharian diri dan budayanya.",
+      "fase_b": "Mengidentifikasi dan membandingkan praktik keseharian diri dan budayanya dengan orang lain di tempat dan waktu/era yang berbeda.",
+      "fase_c": "Mendeskripsikan dan membandingkan pengetahuan, kepercayaan, dan praktik dari berbagai kelompok budaya."
+     },
+     {
+      "nama": "Menumbuhkan rasa menghormati terhadap keanekaragaman budaya",
+      "fase_a": "Mendeskripsikan pengalaman dan pemahaman hidup bersama-sama dalam kemajemukan.",
+      "fase_b": "Memahami bahwa kemajemukan dapat memberikan kesempatan untuk memperoleh pengalaman dan pemahaman yang baru.",
+      "fase_c": "Mengidentifikasi peluang dan tantangan yang muncul dari keragaman budaya di Indonesia."
+     }
+    ]
+   },
+   {
+    "nama": "Komunikasi Dan Interaksi Antar Budaya",
+    "subelemen": [
+     {
+      "nama": "Berkomunikasi antar budaya",
+      "fase_a": "Mengenali bahwa diri dan orang lain menggunakan kata, gambar, dan bahasa tubuh yang dapat memiliki makna yang berbeda di lingkungan sekitarnya.",
+      "fase_b": "Mendeskripsikan penggunaan kata, tulisan dan bahasa tubuh yang memiliki makna yang berbeda di lingkungan sekitarnya dan dalam suatu budaya tertentu.",
+      "fase_c": "Memahami persamaan dan perbedaan cara komunikasi baik di dalam maupun antar kelompok budaya."
+     },
+     {
+      "nama": "Mempertimbangkan dan menumbuhkan berbagai perspektif",
+      "fase_a": "Mengekspresikan pandangannya terhadap topik yang umum dan mendengarkan sudut pandang orang lain yang berbeda dari dirinya dalam lingkungan keluarga dan sekolah.",
+      "fase_b": "Mengekspresikan pandangannya terhadap topik yang umum dan dapat mengenal sudut pandang orang lain. Mendengarkan dan memperkirakan sudut pandang orang lain yang berbeda dari dirinya pada situasi di ranah sekolah, keluarga, dan lingkungan sekitar.",
+      "fase_c": "Membandingkan beragam perspektif untuk memahami permasalahan sehari hari. Memperkirakan dan mendeskripsikan situasi komunitas yang berbeda dengan dirinya ke dalam situasi dirinya dalam konteks lokal dan regional."
+     }
+    ]
+   },
+   {
+    "nama": "Refleksi Dan Bertanggung Jawab Terhadap Pengalaman Kebinekaan",
+    "subelemen": [
+     {
+      "nama": "Refleksi terhadap pengalaman kebinekaan.",
+      "fase_a": "Menyebutkan apa yang telah dipelajari tentang orang lain dari interaksinya dengan kemajemukan budaya di lingkungan sekolah dan rumah.",
+      "fase_b": "Menyebutkan apa yang telah dipelajari tentang orang lain dari interaksinya dengan kemajemukan budaya di lingkungan sekitar.",
+      "fase_c": "Menjelaskan apa yang telah dipelajari dari interaksi dan pengalaman dirinya dalam lingkungan yang beragam."
+     },
+     {
+      "nama": "Menghilangkan stereotip dan prasangka",
+      "fase_a": "Mengenali perbedaan tiap orang atau kelompok dan menyikapinya sebagai kewajaran.",
+      "fase_b": "Mengkonfirmasi dan mengklarifikasi stereotip dan prasangka yang dimilikinya tentang orang atau kelompok di sekitarnya untuk mendapatkan pemahaman yang lebih baik.",
+      "fase_c": "Mengkonfirmasi dan mengklarifikasi stereotip dan prasangka yang dimilikinya tentang orang atau kelompok di sekitarnya untuk mendapatkan pemahaman yang lebih baik serta mengidentifikasi pengaruhnya terhadap individu dan kelompok di lingkungan sekitarnya."
+     },
+     {
+      "nama": "Menyelaraskan perbedaan budaya",
+      "fase_a": "Mengidentifikasi perbedaan budaya yang konkret di lingkungan sekitar.",
+      "fase_b": "Mengenali bahwa perbedaan budaya mempengaruhi pemahaman antar individu.",
+      "fase_c": "Mencari titik temu nilai budaya yang beragam untuk menyelesaikan permasalahan bersama."
+     }
+    ]
+   },
+   {
+    "nama": "Berkeadilan Sosial",
+    "subelemen": [
+     {
+      "nama": "Aktif membangun masyarakat yang inklusif, adil, dan berkelanjutan",
+      "fase_a": "Menjalin pertemanan tanpa memandang perbedaan agama, suku, ras, jenis kelamin, dan perbedaan lainnya, dan mengenal masalah-masalah sosial, ekonomi, dan lingkungan di lingkungan sekitarnya.",
+      "fase_b": "Mengidentifikasi cara berkontribusi terhadap lingkungan sekolah, rumah dan lingkungan sekitarnya yang inklusif, adil dan berkelanjutan.",
+      "fase_c": "Membandingkan beberapa tindakan dan praktik perbaikan lingkungan sekolah yang inklusif, adil, dan berkelanjutan, dengan mempertimbangkan dampaknya secara jangka panjang terhadap manusia, alam, dan masyarakat."
+     },
+     {
+      "nama": "Berpartisipasi dalam proses pengambilan keputusan bersama",
+      "fase_a": "Mengidentifikasi pilihan-pilihan berdasarkan kebutuhan dirinya dan orang lain ketika membuat keputusan.",
+      "fase_b": "Berpartisipasi menentukan beberapa pilihan untuk keperluan bersama berdasarkan kriteria sederhana.",
+      "fase_c": "Berpartisipasi dalam menentukan kriteria yang disepakati bersama untuk menentukan pilihan dan keputusan untuk kepentingan bersama."
+     },
+     {
+      "nama": "Memahami peran individu dalam demokrasi",
+      "fase_a": "Mengidentifikasi peran, hak dan kewajiban warga dalam masyarakat demokratis.",
+      "fase_b": "Memahami konsep hak dan kewajiban, serta implikasinya terhadap perilakunya.",
+      "fase_c": "Memahami konsep hak dan kewajiban, serta implikasinya terhadap perilakunya. Menggunakan konsep ini untuk menjelaskan perilaku diri dan orang sekitarnya."
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "nama": "Bergotong Royong",
+  "elemen": [
+   {
+    "nama": "Kolaborasi",
+    "subelemen": [
+     {
+      "nama": "Kerja sama",
+      "fase_a": "Menerima dan melaksanakan tugas serta peran yang diberikan kelompok dalam sebuah kegiatan bersama.",
+      "fase_b": "Menampilkan tindakan yang sesuai dengan harapan dan tujuan kelompok.",
+      "fase_c": "Menunjukkan ekspektasi (harapan) positif kepada orang lain dalam rangka mencapai tujuan kelompok di lingkungan sekitar (sekolah dan rumah)."
+     },
+     {
+      "nama": "Komunikasi untuk mencapai tujuan bersama",
+      "fase_a": "Memahami informasi sederhana dari orang lain dan menyampaikan informasi sederhana kepada orang lain menggunakan kata-katanya sendiri.",
+      "fase_b": "Memahami informasi yang disampaikan (ungkapan pikiran, perasaan, dan keprihatinan) orang lain dan menyampaikan informasi secara akurat menggunakan berbagai simbol dan media.",
+      "fase_c": "Memahami informasi dari berbagai sumber dan menyampaikan pesan menggunakan berbagai simbol dan media secara efektif kepada orang lain untuk mencapai tujuan bersama."
+     },
+     {
+      "nama": "Saling ketergantungan positif",
+      "fase_a": "Mengenali kebutuhan kebutuhan diri sendiri yang memerlukan orang lain dalam pemenuhannya.",
+      "fase_b": "Menyadari bahwa setiap orang membutuhkan orang lain dalam memenuhi kebutuhannya dan perlunya saling membantu.",
+      "fase_c": "Menyadari bahwa meskipun setiap orang memiliki otonominya masing-masing, setiap orang membutuhkan orang lain dalam memenuhi kebutuhannya."
+     },
+     {
+      "nama": "Koordinasi Sosial",
+      "fase_a": "Melaksanakan aktivitas kelompok sesuai dengan kesepakatan bersama dengan bimbingan, dan saling mengingatkan adanya kesepakatan tersebut.",
+      "fase_b": "Menyadari bahwa dirinya memiliki peran yang berbeda dengan orang lain/temannya, serta mengetahui konsekuensi perannya terhadap ketercapaian tujuan.",
+      "fase_c": "Menyelaraskan tindakannya sesuai dengan perannya dan mempertimbangkan peran orang lain untuk mencapai tujuan bersama."
+     }
+    ]
+   },
+   {
+    "nama": "Kepedulian",
+    "subelemen": [
+     {
+      "nama": "Tanggap terhadap lingkungan Sosial",
+      "fase_a": "Peka dan mengapresiasi orang orang di lingkungan sekitar, kemudian melakukan tindakan sederhana untuk mengungkapkannya.",
+      "fase_b": "Peka dan mengapresiasi orang orang di lingkungan sekitar, kemudian melakukan tindakan untuk menjaga keselarasan dalam berelasi dengan orang lain.",
+      "fase_c": "Tanggap terhadap lingkungan sosial sesuai dengan tuntutan peran sosialnya dan menjaga keselarasan dalam berelasi dengan orang lain."
+     },
+     {
+      "nama": "Persepsi sosial",
+      "fase_a": "Mengenali berbagai reaksi orang lain di lingkungan sekitar dan penyebabnya.",
+      "fase_b": "Memahami berbagai alasan orang lain menampilkan respon tertentu.",
+      "fase_c": "Menerapkan pengetahuan mengenai berbagai reaksi orang lain dan penyebabnya dalam konteks keluarga, sekolah, serta pertemanan dengan sebaya."
+     }
+    ]
+   },
+   {
+    "nama": "Berbagi",
+    "subelemen": [
+     {
+      "nama": "Berbagi",
+      "fase_a": "Memberi dan menerima hal yang dianggap berharga dan penting kepada/dari orang orang di lingkungan sekitar.",
+      "fase_b": "Memberi dan menerima hal yang dianggap penting dan berharga kepada/dari orang-orang di lingkungan sekitar baik yang dikenal maupun tidak dikenal.",
+      "fase_c": "Memberi dan menerima hal yang dianggap penting dan berharga kepada/dari orang orang di lingkungan luas/masyarakat baik yang dikenal maupun tidak dikenal."
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "nama": "Mandiri",
+  "elemen": [
+   {
+    "nama": "Pemahaman Diri Dan Situasi Yang Dihadapi",
+    "subelemen": [
+     {
+      "nama": "Mengenali kualitas dan minat diri serta tantangan yang dihadapi",
+      "fase_a": "Mengidentifikasi dan menggambarkan kemampuan, prestasi, dan ketertarikannya secara subjektif.",
+      "fase_b": "Mengidentifikasi kemampuan, prestasi, dan ketertarikannya serta tantangan yang dihadapi berdasarkan kejadian-kejadian yang dialaminya dalam kehidupan sehari-hari.",
+      "fase_c": "Menggambarkan pengaruh kualitas dirinya terhadap pelaksanaan dan hasil belajar; serta mengidentifikasi kemampuan yang ingin dikembangkan dengan mempertimbangkan tantangan yang dihadapinya dan umpan balik dari orang dewasa."
+     },
+     {
+      "nama": "Mengembangkan refleksi diri",
+      "fase_a": "Melakukan refleksi untuk mengidentifikasi kekuatan dan kelemahan, serta prestasi dirinya.",
+      "fase_b": "Melakukan refleksi untuk mengidentifikasi kekuatan, kelemahan, dan prestasi dirinya, serta situasi yang dapat mendukung dan menghambat pembelajaran dan pengembangan dirinya.",
+      "fase_c": "Melakukan refleksi untuk mengidentifikasi faktor-faktor di dalam maupun di luar dirinya yang dapat mendukung/menghambatnya dalam belajar dan mengembangkan diri; serta mengidentifikasi cara-cara untuk mengatasi kekurangannya."
+     }
+    ]
+   },
+   {
+    "nama": "Regulasi Diri",
+    "subelemen": [
+     {
+      "nama": "Regulasi emosi",
+      "fase_a": "Mengidentifikasi perbedaan emosi yang dirasakannya dan situasi-situasi yang menyebabkannya serta mengekspresikan secara wajar.",
+      "fase_b": "Mengetahui adanya pengaruh orang lain, situasi, dan peristiwa yang terjadi terhadap emosi yang dirasakannya; serta berupaya untuk mengekspresikan emosi secara tepat dengan mempertimbangkan perasaan dan kebutuhan orang lain disekitarnya.",
+      "fase_c": "Memahami perbedaan emosi yang dirasakan dan dampaknya terhadap proses belajar dan interaksinya dengan orang lain serta mencoba cara-cara yang sesuai untuk mengelola emosi agar dapat menunjang aktivitas belajar dan interaksinya dengan orang lain."
+     },
+     {
+      "nama": "Penetapan tujuan belajar, prestasi, dan pengembangan diri serta rencana strategis untuk mencapainya",
+      "fase_a": "Menetapkan target belajar dan merencanakan waktu dan tindakan belajar yang akan dilakukannya.",
+      "fase_b": "Menjelaskan pentingnya memiliki tujuan dan berkomitmen dalam mencapainya serta mengeksplorasi langkah-langkah yang sesuai untuk mencapainya.",
+      "fase_c": "Menilai faktor-faktor (kekuatan dan kelemahan) yang ada pada dirinya dalam upaya mencapai tujuan belajar, prestasi, dan pengembangan dirinya serta mencoba berbagai strategi untuk mencapainya."
+     },
+     {
+      "nama": "Menunjukkan inisiatif dan bekerja secara mandiri",
+      "fase_a": "Berinisiatif untuk mengerjakan tugas tugas rutin secara mandiri dibawah pengawasan dan dukungan orang dewasa.",
+      "fase_b": "Mempertimbangkan, memilih dan mengadopsi berbagai strategi dan mengidentifikasi sumber bantuan yang diperlukan serta berinisiatif menjalankannya untuk mendapatkan hasil belajar yang diinginkan.",
+      "fase_c": "Memahami arti penting bekerja secara mandiri serta inisiatif untuk melakukannya dalam menunjang pembelajaran dan pengembangan dirinya."
+     },
+     {
+      "nama": "Mengembangkan pengendalian dan disiplin diri",
+      "fase_a": "Melaksanakan kegiatan belajar di kelas dan menyelesaikan tugas tugas dalam waktu yang telah disepakati.",
+      "fase_b": "Menjelaskan pentingnya mengatur diri secara mandiri dan mulai menjalankan kegiatan dan tugas yang telah sepakati secara mandiri.",
+      "fase_c": "Mengidentifikasi faktor faktor yang dapat mempengaruhi kemampuan dalam mengelola diri dalam pelaksanaan aktivitas belajar dan pengembangan dirinya."
+     },
+     {
+      "nama": "Percaya diri, tangguh (resilient), dan adaptif",
+      "fase_a": "Berani mencoba dan adaptif menghadapi situasi baru serta bertahan mengerjakan tugas-tugas yang disepakati hingga tuntas.",
+      "fase_b": "Tetap bertahan mengerjakan tugas ketika dihadapkan dengan tantangan dan berusaha menyesuaikan strateginya ketika upaya sebelumnya tidak berhasil.",
+      "fase_c": "Menyusun, menyesuaikan, dan menguji cobakan berbagai strategi dan cara kerjanya untuk membantu dirinya dalam penyelesaian tugas yang menantang."
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "nama": "Bernalar Kritis",
+  "elemen": [
+   {
+    "nama": "Memperoleh Dan Memproses Informasi Dan Gagasan",
+    "subelemen": [
+     {
+      "nama": "Mengajukan pertanyaan",
+      "fase_a": "Mengajukan pertanyaan untuk menjawab keingin tahuannya dan untuk mengidentifikasi suatu permasalahan mengenai dirinya dan lingkungan sekitarnya.",
+      "fase_b": "Mengajukan pertanyaan untuk mengidentifikasi suatu permasalahan dan mengkonfirmasi pemahaman terhadap suatu permasalahan mengenai dirinya dan lingkungan sekitarnya.",
+      "fase_c": "Mengajukan pertanyaan untuk membandingkan berbagai informasi dan untuk menambah pengetahuannya."
+     },
+     {
+      "nama": "Mengidentifikasi, mengklarifikasi, dan mengolah informasi dan gagasan",
+      "fase_a": "Mengidentifikasi dan mengolah informasi dan gagasan.",
+      "fase_b": "Mengumpulkan,mengklasifikasikan, membandingkan dan memilih informasi dan gagasan dari berbagai sumber.",
+      "fase_c": "Mengumpulkan, mengklasifikasikan, membandingkan, dan memilih informasi dari berbagai sumber, serta memperjelas informasi dengan bimbingan orang dewasa."
+     }
+    ]
+   },
+   {
+    "nama": "Menganalisis Dan Mengevaluasi Penalaran Dan Prosedurnya",
+    "subelemen": [
+     {
+      "nama": "Menganalisis dan mengevaluasi penalaran dan prosedurnya",
+      "fase_a": "Melakukan penalaran konkret dan memberikan alasan dalam menyelesaikan masalah dan mengambil keputusan.",
+      "fase_b": "Menjelaskan alasan yang relevan dalam penyelesaian masalah dan pengambilan keputusan.",
+      "fase_c": "Menjelaskan alasan yang relevan dan akurat dalam penyelesaian masalah dan pengambilan keputusan."
+     }
+    ]
+   },
+   {
+    "nama": "Refleksi Pemikiran Dan Proses Berpikir",
+    "subelemen": [
+     {
+      "nama": "Merefleksi dan mengevaluasi pemikirannya sendiri",
+      "fase_a": "Menyampaikan apa yang sedang dipikirkan secara terperinci.",
+      "fase_b": "Menyampaikan apa yang sedang dipikirkan dan menjelaskan alasan dari hal yang dipikirkan.",
+      "fase_c": "Memberikan alasan dari hal yang dipikirkan, serta menyadari kemungkinan adanya bias pada pemikirannya sendiri."
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "nama": "Kreatif",
+  "elemen": [
+   {
+    "nama": "Menghasilkan Gagasan Yang Orisinal",
+    "subelemen": [
+     {
+      "nama": "Menghasilkan gagasan yang orisinal",
+      "fase_a": "Menggabungkan beberapa gagasan menjadi ide atau gagasan imajinatif yang bermakna untuk mengekspresikan pikiran dan/atau perasaannya.",
+      "fase_b": "Memunculkan gagasan imajinatif baru yang bermakna dari beberapa gagasan yang berbeda sebagai ekspresi pikiran dan/atau perasaannya.",
+      "fase_c": "Mengembangkan gagasan yang ia miliki untuk membuat kombinasi hal yang baru dan imajinatif untuk mengekspresikan pikiran dan/atau perasaannya."
+     }
+    ]
+   },
+   {
+    "nama": "Menghasilkan Karya Dan Tindakan Yang Orisinal",
+    "subelemen": [
+     {
+      "nama": "Menghasilkan karya dan tindakan yang orisinal",
+      "fase_a": "Mengeksplorasi dan mengekspresikan pikiran dan/atau perasaannya dalam bentuk karya dan/atau tindakan serta mengapresiasi karya dan tindakan yang dihasilkan.",
+      "fase_b": "Mengeksplorasi dan mengekspresikan pikiran dan/atau perasaannya sesuai dengan minat dan kesukaannya dalam bentuk karya dan/atau tindakan serta mengapresiasi karya dan tindakan yang dihasilkan.",
+      "fase_c": "Mengeksplorasi dan mengekspresikan pikiran dan/atau perasaannya sesuai dengan minat dan kesukaannya dalam bentuk karya dan/atau tindakan serta mengapresiasi dan mengkritisi karya dan tindakan yang dihasilkan."
+     }
+    ]
+   },
+   {
+    "nama": "Memiliki Keluwesan Berpikir Dalam Mencari Alternatif Solusi Permasalahan",
+    "subelemen": [
+     {
+      "nama": "Memiliki keluwesan berpikir dalam mencari alternatif solusi permasalahan",
+      "fase_a": "Mengidentifikasi gagasan-gagasan kreatif untuk menghadapi situasi dan permasalahan.",
+      "fase_b": "Membandingkan gagasan-gagasan kreatif untuk menghadapi situasi dan permasalahan.",
+      "fase_c": "Berupaya mencari solusi alternatif saat pendekatan yang diambil tidak berhasil berdasarkan identifikasi terhadap situasi."
+     }
+    ]
+   }
+  ]
+ }
+]

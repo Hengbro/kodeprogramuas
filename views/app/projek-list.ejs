@@ -1,0 +1,32 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head"><div><h1>Projek Penguatan Profil Pelajar Pancasila</h1><p>Rancang projek, pilih sub-elemen target, lalu nilai setiap siswa (BB / MB / BSH / SB).</p></div></div>
+<% if (!projects.length) { %><div class="card empty"><%- h.icon('layers') %><p>Belum ada projek pada periode ini.</p></div><% } %>
+<% projects.forEach(p => { %>
+<div class="card">
+  <div class="card-head">
+    <div><span class="badge badge-primary">Projek <%= p.urutan %></span> <h2 style="display:inline;margin-left:.3rem"><%= p.nama %></h2><% if (p.tema) { %><div class="muted">Tema: <%= p.tema %></div><% } %></div>
+    <div class="btn-group">
+      <a class="btn btn-sm" href="/app/kelas/<%= cls.id %>/projek/<%= p.id %>"><%- h.icon('edit') %> Rancangan</a>
+      <a class="btn btn-sm btn-primary" href="/app/kelas/<%= cls.id %>/projek/<%= p.id %>/nilai"><%- h.icon('check') %> Penilaian</a>
+    </div>
+  </div>
+  <% if (p.deskripsi) { %><p><%= p.deskripsi %></p><% } %>
+  <% if (!p.targets.length) { %><p class="muted">Belum ada sub-elemen target.</p><% } else { %>
+  <div class="chips"><% p.targets.forEach(t => { %><span class="chip" title="<%= t.dimensi %>"><%= t.nama %></span><% }) %></div>
+  <% } %>
+  <p class="muted" style="margin-top:.6rem"><%= p.dinilai %> siswa sudah dinilai</p>
+</div>
+<% }) %>
+<form method="post" class="card">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2>Projek baru</h2>
+  <div class="form-grid">
+    <div class="field"><label>Judul projek</label><input name="nama" placeholder="Bhinneka Tunggal Ika" required></div>
+    <div class="field"><label>Tema</label><input name="tema" list="tema-p5" placeholder="Kearifan Lokal">
+      <datalist id="tema-p5"><% ['Gaya Hidup Berkelanjutan','Kearifan Lokal','Bhinneka Tunggal Ika','Bangunlah Jiwa dan Raganya','Suara Demokrasi','Berekayasa dan Berteknologi untuk Membangun NKRI','Kewirausahaan'].forEach(t => { %><option value="<%= t %>"><% }) %></datalist></div>
+    <div class="field full"><label>Deskripsi singkat</label><textarea name="deskripsi" rows="3"></textarea></div>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary"><%- h.icon('plus') %> Buat projek</button></div>
+</form>
+<%- include('../partials/bottom') %>

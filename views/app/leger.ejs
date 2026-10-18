@@ -1,0 +1,26 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head"><div><h1>Leger Nilai Kelas <%= cls.nama %></h1><p>Rekap nilai akhir seluruh mata pelajaran, jumlah, rata-rata, dan peringkat · <%= h.periodLabel(period) %></p></div>
+  <div class="btn-group">
+    <a class="btn" href="?format=csv&period=<%= period.id %>"><%- h.icon('download') %> Unduh CSV (Excel)</a>
+    <a class="btn btn-primary" href="?print=1&period=<%= period.id %>" target="_blank"><%- h.icon('print') %> Cetak leger</a>
+  </div></div>
+<div class="card flush">
+  <% if (!report.students.length) { %><div class="empty">Belum ada siswa.</div><% } else { %>
+  <div class="table-wrap">
+  <table class="table" style="font-size:.85rem">
+    <thead><tr><th class="num">No</th><th>Nama siswa</th><% cols.forEach(c => { %><th class="num" title="<%= c.nama %>"><%= c.singkat %></th><% }) %><th class="num">Jumlah</th><th class="num">Rata-rata</th><th class="num">Peringkat</th></tr></thead>
+    <tbody>
+    <% report.students.forEach((r, i) => { %>
+      <tr><td class="num"><%= i + 1 %></td><td><a href="/app/siswa/<%= r.student.id %>"><%= r.student.nama %></a></td>
+      <% cols.forEach(c => { const v = legerValue(r, c); const k = c.subject ? c.subject.kktp : null; %><td class="num" style="<%= v != null && k && v < k ? 'color:var(--danger);font-weight:700' : '' %>"><%= v ?? '–' %></td><% }) %>
+      <td class="num"><b><%= r.jumlah ?? '' %></b></td><td class="num"><%= h.angka(r.rata, 2) %></td>
+      <td class="num"><% if (r.rank) { %><span class="badge <%= r.rank <= 3 ? 'badge-success' : '' %>"><%= r.rank %></span><% } %></td></tr>
+    <% }) %>
+    <tr style="background:var(--surface-2)"><td></td><td><b>Rata-rata kelas</b></td><% colAvg.forEach(a => { %><td class="num"><b><%= h.angka(a, 1) %></b></td><% }) %><td colspan="3"></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <% } %>
+</div>
+<%- include('../partials/bottom') %>

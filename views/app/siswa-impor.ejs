@@ -1,0 +1,15 @@
+<%- include('../partials/top') %>
+<div class="page-head"><div><div class="breadcrumb"><a href="/app/siswa">Data Siswa</a></div><h1>Impor siswa dari CSV / Excel</h1>
+<p>Simpan lembar Excel sebagai CSV, atau salin–tempel langsung dari Excel (beserta baris judul).</p></div>
+<a class="btn" href="/app/siswa/template.csv"><%- h.icon('download') %> Unduh template CSV</a></div>
+<form method="post" class="card">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="grid grid-2">
+    <div class="field"><label>Kelas tujuan</label><select name="class_id" required><% classes.forEach(c => { %><option value="<%= c.id %>" <%= String(c.id) === String(kelas) ? 'selected' : '' %>><%= c.nama %></option><% }) %></select></div>
+    <div class="field"><label>Pilih file CSV (opsional)</label><input type="file" accept=".csv,.txt" onchange="const r=new FileReader();r.onload=()=>{document.getElementById('csv').value=r.result};r.readAsText(this.files[0])"></div>
+  </div>
+  <div class="field"><label>Data</label><textarea id="csv" name="csv" rows="12" placeholder="<%= FIELDS.join(',') %>" style="font-family:monospace;font-size:.82rem" required></textarea>
+    <div class="hint">Kolom yang dikenali: <code><%= FIELDS.join('</code> <code>') %></code>. Minimal kolom <code>nama</code>. Jenis kelamin: L/P. Tanggal lahir: YYYY-MM-DD atau DD/MM/YYYY. Pemisah koma, titik koma, atau tab.</div></div>
+  <div class="form-actions"><button class="btn btn-primary"><%- h.icon('upload') %> Impor</button></div>
+</form>
+<%- include('../partials/bottom') %>

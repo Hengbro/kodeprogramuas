@@ -1,0 +1,89 @@
+const test = require('node:test');
+const assert = require('node:assert');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const { execFileSync } = require('child_process');
+
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rapor-test-'));
+process.env.DATA_DIR = dir;
+execFileSync(process.execPath, [path.join(__dirname, '..', 'src', 'seed-demo.js')], { env: { ...process.env, DATA_DIR: dir } });
+const app = require('../server');
+
+let server;
+let base;
+const jar = {};
+
+async function req(method, url, body) {
+  const headers = { cookie: Object.entries(jar).map(([k, v]) => `${k}=${v}`).join('; ') };
+  if (body) headers['content-type'] = 'application/x-www-form-urlencoded';
+  const res = await fetch(base + url, { method, headers, body: body && new URLSearchParams(body).toString(), redirect: 'manual' });
+  for (const c of res.headers.getSetCookie()) { const [kv] = c.split(';'); const i = kv.indexOf('='); jar[kv.slice(0, i)] = kv.slice(i + 1); }
+  return { status: res.status, text: await res.text(), location: res.headers.get('location') };
+}
+const csrf = (html) => /name="_csrf" value="([^"]+)"/.exec(html)[1];
+
+test.before(() => new Promise((resolve) => { server = app.listen(0, () => { base = `http://127.0.0.1:${server.address().port}`; resolve(); }); }));
+test.after(() => { server.close(); });
+
+test('alur admin & halaman utama', async () => {
+  let r = await req('GET', '/');
+  assert.strictEqual(r.status, 200);
+  r = await req('GET', '/login');
+  r = await req('POST', '/login', { _csrf: csrf(r.text), username: 'admin', password: 'admin123' });
+  assert.strictEqual(r.status, 302);
+  const pages = ['/app', '/app/sekolah', '/app/pengaturan', '/app/periode', '/app/mapel', '/app/pengguna', '/app/akun', '/app/siswa',
+    '/app/siswa/baru', '/app/siswa/impor', '/app/kelas', '/app/kelas/1', '/app/kelas/1/mapel', '/app/kelas/1/absensi', '/app/kelas/1/ekskul',
+    '/app/kelas/1/catatan', '/app/kelas/1/kenaikan', '/app/kelas/1/projek', '/app/kelas/1/projek/1', '/app/kelas/1/projek/1/nilai',
+    '/app/kelas/1/leger', '/app/kelas/1/leger?print=1', '/app/kelas/1/cetak', '/app/siswa/1', '/app/siswa/1/edit',
+    '/app/rapor/1/akhir?part=cover&part=sekolah&part=identitas&part=nilai', '/app/rapor/1/tts', '/app/rapor/1/projek', '/app/rapor/1/piagam',
+    '/app/kelas/1/cetak-semua/akhir', '/app/kelas/1/cetak-semua/projek', '/app/kelas/1/cetak-semua/piagam', '/app/kelas/1/cetak-semua/tts'];
+  for (let sid = 1; sid <= 16; sid += 1) pages.push(`/app/kelas/1/tp/${sid}`, `/app/kelas/1/nilai/${sid}`);
+  for (const p of pages) {
+    const res = await req('GET', p);
+    assert.ok([200, 302].includes(res.status), `${p} -> ${res.status}`);
+  }
+  r = await req('GET', '/app/kelas/1/leger?format=csv');
+  assert.match(r.text, /Rata-rata/);
+  r = await req('GET', '/app/rapor/1/akhir');
+  assert.match(r.text, /LAPORAN HASIL BELAJAR/);
+  assert.match(r.text, /menunjukkan penguasaan/);
+});
+
+test('simpan nilai menghitung ulang NA', async () => {
+  let r = await req('GET', '/app/kelas/1/nilai/9'); // Matematika
+  const token = csrf(r.text);
+  const fields = { _csrf: token };
+  for (const m of r.text.matchAll(/name="((?:f|s|nt|t)_[\d_]+)" value="[^"]*"/g)) fields[m[1]] = '80';
+  r = await req('POST', '/app/kelas/1/nilai/9', fields);
+  assert.strictEqual(r.status, 302);
+  r = await req('GET', '/app/kelas/1/nilai/9');
+  assert.match(r.text, /data-out="na">80</);
+});
+
+test('portal orang tua: NISN + tanggal lahir', async () => {
+  const { db } = require('../src/db');
+  const st = db.prepare('SELECT * FROM students WHERE id = 1').get();
+  let r = await req('GET', '/');
+  r = await req('POST', '/cek-rapor', { _csrf: csrf(r.text), nisn: st.nisn, tanggal_lahir: '1999-01-01' });
+  assert.strictEqual(r.status, 404);
+  r = await req('GET', '/');
+  r = await req('POST', '/cek-rapor', { _csrf: csrf(r.text), nisn: st.nisn, tanggal_lahir: st.tanggal_lahir });
+  assert.strictEqual(r.location, '/rapor-saya');
+  r = await req('GET', '/rapor-saya');
+  assert.match(r.text, new RegExp(st.nama));
+  const period = /href="\/rapor-saya\/(\d+)\/akhir"/.exec(r.text)[1];
+  r = await req('GET', `/rapor-saya/${period}/akhir`);
+  assert.match(r.text, /LAPORAN HASIL BELAJAR/);
+});
+
+test('guru tidak bisa membuka halaman admin', async () => {
+  for (const k of Object.keys(jar)) delete jar[k];
+  let r = await req('GET', '/login');
+  r = await req('POST', '/login', { _csrf: csrf(r.text), username: 'guru4a', password: 'guru123' });
+  assert.strictEqual(r.status, 302);
+  r = await req('GET', '/app/pengguna');
+  assert.strictEqual(r.status, 403);
+  r = await req('GET', '/app/kelas/1');
+  assert.strictEqual(r.status, 200);
+});

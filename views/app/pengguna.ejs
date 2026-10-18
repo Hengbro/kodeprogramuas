@@ -1,0 +1,37 @@
+<%- include('../partials/top') %>
+<div class="page-head"><div><h1>Pengguna &amp; Guru</h1><p>Guru hanya dapat mengakses kelas yang ia ampu. Atur wali kelas di menu Kelas.</p></div></div>
+<div class="card flush">
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Nama</th><th>Username</th><th>NIP</th><th>Peran</th><th>Kata sandi baru</th><th class="actions">Aksi</th></tr></thead>
+    <tbody>
+    <% users.forEach(u => { %>
+      <tr>
+          <td><input form="u<%= u.id %>" name="nama" value="<%= u.nama %>"><% if (u.kelas) { %><small>Wali kelas: <%= u.kelas %></small><% } %></td>
+          <td><code><%= u.username %></code></td>
+          <td><input form="u<%= u.id %>" name="nip" value="<%= u.nip || '' %>"></td>
+          <td><select form="u<%= u.id %>" name="role" <%= u.id === user.id ? 'disabled' : '' %>><option value="guru" <%= u.role === 'guru' ? 'selected' : '' %>>Guru</option><option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Admin</option></select></td>
+          <td><input form="u<%= u.id %>" type="password" name="password" placeholder="(tidak diubah)" autocomplete="new-password"></td>
+          <td class="actions"><form method="post" action="/app/pengguna/<%= u.id %>" id="u<%= u.id %>" class="inline-form">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button class="btn btn-sm">Simpan</button>
+            <% if (u.id !== user.id) { %><button class="btn btn-sm btn-danger" name="action" value="delete" data-confirm="Hapus pengguna <%= u.nama %>?"><%- h.icon('trash') %></button><% } %></form></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<form method="post" class="card">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2>Tambah pengguna</h2>
+  <div class="grid grid-3">
+    <div class="field"><label>Nama lengkap (dengan gelar)</label><input name="nama" required></div>
+    <div class="field"><label>NIP</label><input name="nip"></div>
+    <div class="field"><label>Peran</label><select name="role"><option value="guru">Guru / Wali kelas</option><option value="admin">Admin</option></select></div>
+    <div class="field"><label>Username</label><input name="username" required autocomplete="off"></div>
+    <div class="field"><label>Kata sandi (min. 6)</label><input type="password" name="password" minlength="6" required autocomplete="new-password"></div>
+    <div class="field"><label>&nbsp;</label><button class="btn btn-primary"><%- h.icon('plus') %> Tambah pengguna</button></div>
+  </div>
+</form>
+<%- include('../partials/bottom') %>

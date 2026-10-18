@@ -1,0 +1,14 @@
+services:
+  rapor:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      COOKIE_SECURE: ${COOKIE_SECURE:-0}
+    volumes:
+      - rapor-data:/data
+volumes:
+  rapor-data:

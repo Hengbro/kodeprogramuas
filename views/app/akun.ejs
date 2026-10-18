@@ -1,0 +1,16 @@
+<%- include('../partials/top') %>
+<div class="page-head"><div><h1>Akun Saya</h1><p>Nama dan NIP Anda tercetak sebagai wali kelas pada rapor.</p></div></div>
+<form method="post" class="card" style="max-width:640px">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="field"><label>Username</label><input value="<%= user.username %>" disabled></div>
+  <div class="field"><label>Nama lengkap (dengan gelar)</label><input name="nama" value="<%= user.nama %>" required></div>
+  <div class="field"><label>NIP</label><input name="nip" value="<%= user.nip || '' %>"></div>
+  <hr>
+  <h3>Ganti kata sandi</h3>
+  <div class="form-grid">
+    <div class="field"><label>Kata sandi lama</label><input type="password" name="old_password" autocomplete="current-password"></div>
+    <div class="field"><label>Kata sandi baru</label><input type="password" name="new_password" minlength="6" autocomplete="new-password"></div>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary">Simpan</button></div>
+</form>
+<%- include('../partials/bottom') %>

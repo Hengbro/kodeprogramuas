@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/static/css/print.css">
+</head>
+<body>
+  <div class="toolbar">
+    <a href="<%= back %>">← Kembali</a>
+    <span><%= title %> · <%= items.length %> dokumen</span>
+    <span class="sp"></span>
+    <button class="primary" onclick="window.print()">Cetak / Simpan PDF</button>
+  </div>
+  <% if (!items.length) { %><div class="page"><p class="center">Tidak ada data untuk dicetak.</p></div><% } %>
+  <% items.forEach(r => { %>
+    <%- include('_' + partial, { r, parts }) %>
+  <% }) %>
+</body>
+</html>

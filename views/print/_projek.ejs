@@ -1,0 +1,58 @@
+<% const s = r.settings, st = r.student, L = r.P5_LEVEL; %>
+<section class="page">
+  <div class="doc-title" style="font-size:12.5pt">RAPOR PROJEK PENGUATAN<br>PROFIL PELAJAR PANCASILA</div>
+  <table class="info" style="margin-bottom:8px">
+    <tr><td style="width:22%">Nama Sekolah</td><td class="sep">:</td><td style="width:36%"><%= s.nama_sekolah %></td><td style="width:18%">Kelas</td><td class="sep">:</td><td><%= r.cls.nama %></td></tr>
+    <tr><td>Alamat</td><td class="sep">:</td><td><%= [s.alamat, s.desa, s.kecamatan].filter(Boolean).join(', ') %></td><td>Fase</td><td class="sep">:</td><td><%= r.cls.fase %></td></tr>
+    <tr><td>Nama Peserta Didik</td><td class="sep">:</td><td class="bold upper"><%= st.nama %></td><td>Tahun Pelajaran</td><td class="sep">:</td><td><%= r.period.tahun_pelajaran %></td></tr>
+    <tr><td>NISN</td><td class="sep">:</td><td><%= st.nisn || '-' %></td><td>Semester</td><td class="sep">:</td><td><%= r.period.semester %></td></tr>
+  </table>
+
+  <% if (!r.projects.length) { %><p class="center mt2">Belum ada projek pada periode ini.</p><% } %>
+  <% r.projects.forEach(p => { %>
+    <div class="avoid mt">
+      <div class="bold" style="background:#e8eef8;border:1px solid #000;padding:4px 6px">Projek <%= p.urutan %> | <%= p.nama %><%= p.tema ? ' (' + p.tema + ')' : '' %></div>
+      <% if (p.deskripsi) { %><div style="border:1px solid #000;border-top:0;padding:4px 6px;text-align:justify"><%= p.deskripsi %></div><% } %>
+    </div>
+  <% }) %>
+
+  <% if (r.projects.length) { %>
+  <table class="grid mt2 avoid">
+    <thead><tr><th style="text-align:left">Ringkasan per dimensi</th><% r.projects.forEach(p => { %><th style="width:22mm">Projek <%= p.urutan %></th><% }) %></tr></thead>
+    <tbody>
+    <% r.allDims.forEach(d => { const vals = r.projects.map(p => { const x = p.dimensi.find(y => y.id === d.id); return x ? x.nilai : undefined; }); if (vals.every(v => v === undefined)) return; %>
+      <tr><td><%= d.nama %></td><% vals.forEach(v => { %><td class="center bold"><%= v ? L[v].kode : (v === undefined ? '' : '-') %></td><% }) %></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  <table class="grid mt small avoid">
+    <tbody><tr>
+      <% [1,2,3,4].forEach(k => { %><td style="width:25%"><b><%= L[k].kode %>. <%= L[k].label %></b><br><%= L[k].ket %></td><% }) %>
+    </tr></tbody>
+  </table>
+  <% } %>
+</section>
+
+<% r.projects.forEach(p => { %>
+<section class="page">
+  <table class="grid">
+    <thead>
+      <tr><th style="text-align:left">Projek <%= p.urutan %>: <%= p.nama %></th><% [1,2,3,4].forEach(k => { %><th style="width:13mm"><%= L[k].kode %></th><% }) %></tr>
+    </thead>
+    <tbody>
+    <% if (!p.dimensi.length) { %><tr><td colspan="5" class="center">Belum ada sub-elemen target.</td></tr><% } %>
+    <% p.dimensi.forEach(d => { %>
+      <tr><td colspan="5" class="bold" style="background:#f3f6fb"><%= d.nama %></td></tr>
+      <% d.items.forEach(it => { %>
+        <tr class="avoid"><td><span class="bold">● <%= it.nama %></span><br><span class="small"><%= it.capaian %></span></td>
+        <% [1,2,3,4].forEach(k => { %><td class="center check"><%= it.nilai === k ? '✔' : '' %></td><% }) %></tr>
+      <% }) %>
+    <% }) %>
+    </tbody>
+  </table>
+  <table class="grid mt avoid"><thead><tr><th style="text-align:left">Catatan proses</th></tr></thead>
+    <tbody><tr><td style="min-height:18mm;height:18mm"><% if (p.catatan) { %>Dalam mengerjakan projek ini, <%= st.panggilan || st.nama.split(' ')[0] %> <%= p.catatan.replace(/^\s+/, '') %><% } %></td></tr></tbody></table>
+  <%- include('_ttd', { r }) %>
+  <div class="foot"><span>Rapor Projek Penguatan Profil Pelajar Pancasila · <%= st.nama %></span><span>Kelas <%= r.cls.nama %> · <%= r.period.tahun_pelajaran %></span></div>
+</section>
+<% }) %>

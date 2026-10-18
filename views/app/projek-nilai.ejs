@@ -1,0 +1,38 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head"><div><div class="breadcrumb"><a href="/app/kelas/<%= cls.id %>/projek">Projek P5</a></div><h1><%= project.nama %></h1>
+  <p><% [1,2,3,4].forEach(k => { %><span class="badge lvl-<%= k %>" style="margin-right:.3rem"><%= P5_LEVEL[k].kode %> = <%= P5_LEVEL[k].label %></span><% }) %></p></div>
+  <a class="btn" href="/app/kelas/<%= cls.id %>/projek/<%= project.id %>"><%- h.icon('edit') %> Ubah rancangan</a></div>
+<% if (!targets.length) { %>
+  <div class="card empty"><p>Pilih sub-elemen target terlebih dahulu.</p><a class="btn btn-primary" href="/app/kelas/<%= cls.id %>/projek/<%= project.id %>">Atur rancangan</a></div>
+<% } else { %>
+<datalist id="bank-proses"><% bank.forEach(b => { %><option value="<%= b %>"><% }) %></datalist>
+<form method="post" data-track>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="sheet-wrap">
+  <table class="sheet">
+    <thead>
+      <tr><th rowspan="2" class="no-col">No</th><th rowspan="2" class="sticky-col" style="left:38px">Nama siswa</th>
+        <% const dimGroups = []; targets.forEach(t => { const g = dimGroups.find(x => x.id === t.dimensi_id); if (g) g.n++; else dimGroups.push({ id: t.dimensi_id, nama: t.dimensi, n: 1 }); }); %>
+        <% dimGroups.forEach(g => { %><th colspan="<%= g.n %>"><%= g.nama %></th><% }) %>
+        <th rowspan="2" style="min-width:380px">Catatan proses</th></tr>
+      <tr><% targets.forEach(t => { %><th class="tp-head" title="<%= t.capaian %>" style="max-width:160px;white-space:normal;font-weight:600"><%= t.nama %></th><% }) %></tr>
+      <tr class="no-print"><th class="no-col"></th><th class="sticky-col" style="left:38px;font-weight:500">Isi semua kolom ↓</th>
+        <% targets.forEach(t => { %><th><select id="all-<%= t.id %>" class="level" onchange="document.querySelectorAll('select[name^=p_<%= t.id %>_]').forEach(s=>{s.value=this.value;s.dispatchEvent(new Event('change'))})"><option value="">—</option><% [1,2,3,4].forEach(k => { %><option value="<%= k %>"><%= P5_LEVEL[k].kode %></option><% }) %></select></th><% }) %>
+        <th></th></tr>
+    </thead>
+    <tbody>
+    <% students.forEach((s, i) => { %>
+      <tr><td class="no-col calc"><%= i + 1 %></td><td class="sticky-col" style="left:38px"><b><%= s.nama %></b></td>
+        <% targets.forEach(t => { const v = scores.get(t.id + ':' + s.id); %>
+          <td><select class="level" name="p_<%= t.id %>_<%= s.id %>"><option value="">—</option><% [1,2,3,4].forEach(k => { %><option value="<%= k %>" <%= v === k ? 'selected' : '' %>><%= P5_LEVEL[k].kode %></option><% }) %></select></td>
+        <% }) %>
+        <td class="text-cell"><input name="cat_<%= s.id %>" value="<%= notes.get(s.id) || '' %>" list="bank-proses" placeholder="mis. aktif melibatkan diri …"></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+  <div class="form-actions"><span class="muted" style="margin-right:auto">Catatan proses dicetak: “Dalam mengerjakan projek ini, [nama] …”.</span><button class="btn btn-primary">Simpan penilaian</button></div>
+</form>
+<% } %>
+<%- include('../partials/bottom') %>

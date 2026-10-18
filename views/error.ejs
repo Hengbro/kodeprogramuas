@@ -1,0 +1,14 @@
+<%- include('partials/head') %>
+<body class="public">
+  <div class="auth-box">
+    <div class="card" style="text-align:center">
+      <h1><%= title %></h1>
+      <p class="muted"><%= message %></p>
+      <div class="btn-group" style="justify-content:center">
+        <a class="btn" href="javascript:history.back()">Kembali</a>
+        <a class="btn btn-primary" href="<%= user ? '/app' : '/' %>">Beranda</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

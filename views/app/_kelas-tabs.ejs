@@ -1,0 +1,13 @@
+<div class="breadcrumb"><a href="/app/kelas">Kelas</a> / <a href="/app/kelas/<%= cls.id %>"><%= cls.nama %></a></div>
+<div class="tabs no-print">
+  <% const base = '/app/kelas/' + cls.id; const t = (href, label) => { %><a href="<%= base + href %>" class="<%= path === '/kelas/' + cls.id + href || (href && path.startsWith('/kelas/' + cls.id + href + '/')) ? 'active' : '' %>"><%= label %></a><% } %>
+  <% t('', 'Ringkasan') %>
+  <% t('/mapel', 'Mapel & KKTP') %>
+  <% t('/absensi', 'Ketidakhadiran') %>
+  <% t('/ekskul', 'Ekstrakurikuler') %>
+  <% t('/catatan', 'Catatan') %>
+  <% if (activePeriod.semester == 2) t('/kenaikan', 'Kenaikan') %>
+  <% t('/projek', 'Projek P5') %>
+  <% t('/leger', 'Leger') %>
+  <% t('/cetak', 'Cetak Rapor') %>
+</div>

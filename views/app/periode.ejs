@@ -1,0 +1,50 @@
+<%- include('../partials/top') %>
+<div class="page-head"><div><h1>Tahun Pelajaran &amp; Semester</h1><p>Semua nilai disimpan per periode, sehingga arsip rapor semester sebelumnya tetap bisa dibuka dan dicetak.</p></div></div>
+<div class="card flush">
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Periode</th><th>Status</th><th>Tempat &amp; tanggal rapor</th><th class="actions">Aksi</th></tr></thead>
+    <tbody>
+    <% periods.forEach(p => { %>
+      <tr>
+        <td><b><%= p.tahun_pelajaran %></b><br><span class="muted">Semester <%= h.semesterLabel(p.semester) %></span></td>
+        <td>
+          <% if (p.is_active) { %><span class="badge badge-primary">Aktif</span><% } %>
+          <% if (p.is_published) { %><span class="badge badge-success">Terpublikasi</span><% } else { %><span class="badge">Draf</span><% } %>
+        </td>
+        <td>
+          <form method="post" action="/app/periode/<%= p.id %>" class="grid" style="grid-template-columns:1fr 1fr 1fr auto;gap:.4rem;align-items:end">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <div><small>Tempat</small><input name="tempat_rapor" value="<%= p.tempat_rapor || '' %>" placeholder="<%= settings.kecamatan || 'Kota' %>"></div>
+            <div><small>Tgl rapor akhir</small><input type="date" name="tanggal_rapor" value="<%= p.tanggal_rapor || '' %>"></div>
+            <div><small>Tgl rapor tengah sem.</small><input type="date" name="tanggal_rapor_tts" value="<%= p.tanggal_rapor_tts || '' %>"></div>
+            <button class="btn btn-sm">Simpan</button>
+          </form>
+        </td>
+        <td class="actions">
+          <form method="post" action="/app/periode/<%= p.id %>" class="inline-form">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <% if (!p.is_active) { %><button class="btn btn-sm" name="action" value="activate">Aktifkan</button><% } %>
+            <button class="btn btn-sm <%= p.is_published ? '' : 'btn-success' %>" name="action" value="publish"><%= p.is_published ? 'Tutup portal' : 'Publikasikan' %></button>
+            <% if (!p.is_active) { %><button class="btn btn-sm btn-danger" name="action" value="delete" data-confirm="Hapus periode ini beserta SELURUH nilai di dalamnya?"><%- h.icon('trash') %></button><% } %>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<form method="post" class="card">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2>Tambah periode</h2>
+  <div class="grid grid-4" style="align-items:end">
+    <div class="field"><label>Tahun pelajaran</label><input name="tahun_pelajaran" placeholder="2025/2026" pattern="\d{4}/\d{4}" required></div>
+    <div class="field"><label>Semester</label><select name="semester"><option value="1">1 (Ganjil)</option><option value="2">2 (Genap)</option></select></div>
+    <div class="field"><label class="checkbox"><input type="checkbox" name="copy_tp" value="1"> Salin TP &amp; lingkup materi dari</label>
+      <select name="copy_from"><% periods.forEach(p => { %><option value="<%= p.id %>"><%= h.periodLabel(p) %></option><% }) %></select></div>
+    <div class="field"><button class="btn btn-primary"><%- h.icon('plus') %> Tambah</button></div>
+  </div>
+  <p class="hint muted">Setelah menambah, klik <b>Aktifkan</b> agar guru menginput nilai pada periode baru. Susunan kelas pada periode lama otomatis dibekukan untuk arsip.</p>
+</form>
+<%- include('../partials/bottom') %>

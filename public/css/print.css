@@ -1,0 +1,60 @@
+@page { size: A4; margin: 14mm 16mm 14mm 18mm; }
+@page landscape { size: A4 landscape; margin: 12mm; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: Arial, "Liberation Sans", Helvetica, sans-serif; font-size: 10.5pt; color: #000; background: #e5e7eb; line-height: 1.35; }
+.toolbar { position: sticky; top: 0; z-index: 10; display: flex; gap: .5rem; align-items: center; padding: .6rem 1rem; background: #0f1d3a; color: #fff; font-family: system-ui, sans-serif; font-size: 14px; }
+.toolbar .sp { flex: 1; }
+.toolbar a, .toolbar button { background: #fff; color: #0f1d3a; border: 0; border-radius: 8px; padding: .45rem .9rem; font-weight: 600; cursor: pointer; text-decoration: none; font-size: 14px; }
+.toolbar button.primary { background: #3b82f6; color: #fff; }
+.page { width: 210mm; min-height: 297mm; margin: 12px auto; background: #fff; padding: 14mm 16mm 14mm 18mm; box-shadow: 0 2px 14px rgba(0, 0, 0, .15); position: relative; }
+.page.landscape { width: 297mm; min-height: 210mm; padding: 12mm; }
+h1, h2, h3 { margin: 0; }
+.center { text-align: center; }
+.right { text-align: right; }
+.bold { font-weight: bold; }
+.upper { text-transform: uppercase; }
+table { border-collapse: collapse; width: 100%; }
+table.grid th, table.grid td { border: 1px solid #000; padding: 4px 6px; vertical-align: top; }
+table.grid th { background: #e8eef8; font-weight: bold; text-align: center; vertical-align: middle; }
+table.info td { padding: 2px 4px; vertical-align: top; }
+table.info td.lbl { width: 34%; }
+table.info td.sep { width: 12px; }
+.mt { margin-top: 10px; } .mt2 { margin-top: 18px; } .mt3 { margin-top: 28px; }
+.section-title { font-weight: bold; margin: 14px 0 5px; }
+.kop { display: grid; grid-template-columns: 70px 1fr 70px; align-items: center; border-bottom: 3px double #000; padding-bottom: 6px; margin-bottom: 10px; }
+.kop .t1 { font-size: 11pt; font-weight: bold; }
+.kop .t2 { font-size: 14pt; font-weight: bold; }
+.kop .t3 { font-size: 9pt; }
+.emblem { width: 62px; height: 62px; }
+.doc-title { text-align: center; font-weight: bold; font-size: 12pt; margin: 6px 0 10px; }
+.cover { display: flex; flex-direction: column; align-items: center; text-align: center; min-height: 265mm; justify-content: space-between; padding: 10mm 0; }
+.cover h1 { font-size: 24pt; letter-spacing: 3px; }
+.cover .sub { font-size: 14pt; font-weight: bold; letter-spacing: 2px; }
+.cover .box { border: 1.5px solid #000; padding: 8px 14px; font-size: 13pt; font-weight: bold; min-width: 110mm; margin-top: 4px; }
+.cover .emblem { width: 120px; height: 120px; }
+.ttd { display: grid; gap: 10px; margin-top: 18px; page-break-inside: avoid; }
+.ttd > div { text-align: center; }
+.ttd .space { height: 62px; }
+.ttd .name { font-weight: bold; text-decoration: underline; }
+.photo { width: 30mm; height: 40mm; border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: 9pt; color: #555; }
+.desk p { margin: 0 0 3px; }
+.foot { position: absolute; bottom: 8mm; left: 18mm; right: 16mm; font-size: 8pt; color: #333; display: flex; justify-content: space-between; border-top: 1px solid #999; padding-top: 3px; }
+.check { font-size: 12pt; }
+.small { font-size: 9pt; }
+.piagam { width: 297mm; min-height: 210mm; padding: 14mm; }
+.piagam-frame { border: 6px double #1e3a8a; outline: 2px solid #1e3a8a; outline-offset: -14px; height: 180mm; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 14mm; }
+.piagam h1 { font-family: Georgia, "Times New Roman", serif; font-size: 36pt; color: #1e3a8a; letter-spacing: 2px; }
+.piagam .nama { font-family: Georgia, "Times New Roman", serif; font-size: 26pt; font-weight: bold; border-bottom: 1.5px solid #000; padding: 0 20px; margin: 6px 0; }
+.piagam .peringkat { font-size: 18pt; font-weight: bold; color: #b45309; }
+@media print {
+  body { background: #fff; }
+  .toolbar { display: none; }
+  .page { margin: 0; box-shadow: none; padding: 0; width: auto; min-height: auto; page-break-after: always; break-after: page; }
+  .page:last-child { page-break-after: auto; break-after: auto; }
+  .page.landscape, .piagam { page: landscape; }
+  .cover { min-height: 262mm; }
+  .foot { position: static; margin-top: 14px; }
+  tr, .ttd, .avoid { page-break-inside: avoid; break-inside: avoid; }
+  thead { display: table-header-group; }
+}

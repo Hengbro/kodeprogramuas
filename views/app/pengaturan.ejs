@@ -1,0 +1,73 @@
+<%- include('../partials/top') %>
+<div class="page-head"><div><h1>Pengaturan Penilaian</h1><p>Bobot nilai rapor, rentang predikat, dan format deskripsi capaian kompetensi.</p></div></div>
+<form method="post" class="card">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2>Bobot nilai rapor</h2>
+  <p class="muted">NA Rapor = (bobot F × Formatif + bobot S × Sumatif Lingkup Materi + bobot AS × Sumatif Akhir Semester) ÷ jumlah bobot komponen yang terisi.</p>
+  <div class="grid grid-3">
+    <div class="field"><label>Formatif (F)</label><input type="number" min="0" step="0.5" name="bobot_f" value="<%= settings.bobot_f %>"></div>
+    <div class="field"><label>Sumatif Lingkup Materi (S)</label><input type="number" min="0" step="0.5" name="bobot_s" value="<%= settings.bobot_s %>"></div>
+    <div class="field"><label>Sumatif Akhir Semester (AS)</label><input type="number" min="0" step="0.5" name="bobot_as" value="<%= settings.bobot_as %>"></div>
+  </div>
+  <hr>
+  <h2>Rentang predikat &amp; kalimat deskripsi</h2>
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th style="width:120px">Nilai minimal</th><th style="width:200px">Predikat</th><th>Kalimat awal deskripsi</th></tr></thead>
+    <tbody>
+    <% const pred = settings.predikat.concat([{min:'',label:'',kalimat:''}]); pred.forEach(p => { %>
+      <tr>
+        <td><input type="number" min="0" max="100" name="p_min" value="<%= p.min %>"></td>
+        <td><input name="p_label" value="<%= p.label %>" placeholder="(kosongkan untuk hapus)"></td>
+        <td><input name="p_kalimat" value="<%= p.kalimat %>"></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+  <hr>
+  <h2>Format deskripsi rapor</h2>
+  <div class="grid grid-2">
+    <div>
+      <label class="checkbox"><input type="radio" name="desk_mode" value="predikat" <%= settings.desk_mode !== 'sederhana' ? 'checked' : '' %>> Dengan rentang predikat</label>
+      <p class="hint muted">Contoh: “Budi menunjukkan penguasaan yang <b>baik</b> dalam …”</p>
+      <label class="checkbox"><input type="radio" name="desk_mode" value="sederhana" <%= settings.desk_mode === 'sederhana' ? 'checked' : '' %>> Tanpa rentang predikat</label>
+      <p class="hint muted">Hanya dua kalimat: capaian tertinggi &amp; perlu bimbingan.</p>
+      <label class="checkbox"><input type="checkbox" name="desk_nama" value="1" <%= settings.desk_nama === '1' ? 'checked' : '' %>> Awali deskripsi dengan nama panggilan siswa</label>
+    </div>
+    <div>
+      <div class="field"><label>Kalimat capaian tertinggi (mode tanpa predikat)</label><input name="kalimat_tinggi" value="<%= settings.kalimat_tinggi %>"></div>
+      <div class="field"><label>Kalimat capaian terendah (mode tanpa predikat)</label><input name="kalimat_rendah" value="<%= settings.kalimat_rendah %>"></div>
+    </div>
+  </div>
+  <hr>
+  <h2>Lainnya</h2>
+  <div class="grid grid-3">
+    <div class="field"><label>Peringkat pada catatan guru</label>
+      <select name="catatan_ranking">
+        <option value="none" <%= settings.catatan_ranking === 'none' ? 'selected' : '' %>>Tidak ditampilkan</option>
+        <option value="top10" <%= settings.catatan_ranking === 'top10' ? 'selected' : '' %>>Tampilkan untuk peringkat 1–10</option>
+        <option value="all" <%= settings.catatan_ranking === 'all' ? 'selected' : '' %>>Tampilkan untuk semua siswa</option>
+      </select></div>
+    <div class="field"><label>Label tanda tangan orang tua</label>
+      <select name="ttd_ortu"><% ['Orang Tua/Wali', 'Ayah', 'Ibu', 'Wali'].forEach(o => { %><option <%= settings.ttd_ortu === o ? 'selected' : '' %>><%= o %></option><% }) %></select></div>
+    <div class="field"><label>&nbsp;</label><label class="checkbox"><input type="checkbox" name="public_portal" value="1" <%= settings.public_portal === '1' ? 'checked' : '' %>> Aktifkan portal cek rapor orang tua</label></div>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary"><%- h.icon('check') %> Simpan pengaturan</button></div>
+</form>
+
+<div class="card" id="bank">
+  <h2>Bank kalimat</h2>
+  <p class="muted">Kalimat siap pakai yang muncul sebagai pilihan saat mengisi catatan wali kelas, keterangan ekstrakurikuler, dan catatan proses projek. Satu kalimat per baris.</p>
+  <div class="grid grid-3">
+  <% [['catatan', 'Catatan wali kelas'], ['ekskul', 'Keterangan ekstrakurikuler'], ['proses', 'Catatan proses projek']].forEach(([j, label]) => { %>
+    <form method="post" action="/app/pengaturan/bank">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="jenis" value="<%= j %>">
+      <label><%= label %></label>
+      <textarea name="teks" rows="9"><%= bank.filter(b => b.jenis === j).map(b => b.teks).join('\n') %></textarea>
+      <div class="form-actions"><button class="btn btn-sm">Simpan</button></div>
+    </form>
+  <% }) %>
+  </div>
+</div>
+<%- include('../partials/bottom') %>

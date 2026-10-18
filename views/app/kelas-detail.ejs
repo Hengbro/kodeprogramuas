@@ -1,0 +1,77 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head">
+  <div><h1>Kelas <%= cls.nama %> <span class="badge badge-primary">Fase <%= cls.fase %></span></h1>
+  <p>Wali kelas: <b><%= cls.guru_nama || 'belum ditetapkan' %></b> · <%= students.length %> siswa · <%= h.periodLabel(period) %></p></div>
+  <div class="btn-group">
+    <a class="btn" href="/app/siswa/baru?kelas=<%= cls.id %>"><%- h.icon('plus') %> Siswa</a>
+    <a class="btn btn-primary" href="/app/kelas/<%= cls.id %>/cetak"><%- h.icon('print') %> Cetak rapor</a>
+  </div>
+</div>
+
+<div class="card flush">
+  <div class="card-head"><h2>Penilaian mata pelajaran</h2><span class="muted">Isi TP &amp; lingkup materi terlebih dahulu, lalu input nilai.</span></div>
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Mata pelajaran</th><th class="num">KKTP</th><th class="num">Lingkup materi</th><th class="num">TP</th><th>Progres</th><th class="actions">Aksi</th></tr></thead>
+    <tbody>
+    <% subjects.forEach(s => {
+      const target = s.kelompok === 'agama' ? (agamaCount[s.agama] || 0) : students.length;
+      if (s.kelompok === 'agama' && !target) return;
+      const pct = target ? Math.round(s.jml_dinilai / target * 100) : 0; %>
+      <tr>
+        <td><b><%= s.nama %></b><% if (s.kelompok === 'agama') { %> <span class="badge"><%= target %> siswa</span><% } %></td>
+        <td class="num"><%= s.kktp %></td>
+        <td class="num"><%= s.jml_lm %></td>
+        <td class="num"><%= s.jml_tp || '—' %></td>
+        <td style="min-width:140px"><div class="progress"><span style="width:<%= pct %>%"></span></div><small><%= s.jml_dinilai %>/<%= target %> siswa</small></td>
+        <td class="actions">
+          <a class="btn btn-sm" href="/app/kelas/<%= cls.id %>/tp/<%= s.id %>"><%- h.icon('clipboard') %> TP</a>
+          <a class="btn btn-sm btn-primary" href="/app/kelas/<%= cls.id %>/nilai/<%= s.id %>"><%- h.icon('edit') %> Nilai</a>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <div class="card-head"><h2>Siswa</h2><a class="btn btn-sm" href="/app/siswa?kelas=<%= cls.id %>">Kelola</a></div>
+    <% if (!students.length) { %><div class="empty">Belum ada siswa. <a href="/app/siswa/impor?kelas=<%= cls.id %>">Impor dari CSV/Excel</a></div><% } else { %>
+    <table class="table"><tbody>
+      <% students.forEach((s, i) => { %><tr><td class="num" style="width:40px"><%= i + 1 %></td><td><a href="/app/siswa/<%= s.id %>"><%= s.nama %></a></td><td><%= s.jenis_kelamin || '' %></td><td><span class="badge"><%= s.agama || '—' %></span></td></tr><% }) %>
+    </tbody></table>
+    <% } %>
+  </div>
+  <div>
+    <div class="card">
+      <h2>Kelengkapan rapor</h2>
+      <div class="grid grid-2">
+        <a class="btn" href="/app/kelas/<%= cls.id %>/absensi">Ketidakhadiran</a>
+        <a class="btn" href="/app/kelas/<%= cls.id %>/ekskul">Ekstrakurikuler</a>
+        <a class="btn" href="/app/kelas/<%= cls.id %>/catatan">Catatan wali kelas</a>
+        <a class="btn" href="/app/kelas/<%= cls.id %>/projek">Projek P5 (<%= projects %>)</a>
+        <% if (period.semester == 2) { %><a class="btn" href="/app/kelas/<%= cls.id %>/kenaikan">Kenaikan kelas</a><% } %>
+        <a class="btn" href="/app/kelas/<%= cls.id %>/leger">Leger nilai</a>
+      </div>
+    </div>
+    <% if (user.role === 'admin') { %>
+    <form method="post" action="/app/kelas/<%= cls.id %>/ubah" class="card">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <h2>Ubah kelas</h2>
+      <div class="form-grid">
+        <div class="field"><label>Nama</label><input name="nama" value="<%= cls.nama %>"></div>
+        <div class="field"><label>Tingkat</label><select name="tingkat"><% for (let i = 1; i <= 6; i++) { %><option value="<%= i %>" <%= cls.tingkat === i ? 'selected' : '' %>><%= h.TERBILANG_KELAS[i] %></option><% } %></select></div>
+        <div class="field full"><label>Wali kelas</label><select name="guru_id"><option value="">—</option><% gurus.forEach(g => { %><option value="<%= g.id %>" <%= cls.guru_id === g.id ? 'selected' : '' %>><%= g.nama %></option><% }) %></select></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-danger" name="action" value="delete" data-confirm="Hapus kelas <%= cls.nama %>? Seluruh TP, nilai, dan projek kelas ini ikut terhapus.">Hapus kelas</button>
+        <button class="btn btn-primary">Simpan</button>
+      </div>
+    </form>
+    <% } %>
+  </div>
+</div>
+<%- include('../partials/bottom') %>

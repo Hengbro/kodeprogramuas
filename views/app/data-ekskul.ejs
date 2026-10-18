@@ -1,0 +1,31 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head"><div><h1>Ekstrakurikuler</h1><p>Hingga <%= MAX_EKSKUL %> kegiatan per siswa (ekstrakurikuler wajib + pilihan).</p></div></div>
+<datalist id="nama-ekskul"><% namaEkskul.forEach(n => { %><option value="<%= n %>"><% }) %></datalist>
+<datalist id="bank-ekskul"><% bank.forEach(b => { %><option value="<%= b %>"><% }) %></datalist>
+<form method="post" action="/app/kelas/<%= cls.id %>/ekskul/massal" class="card no-print" style="display:flex;gap:.5rem;align-items:end;flex-wrap:wrap">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div><label>Tambahkan ke semua siswa</label><input name="nama" list="nama-ekskul" value="Pramuka" required></div>
+  <div style="flex:1;min-width:240px"><label>Keterangan awal</label><input name="keterangan" list="bank-ekskul" placeholder="(opsional)"></div>
+  <button class="btn"><%- h.icon('plus') %> Tambahkan</button>
+</form>
+<form method="post" data-track>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="sheet-wrap">
+  <table class="sheet">
+    <thead><tr><th class="no-col">No</th><th class="sticky-col" style="left:38px">Nama siswa</th>
+      <% for (let i = 1; i <= MAX_EKSKUL; i++) { %><th colspan="2"><%= i === 1 ? 'Ekskul wajib' : 'Pilihan ' + (i - 1) %></th><% } %></tr></thead>
+    <tbody>
+    <% students.forEach((s, idx) => { const list = data.get(s.id) || []; %>
+      <tr><td class="no-col calc"><%= idx + 1 %></td><td class="sticky-col" style="left:38px"><b><%= s.nama %></b></td>
+      <% for (let i = 1; i <= MAX_EKSKUL; i++) { const e = list[i - 1] || {}; %>
+        <td class="text-cell"><input name="en_<%= s.id %>_<%= i %>" value="<%= e.nama || '' %>" list="nama-ekskul" placeholder="Kegiatan" style="min-width:120px"></td>
+        <td class="text-cell"><input name="ek_<%= s.id %>_<%= i %>" value="<%= e.keterangan || '' %>" list="bank-ekskul" placeholder="Keterangan" style="min-width:220px"></td>
+      <% } %></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary">Simpan</button></div>
+</form>
+<%- include('../partials/bottom') %>

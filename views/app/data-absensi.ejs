@@ -1,0 +1,21 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head"><div><h1>Ketidakhadiran</h1><p>Jumlah hari sakit, izin, dan tanpa keterangan selama <%= h.periodLabel(period) %>.</p></div></div>
+<form method="post" data-track>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="sheet-wrap">
+  <table class="sheet">
+    <thead><tr><th class="no-col">No</th><th class="sticky-col" style="left:38px">Nama siswa</th><th>Sakit</th><th>Izin</th><th>Tanpa keterangan</th></tr></thead>
+    <tbody>
+    <% students.forEach((s, i) => { const d = data.get(s.id) || {}; %>
+      <tr><td class="no-col calc"><%= i + 1 %></td><td class="sticky-col" style="left:38px"><b><%= s.nama %></b></td>
+        <td><input name="sakit_<%= s.id %>" value="<%= d.sakit || '' %>" inputmode="numeric" style="width:90px"></td>
+        <td><input name="izin_<%= s.id %>" value="<%= d.izin || '' %>" inputmode="numeric" style="width:90px"></td>
+        <td><input name="alpa_<%= s.id %>" value="<%= d.alpa || '' %>" inputmode="numeric" style="width:90px"></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary">Simpan</button></div>
+</form>
+<%- include('../partials/bottom') %>

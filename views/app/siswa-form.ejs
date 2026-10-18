@@ -1,0 +1,56 @@
+<%- include('../partials/top') %>
+<div class="page-head"><div><div class="breadcrumb"><a href="/app/siswa">Data Siswa</a></div><h1><%= st.id ? 'Ubah data siswa' : 'Tambah siswa' %></h1></div></div>
+<form method="post" action="<%= st.id ? '/app/siswa/' + st.id : '/app/siswa/baru' %>" class="card" data-track>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <% const f = (name, label, opts = {}) => { %>
+    <div class="field <%= opts.full ? 'full' : '' %>"><label for="<%= name %>"><%= label %></label><input id="<%= name %>" name="<%= name %>" type="<%= opts.type || 'text' %>" value="<%= st[name] || '' %>" <%= opts.required ? 'required' : '' %>></div>
+  <% } %>
+  <fieldset><legend>Data pokok</legend>
+    <div class="form-grid">
+      <% f('nama', 'Nama lengkap', { required: true }) %>
+      <% f('panggilan', 'Nama panggilan (untuk deskripsi rapor)') %>
+      <% f('nis', 'NIS') %>
+      <% f('nisn', 'NISN') %>
+      <% f('tempat_lahir', 'Tempat lahir') %>
+      <% f('tanggal_lahir', 'Tanggal lahir', { type: 'date' }) %>
+      <div class="field"><label>Jenis kelamin</label><select name="jenis_kelamin"><option value="">—</option><option value="L" <%= st.jenis_kelamin === 'L' ? 'selected' : '' %>>Laki-laki</option><option value="P" <%= st.jenis_kelamin === 'P' ? 'selected' : '' %>>Perempuan</option></select></div>
+      <div class="field"><label>Agama</label><select name="agama"><option value="">—</option><% AGAMA.forEach(a => { %><option <%= st.agama === a ? 'selected' : '' %>><%= a %></option><% }) %></select></div>
+      <div class="field"><label>Kelas</label><select name="class_id"><% if (user.role === 'admin') { %><option value="">— tanpa kelas —</option><% } %><% classes.forEach(c => { %><option value="<%= c.id %>" <%= st.class_id === c.id ? 'selected' : '' %>><%= c.nama %></option><% }) %></select></div>
+      <% if (st.id) { %><div class="field"><label>Status</label><select name="status"><% ['aktif','pindah','lulus','keluar'].forEach(x => { %><option <%= st.status === x ? 'selected' : '' %>><%= x %></option><% }) %></select></div><% } %>
+      <% f('pendidikan_sebelumnya', 'Pendidikan sebelumnya') %>
+      <% f('alamat', 'Alamat peserta didik', { full: true }) %>
+    </div>
+  </fieldset>
+  <fieldset><legend>Orang tua</legend>
+    <div class="form-grid">
+      <% f('ayah_nama', 'Nama ayah') %>
+      <% f('ibu_nama', 'Nama ibu') %>
+      <% f('ayah_pekerjaan', 'Pekerjaan ayah') %>
+      <% f('ibu_pekerjaan', 'Pekerjaan ibu') %>
+      <% f('ortu_jalan', 'Alamat orang tua (jalan)', { full: true }) %>
+      <% f('ortu_desa', 'Kelurahan / desa') %>
+      <% f('ortu_kecamatan', 'Kecamatan') %>
+      <% f('ortu_kabupaten', 'Kabupaten / kota') %>
+      <% f('ortu_provinsi', 'Provinsi') %>
+    </div>
+  </fieldset>
+  <fieldset><legend>Wali peserta didik (jika ada)</legend>
+    <div class="form-grid">
+      <% f('wali_nama', 'Nama wali') %>
+      <% f('wali_pekerjaan', 'Pekerjaan wali') %>
+      <% f('wali_alamat', 'Alamat wali', { full: true }) %>
+    </div>
+  </fieldset>
+  <div class="form-actions">
+    <% if (!st.id) { %><button class="btn" name="lagi" value="1">Simpan &amp; tambah lagi</button><% } %>
+    <button class="btn btn-primary"><%- h.icon('check') %> Simpan</button>
+  </div>
+</form>
+<% if (st.id && user.role === 'admin') { %>
+<form method="post" action="/app/siswa/<%= st.id %>" class="card" style="display:flex;justify-content:space-between;align-items:center">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <span class="muted">Menghapus siswa akan menghapus seluruh nilai &amp; arsip rapornya. Untuk siswa pindah, ubah status saja.</span>
+  <button class="btn btn-danger" name="action" value="delete" data-confirm="Hapus permanen data <%= st.nama %>?">Hapus siswa</button>
+</form>
+<% } %>
+<%- include('../partials/bottom') %>

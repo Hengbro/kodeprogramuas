@@ -1,0 +1,10 @@
+<% const s = r.settings; %>
+<table class="info" style="margin-bottom:8px">
+  <tr>
+    <td style="width:22%">Nama Peserta Didik</td><td class="sep">:</td><td style="width:36%" class="bold upper"><%= r.student.nama %></td>
+    <td style="width:18%">Kelas</td><td class="sep">:</td><td><%= r.cls.nama %></td>
+  </tr>
+  <tr><td>NISN / NIS</td><td class="sep">:</td><td><%= r.student.nisn || '-' %> / <%= r.student.nis || '-' %></td><td>Fase</td><td class="sep">:</td><td><%= r.cls.fase %></td></tr>
+  <tr><td>Nama Sekolah</td><td class="sep">:</td><td><%= s.nama_sekolah %></td><td>Semester</td><td class="sep">:</td><td><%= r.period.semester %></td></tr>
+  <tr><td>Alamat Sekolah</td><td class="sep">:</td><td><%= [s.alamat, s.desa, s.kecamatan].filter(Boolean).join(', ') %></td><td>Tahun Pelajaran</td><td class="sep">:</td><td><%= r.period.tahun_pelajaran %></td></tr>
+</table>

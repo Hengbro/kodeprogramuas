@@ -1,0 +1,34 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<form method="post" data-track>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="page-head"><div><div class="breadcrumb"><a href="/app/kelas/<%= cls.id %>/projek">Projek P5</a></div><h1>Rancangan projek</h1></div>
+    <button class="btn btn-danger" name="action" value="delete" data-confirm="Hapus projek ini beserta nilainya?"><%- h.icon('trash') %> Hapus</button></div>
+  <div class="card">
+    <div class="form-grid">
+      <div class="field"><label>Judul projek</label><input name="nama" value="<%= project.nama %>" required></div>
+      <div class="field"><label>Tema</label><input name="tema" value="<%= project.tema || '' %>"></div>
+      <div class="field full"><label>Deskripsi singkat (tercetak di rapor projek)</label><textarea name="deskripsi" rows="3"><%= project.deskripsi || '' %></textarea></div>
+      <div class="field"><label>Urutan projek</label><input type="number" name="urutan" min="1" value="<%= project.urutan %>"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Dimensi &amp; sub-elemen target</h2>
+    <p class="muted">Pilih sub-elemen yang dikembangkan (umumnya 2–3 dimensi). Capaian yang ditampilkan adalah target akhir <b>Fase <%= cls.fase %></b>.</p>
+    <% tree.forEach(d => { const n = d.elemen.reduce((a, e) => a + e.subelemen.filter(s => selected.has(s.id)).length, 0); %>
+    <details class="p5-dim" <%= n ? 'open' : '' %>>
+      <summary><%= d.nama %> <% if (n) { %><span class="badge badge-primary"><%= n %> dipilih</span><% } %></summary>
+      <% d.elemen.forEach(e => { %>
+      <div class="p5-elemen"><h4><%= e.nama %></h4>
+        <% e.subelemen.forEach(s => { %>
+        <label class="p5-sub" style="font-weight:500"><input type="checkbox" name="subelemen" value="<%= s.id %>" <%= selected.has(s.id) ? 'checked' : '' %>>
+          <span><b><%= s.nama %></b><br><span class="cap"><%= s['fase_' + cls.fase.toLowerCase()] %></span></span></label>
+        <% }) %>
+      </div>
+      <% }) %>
+    </details>
+    <% }) %>
+  </div>
+  <div class="sticky-actions card" style="position:sticky"><span></span><div class="btn-group"><button class="btn">Simpan</button><button class="btn btn-primary" name="next" value="nilai">Simpan &amp; nilai siswa →</button></div></div>
+</form>
+<%- include('../partials/bottom') %>

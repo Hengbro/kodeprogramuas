@@ -1,0 +1,23 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head"><div><h1>Kenaikan Kelas</h1><p>Hanya dicetak pada rapor semester 2. Kelas <%= cls.tingkat === 6 ? 'VI: keterangan LULUS' : h.TERBILANG_KELAS[cls.tingkat] + ' → ' + h.TERBILANG_KELAS[cls.tingkat + 1] %>.</p></div></div>
+<% if (period.semester != 2) { %><div class="alert alert-info">Periode yang sedang aktif adalah semester 1. Keputusan kenaikan hanya tampil pada rapor semester 2.</div><% } %>
+<form method="post" data-track>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="sheet-wrap">
+  <table class="sheet">
+    <thead><tr><th class="no-col">No</th><th class="sticky-col" style="left:38px">Nama siswa</th><th>Keputusan</th></tr></thead>
+    <tbody>
+    <% students.forEach((s, i) => { const d = data.get(s.id) || {}; %>
+      <tr><td class="no-col calc"><%= i + 1 %></td><td class="sticky-col" style="left:38px"><b><%= s.nama %></b></td>
+        <td class="text-cell"><select name="naik_<%= s.id %>">
+          <option value="1" <%= d.naik !== 0 ? 'selected' : '' %>><%= cls.tingkat === 6 ? 'Lulus' : 'Naik kelas' %></option>
+          <option value="0" <%= d.naik === 0 ? 'selected' : '' %>><%= cls.tingkat === 6 ? 'Tidak lulus' : 'Tinggal kelas' %></option>
+        </select></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+  <div class="form-actions"><button class="btn btn-primary">Simpan</button></div>
+</form>
+<%- include('../partials/bottom') %>

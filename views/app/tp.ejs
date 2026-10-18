@@ -1,0 +1,48 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head">
+  <div><h1><%= subject.nama %></h1><p>Lingkup materi &amp; tujuan pembelajaran Kelas <%= cls.nama %> · <%= h.periodLabel(period) %></p></div>
+  <div class="btn-group">
+    <select style="width:auto;max-width:300px" onchange="location.href='/app/kelas/<%= cls.id %>/tp/'+this.value">
+      <% subjects.forEach(s => { %><option value="<%= s.id %>" <%= s.id === subject.id ? 'selected' : '' %>><%= s.nama %></option><% }) %>
+    </select>
+    <a class="btn btn-primary" href="/app/kelas/<%= cls.id %>/nilai/<%= subject.id %>"><%- h.icon('edit') %> Input nilai</a>
+  </div>
+</div>
+<% if (contoh && !tp.length) { %>
+<form method="post" class="alert alert-info" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <span>Tersedia contoh <b><%= contoh.lm.length %> lingkup materi</b> dan <b><%= contoh.tp.length %> TP</b> (buku Kurikulum Merdeka kelas IV) untuk mapel ini.</span>
+  <button class="btn btn-sm btn-primary" name="action" value="contoh">Gunakan contoh</button>
+</form>
+<% } %>
+<form method="post">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-head"><h2>Lingkup Materi</h2><span class="badge badge-success">Sumatif LM</span></div>
+      <p class="muted">Setiap lingkup materi menjadi satu kolom nilai Sumatif Lingkup Materi.</p>
+      <div class="list-editor" data-list="lm">
+        <% lm.forEach((l, i) => { %>
+        <div class="row"><span class="idx">LM<%= i + 1 %></span><input type="hidden" name="lm_id" value="<%= l.id %>"><textarea name="lm" rows="1"><%= l.nama %></textarea><button type="button" class="btn btn-sm btn-ghost" data-remove title="Hapus">✕</button></div>
+        <% }) %>
+      </div>
+      <button type="button" class="btn btn-sm" data-add="lm"><%- h.icon('plus') %> Tambah lingkup materi</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Tujuan Pembelajaran</h2><span class="badge badge-primary">Formatif per TP</span></div>
+      <p class="muted">Deskripsi rapor otomatis memakai TP dengan nilai formatif tertinggi &amp; terendah. Tulis diawali kata kerja (mis. “mengidentifikasi …”).</p>
+      <div class="list-editor" data-list="tp">
+        <% tp.forEach((t, i) => { %>
+        <div class="row"><span class="idx">TP<%= i + 1 %></span><input type="hidden" name="tp_id" value="<%= t.id %>"><textarea name="tp" rows="1"><%= t.deskripsi %></textarea><button type="button" class="btn btn-sm btn-ghost" data-remove title="Hapus">✕</button></div>
+        <% }) %>
+      </div>
+      <button type="button" class="btn btn-sm" data-add="tp"><%- h.icon('plus') %> Tambah TP</button>
+    </div>
+  </div>
+  <div class="card sticky-actions" style="position:sticky">
+    <span class="muted">Menghapus baris TP/LM juga menghapus nilai pada kolom tersebut.</span>
+    <div class="btn-group"><button class="btn">Simpan</button><button class="btn btn-primary" name="next" value="nilai">Simpan &amp; input nilai →</button></div>
+  </div>
+</form>
+<%- include('../partials/bottom') %>

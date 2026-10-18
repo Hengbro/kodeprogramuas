@@ -1,0 +1,36 @@
+<% const st = r.student; %>
+<section class="page">
+  <%- include('_kop', { r }) %>
+  <div class="doc-title">LAPORAN HASIL BELAJAR TENGAH SEMESTER <%= r.period.semester %></div>
+  <%- include('_header-siswa', { r }) %>
+  <table class="grid">
+    <thead><tr><th style="width:8mm">No.</th><th style="width:50mm">Mata Pelajaran</th><th style="width:13mm">KKTP</th><th style="width:13mm">Nilai</th><th>Capaian Kompetensi</th></tr></thead>
+    <tbody>
+    <% if (!r.mapelRows.length) { %><tr><td colspan="5" class="center">Belum ada nilai.</td></tr><% } %>
+    <% r.mapelRows.forEach(m => { %>
+      <% if (m.header) { %><tr><td class="center"><%= m.no %></td><td colspan="4"><%= m.nama %></td></tr>
+      <% } else { %>
+        <tr class="avoid"><td class="center"><%= m.no || '' %></td><td><%= m.sub ? m.sub + '. ' : '' %><%= m.nama %></td><td class="center"><%= m.kktp ?? '' %></td>
+          <td class="center bold" style="<%= m.na != null && m.kktp && m.na < m.kktp ? 'color:#b91c1c' : '' %>"><%= m.na ?? '' %></td>
+          <td class="desk"><% (m.deskripsi || []).forEach(d => { %><p><%= d %></p><% }) %></td></tr>
+      <% } %>
+    <% }) %>
+    </tbody>
+  </table>
+  <table class="grid mt avoid">
+    <thead><tr><th style="width:8mm">No.</th><th style="width:60mm">Ekstrakurikuler</th><th>Keterangan</th></tr></thead>
+    <tbody>
+      <% if (!r.ekskul.length) { %><tr><td class="center">1</td><td>-</td><td>-</td></tr><% } %>
+      <% r.ekskul.forEach((e, i) => { %><tr><td class="center"><%= i + 1 %></td><td><%= e.nama %></td><td><%= e.keterangan || '' %></td></tr><% }) %>
+    </tbody>
+  </table>
+  <table class="grid mt avoid" style="width:90mm">
+    <thead><tr><th colspan="2" style="text-align:left">Ketidakhadiran</th></tr></thead>
+    <tbody>
+      <tr><td>Sakit</td><td style="width:30mm"><%= r.rs.sakit || 0 %> hari</td></tr>
+      <tr><td>Izin</td><td><%= r.rs.izin || 0 %> hari</td></tr>
+      <tr><td>Tanpa Keterangan</td><td><%= r.rs.alpa || 0 %> hari</td></tr>
+    </tbody>
+  </table>
+  <%- include('_ttd', { r, tanggal: r.period.tanggal_rapor_tts }) %>
+</section>
