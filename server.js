@@ -40,19 +40,6 @@ app.use(cookieSession({
   maxAge: 12 * 60 * 60 * 1000,
 }));
 
-// CSRF token sederhana berbasis sesi
-app.use((req, res, next) => {
-  if (!req.session.csrf) req.session.csrf = crypto.randomBytes(16).toString('hex');
-  res.locals.csrf = req.session.csrf;
-  if (req.method === 'POST') {
-    const token = req.body && req.body._csrf;
-    if (token !== req.session.csrf) {
-      return res.status(403).render('error', { title: 'Sesi kedaluwarsa', message: 'Formulir kedaluwarsa. Muat ulang halaman lalu coba lagi.' });
-    }
-  }
-  next();
-});
-
 app.use((req, res, next) => {
   res.locals.settings = getSettings();
   res.locals.activePeriod = getActivePeriod();
@@ -65,6 +52,19 @@ app.use((req, res, next) => {
   res.locals.path = req.path;
   res.locals.h = helpers;
   req.flash = (type, message) => { req.session.flash = { type, message }; };
+  next();
+});
+
+// CSRF token sederhana berbasis sesi
+app.use((req, res, next) => {
+  if (!req.session.csrf) req.session.csrf = crypto.randomBytes(16).toString('hex');
+  res.locals.csrf = req.session.csrf;
+  if (req.method === 'POST') {
+    const token = req.body && req.body._csrf;
+    if (token !== req.session.csrf) {
+      return res.status(403).render('error', { title: 'Sesi kedaluwarsa', message: 'Formulir kedaluwarsa. Muat ulang halaman lalu coba lagi.' });
+    }
+  }
   next();
 });
 

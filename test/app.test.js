@@ -57,6 +57,12 @@ test('alur admin & halaman utama', async () => {
   assert.match(r.text, /menunjukkan penguasaan/);
 });
 
+test('formulir tanpa token keamanan ditolak dengan halaman yang benar', async () => {
+  const r = await req('POST', '/cek-rapor', { nisn: '1', tanggal_lahir: '2015-01-01' });
+  assert.strictEqual(r.status, 403);
+  assert.match(r.text, /Formulir kedaluwarsa/);
+});
+
 test('simpan nilai menghitung ulang NA', async () => {
   let r = await req('GET', '/app/kelas/1/nilai/9'); // Matematika
   const token = csrf(r.text);
