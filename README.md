@@ -97,6 +97,10 @@ kelas/siswa/TP guru itu, dan akun guru). Saat pertama dijalankan, paket dipasang
 (`src/lib/paket-otomatis.js`): tanpa aktivasi, akun bawaan admin dihapus, guru login dengan akun dari admin,
 dan menu pengaturan sekolah tidak tersedia. Guru mengirim hasil lewat menu "Kirim Data ke Admin".
 
+**Hak akses guru** (diuji di `test/hak-akses.test.js`): guru tidak bisa membuka/mengubah profil sekolah, logo,
+pengaturan nilai, periode, mata pelajaran, akun pengguna, kelas, maupun impor paket (semua 403). Guru hanya
+bisa menambah, mengubah, dan menghapus siswa serta nilai di kelas yang ia ampu.
+
 `Jalankan-Rapor-Jaringan.bat` membuka akses dari HP/laptop lain di WiFi yang sama.
 
 ## Supaya bisa diakses publik

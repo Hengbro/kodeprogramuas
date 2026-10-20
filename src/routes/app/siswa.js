@@ -147,15 +147,15 @@ router.post('/siswa/:id', (req, res) => {
   const st = db.prepare('SELECT * FROM students WHERE id = ?').get(req.params.id);
   if (!st || !canEditStudent(res.locals.user, st)) return res.redirect('/app/siswa');
   if (req.body.action === 'delete') {
-    if (res.locals.user.role !== 'admin') { req.flash('error', 'Hanya admin yang dapat menghapus siswa.'); return res.redirect(`/app/siswa/${st.id}`); }
     db.prepare('DELETE FROM students WHERE id = ?').run(st.id);
     req.flash('success', `Data ${st.nama} dihapus.`);
-    return res.redirect('/app/siswa');
+    return res.redirect(st.class_id ? `/app/siswa?kelas=${st.class_id}` : '/app/siswa');
   }
   const data = studentFromBody(req.body);
   if (!data.nama) { req.flash('error', 'Nama siswa wajib diisi.'); return res.redirect(`/app/siswa/${st.id}/edit`); }
   let classId = Number(req.body.class_id) || null;
-  if (classId && !canAccessClass(res.locals.user, classId)) classId = st.class_id;
+  // guru hanya boleh memindahkan siswa antar-kelas yang ia ampu, dan tidak boleh mengosongkan kelasnya
+  if (res.locals.user.role !== 'admin' && (!classId || !canAccessClass(res.locals.user, classId))) classId = st.class_id;
   const status = ['aktif', 'pindah', 'lulus', 'keluar'].includes(req.body.status) ? req.body.status : st.status;
   db.prepare(`UPDATE students SET ${ALL_FIELDS.map((f) => `${f} = ?`).join(', ')}, class_id = ?, status = ? WHERE id = ?`)
     .run(...ALL_FIELDS.map((f) => data[f]), classId, status, st.id);

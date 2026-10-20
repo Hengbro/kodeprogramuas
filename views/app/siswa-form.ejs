@@ -87,7 +87,7 @@
     <button class="btn btn-primary"><%- h.icon('check') %> Simpan</button>
   </div>
 </form>
-<% if (st.id && user.role === 'admin') { %>
+<% if (st.id) { %>
 <form method="post" action="/app/siswa/<%= st.id %>" class="card" style="display:flex;justify-content:space-between;align-items:center">
   <input type="hidden" name="_csrf" value="<%= csrf %>">
   <span class="muted">Menghapus siswa akan menghapus seluruh nilai &amp; arsip rapornya. Untuk siswa pindah, ubah status saja.</span>

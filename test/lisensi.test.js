@@ -23,7 +23,10 @@ test('kode asli diterima, kode diubah/palsu ditolak', () => {
   const [p, s] = kode.slice(7).split('.');
   const palsu = Buffer.from(JSON.stringify({ ...DATA, npsn: '99999999' })).toString('base64url');
   assert.strictEqual(periksaKode(`ERAPOR-${palsu}.${s}`), null);
-  assert.strictEqual(periksaKode(`ERAPOR-${p}.${s.slice(0, -2)}AA`), null);
+  // ubah satu karakter di tengah tanda tangan (selalu mengubah byte, tidak bergantung acak)
+  const tengah = Math.floor(s.length / 2);
+  const sigPalsu = s.slice(0, tengah) + (s[tengah] === 'A' ? 'B' : 'A') + s.slice(tengah + 1);
+  assert.strictEqual(periksaKode(`ERAPOR-${p}.${sigPalsu}`), null);
   const lain = crypto.generateKeyPairSync('ed25519').privateKey.export({ type: 'pkcs8', format: 'pem' });
   assert.strictEqual(periksaKode(buatKode(DATA, lain)), null, 'kode dari kunci lain ditolak');
 });
