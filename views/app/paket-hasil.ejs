@@ -1,0 +1,14 @@
+<%- include('../partials/top') %>
+<div class="page-head"><div><div class="breadcrumb"><a href="/app/paket">Paket Data</a></div><h1>Impor selesai</h1></div></div>
+<div class="card">
+  <ul><% hasil.pesan.forEach(p => { %><li><%= p %></li><% }) %></ul>
+  <% if (hasil.akunBaru.length) { %>
+  <h3>Akun guru baru</h3>
+  <p class="muted">Dibuat otomatis karena nama guru di paket belum ada di komputer ini. Catat atau ganti kata sandinya di menu Pengguna.</p>
+  <table class="table"><thead><tr><th>Nama</th><th>Username</th><th>Kata sandi sementara</th></tr></thead><tbody>
+    <% hasil.akunBaru.forEach(a => { %><tr><td><%= a.nama %></td><td><code><%= a.username %></code></td><td><code><%= a.password %></code></td></tr><% }) %>
+  </tbody></table>
+  <% } %>
+  <div class="form-actions"><a class="btn btn-primary" href="/app/kelas">Lihat kelas</a></div>
+</div>
+<%- include('../partials/bottom') %>

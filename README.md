@@ -59,6 +59,27 @@ Data demo juga membuat akun guru `guru4a` / `guru123`.
 
 Database tersimpan di `data/rapor.sqlite` (ubah dengan `DATA_DIR` atau `DB_PATH`).
 
+## Versi offline Windows (tiap komputer punya database sendiri)
+
+Untuk sekolah tanpa internet atau yang ingin tiap guru bekerja di komputernya sendiri:
+
+```bash
+./scripts/build-windows.sh      # menghasilkan dist/E-Rapor-SD-Windows.zip
+```
+
+ZIP berisi Node.js portabel, aplikasi, dan modul SQLite versi Windows — tidak perlu instal apa pun.
+Guru cukup ekstrak lalu klik **Jalankan-Rapor.bat**; browser terbuka di `http://localhost:3210`
+(login bawaan `admin` / `admin123`, aplikasi mengingatkan untuk mengganti kata sandi).
+Data tersimpan di folder `data/` di samping file .bat.
+
+Pertukaran data antar komputer memakai menu **Paket Data (ekspor/impor)**:
+- **Paket awal** (operator → guru): profil sekolah, pengaturan nilai, mapel, periode, kelas, KKTP, TP & lingkup materi, rancangan projek — tanpa siswa dan nilai.
+- **Data kelas lengkap** (guru → operator): ditambah siswa, nilai, ekskul, absensi, catatan, kenaikan, penilaian P5.
+- Pencocokan memakai nama kelas, NISN siswa, kode mapel, dan tahun pelajaran + semester, sehingga impor ulang tidak menggandakan data.
+  Diuji di `test/paket.test.js`: rapor di komputer tujuan identik dengan komputer asal.
+
+`Jalankan-Rapor-Jaringan.bat` membuka akses dari HP/laptop lain di WiFi yang sama.
+
 ## Supaya bisa diakses publik
 
 ### Opsi 1 — VPS dengan Docker (disarankan)

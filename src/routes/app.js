@@ -15,5 +15,6 @@ router.use('/kelas', require('./app/projek'));
 router.use('/kelas', require('./app/progres'));
 router.use('/', require('./app/cetak'));
 router.use('/', require('./app/panduan'));
+router.use('/', require('./app/paket'));
 
 module.exports = router;

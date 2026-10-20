@@ -1,0 +1,50 @@
+<%- include('../partials/top') %>
+<div class="page-head"><div><h1>Paket Data</h1>
+<p>Untuk sekolah yang memakai aplikasi di beberapa komputer, masing-masing dengan database sendiri. Data dipindahkan lewat file (flashdisk, WhatsApp, e-mail), tanpa internet.</p></div></div>
+
+<div class="grid grid-2">
+  <form class="card" method="get" action="/app/paket/ekspor">
+    <h2><%- h.icon('download') %> Ekspor dari komputer ini</h2>
+    <div class="field"><label>Jenis paket</label>
+      <label class="checkbox"><input type="radio" name="isi" value="lengkap" checked> <span><b>Data kelas lengkap</b> — siswa, TP, nilai, ekskul, absensi, catatan, P5. Dikirim guru ke operator.</span></label>
+      <label class="checkbox"><input type="radio" name="isi" value="awal"> <span><b>Paket awal</b> — tanpa siswa &amp; nilai: hanya kelas, mapel, KKTP, TP &amp; lingkup materi, rancangan projek. Dikirim operator ke guru.</span></label>
+    </div>
+    <div class="field"><label class="checkbox"><input type="checkbox" name="sekolah" value="1" checked> Sertakan profil sekolah, pengaturan nilai, mata pelajaran, periode, bank kalimat</label></div>
+    <div class="field"><label>Kelas yang disertakan</label>
+      <% if (!classes.length) { %><p class="muted">Belum ada kelas.</p><% } %>
+      <% classes.forEach(c => { %><label class="checkbox"><input type="checkbox" name="kelas" value="<%= c.id %>" checked> Kelas <%= c.nama %> <span class="muted">(<%= c.jumlah %> siswa)</span></label><% }) %>
+    </div>
+    <div class="form-actions"><button class="btn btn-primary"><%- h.icon('download') %> Unduh paket (.rapor.json)</button></div>
+  </form>
+
+  <form class="card" method="post" action="/app/paket/periksa" id="impor-form">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2><%- h.icon('upload') %> Impor ke komputer ini</h2>
+    <p class="muted">Pilih file paket. Isinya akan ditampilkan dulu sebelum diterapkan.</p>
+    <div class="field"><label for="file">File paket</label><input id="file" type="file" accept=".json,.rapor" required></div>
+    <textarea name="isi" id="isi" hidden></textarea>
+    <div class="form-actions"><button class="btn btn-primary" id="btn-periksa" disabled>Periksa isi paket</button></div>
+    <div class="alert alert-info" style="margin-top:1rem;margin-bottom:0">
+      <b>Cara pencocokan:</b> kelas dicocokkan dengan nama kelas, siswa dengan NISN (atau nama + tanggal lahir), mapel dengan kodenya, periode dengan tahun pelajaran + semester. Data kelas pada periode yang ada di paket akan <b>diganti</b> dengan isi paket.
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Alur kerja yang disarankan</h2>
+  <div class="grid grid-3">
+    <div><span class="badge badge-primary">1. Operator</span><p style="margin-top:.4rem">Isi profil sekolah, periode, mapel, kelas, TP. Ekspor <b>Paket awal</b> per kelas, bagikan ke guru.</p></div>
+    <div><span class="badge badge-primary">2. Guru</span><p style="margin-top:.4rem">Di komputer sendiri: impor paket awal, isi siswa &amp; nilai, cetak rapor. Setelah selesai, ekspor <b>Data kelas lengkap</b>.</p></div>
+    <div><span class="badge badge-primary">3. Operator</span><p style="margin-top:.4rem">Impor file dari setiap guru untuk arsip, leger sekolah, dan Buku Induk.</p></div>
+  </div>
+</div>
+<script>
+document.getElementById('file').addEventListener('change', function () {
+  var f = this.files[0], btn = document.getElementById('btn-periksa');
+  if (!f) return;
+  var r = new FileReader();
+  r.onload = function () { document.getElementById('isi').value = r.result; btn.disabled = false; };
+  r.readAsText(f);
+});
+</script>
+<%- include('../partials/bottom') %>

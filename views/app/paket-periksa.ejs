@@ -1,0 +1,24 @@
+<%- include('../partials/top') %>
+<div class="page-head"><div><div class="breadcrumb"><a href="/app/paket">Paket Data</a></div><h1>Periksa isi paket</h1>
+<p>Dari: <b><%= info.sumber || '-' %></b> · dibuat <%= info.dibuat ? new Date(info.dibuat).toLocaleString('id-ID') : '-' %></p></div></div>
+<form method="post" action="/app/paket/impor" class="card">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <textarea name="isi" hidden><%= isi %></textarea>
+  <% if (info.sekolah) { %>
+  <fieldset><legend>Data sekolah</legend>
+    <label class="checkbox"><input type="checkbox" name="sekolah" value="1" checked> Terapkan profil sekolah (<%= info.sekolah.namaSekolah || '-' %>), pengaturan nilai, <%= info.sekolah.mapel %> mapel, <%= info.sekolah.periode %> periode, bank kalimat</label>
+    <% if (info.sekolah.periodeAktif) { %><label class="checkbox"><input type="checkbox" name="aktifkan" value="1" checked> Jadikan <%= info.sekolah.periodeAktif.tahun_pelajaran %> semester <%= info.sekolah.periodeAktif.semester %> sebagai periode aktif</label><% } %>
+  </fieldset>
+  <% } %>
+  <fieldset><legend>Kelas</legend>
+    <% if (!info.kelas.length) { %><p class="muted">Paket ini tidak berisi kelas.</p><% } %>
+    <% info.kelas.forEach(k => { %>
+      <label class="checkbox" style="align-items:flex-start;margin-bottom:.6rem"><input type="checkbox" name="kelas" value="<%= k.nama %>" checked>
+        <span><b>Kelas <%= k.nama %></b> <%= k.ada ? '(sudah ada di komputer ini — datanya akan diganti untuk periode di paket)' : '(kelas baru)' %><br>
+        <span class="muted">Guru: <%= k.guru || '-' %> · <%= k.siswa %> siswa · <%= k.tp %> TP · <%= k.nilai %> nilai formatif · <%= k.projek %> projek · periode: <%= k.periode.join(', ') || '-' %></span></span></label>
+    <% }) %>
+  </fieldset>
+  <div class="alert alert-info">Sebelum menerapkan, sebaiknya unduh <a href="/app/backup">cadangan database</a> komputer ini.</div>
+  <div class="form-actions"><a class="btn" href="/app/paket">Batal</a><button class="btn btn-primary">Terapkan paket</button></div>
+</form>
+<%- include('../partials/bottom') %>

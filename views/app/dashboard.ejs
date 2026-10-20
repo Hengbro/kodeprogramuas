@@ -21,6 +21,9 @@
   </div></div>
 </div>
 
+<% if (sandiBawaan) { %>
+<div class="alert alert-error">Anda masih memakai kata sandi bawaan. Siapa pun yang tahu kata sandi bawaan bisa membuka data ini. <a href="/app/akun">Ganti kata sandi sekarang</a>.</div>
+<% } %>
 <% if (user.role === 'admin' && !settings.npsn) { %>
 <div class="alert alert-info">Lengkapi <a href="/app/sekolah">profil sekolah</a> (NPSN, kepala sekolah, alamat) agar tercetak di rapor.</div>
 <% } %>

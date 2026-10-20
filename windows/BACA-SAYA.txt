@@ -1,0 +1,37 @@
+E-RAPOR SD KURIKULUM MERDEKA - VERSI WINDOWS (OFFLINE)
+=====================================================
+
+MENJALANKAN
+1. Ekstrak (Extract All) file ZIP ini ke folder mana saja, misalnya D:\E-Rapor-SD
+   (jangan dijalankan langsung dari dalam ZIP).
+2. Klik dua kali "Jalankan-Rapor.bat".
+3. Browser akan terbuka di http://localhost:3210
+   Login bawaan:  admin  /  admin123
+4. Segera ganti kata sandi di menu "Akun Saya".
+5. Selama memakai aplikasi, JANGAN tutup jendela hitam "E-Rapor SD".
+   Untuk berhenti, tutup jendela hitam tersebut.
+
+Tidak perlu internet dan tidak perlu menginstal apa pun.
+
+DI MANA DATA DISIMPAN?
+Semua data ada di folder "data" (file rapor.sqlite) di samping file ini.
+- Cadangkan: salin folder "data" ke flashdisk, atau pakai menu "Unduh Cadangan DB".
+- Pindah komputer: salin seluruh folder E-Rapor-SD (termasuk folder "data").
+- Memperbarui aplikasi: ganti folder "app" dan "node" dengan versi baru,
+  folder "data" JANGAN dihapus.
+
+BERBAGI DATA DENGAN OPERATOR / GURU LAIN
+Menu "Paket Data (ekspor/impor)":
+- Operator mengekspor "Paket awal" (profil sekolah, mapel, TP) untuk guru.
+- Guru mengimpor paket awal, mengisi nilai, lalu mengekspor "Data kelas lengkap".
+- Operator mengimpor file dari guru untuk arsip / leger sekolah.
+File paket bisa dikirim lewat flashdisk, WhatsApp, atau e-mail.
+
+DIBUKA DARI HP / LAPTOP LAIN (OPSIONAL)
+Pakai "Jalankan-Rapor-Jaringan.bat". Alamat untuk HP akan tertulis di jendela hitam,
+misalnya http://192.168.1.10:3210 (HP harus tersambung ke WiFi yang sama).
+
+MASALAH UMUM
+- "Port sudah dipakai": aplikasi sudah berjalan di jendela lain. Tutup jendela itu dulu.
+- Browser tidak terbuka otomatis: buka sendiri http://localhost:3210
+- Windows SmartScreen memblokir: klik "More info" lalu "Run anyway".

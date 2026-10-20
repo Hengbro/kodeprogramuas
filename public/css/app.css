@@ -216,3 +216,4 @@ table.sheet { border-collapse: separate; border-spacing: 0; font-size: .84rem; m
 .btn svg { width: 16px; height: 16px; }
 .stat svg { width: 20px; height: 20px; }
 .menu-btn svg { width: 24px; height: 24px; }
+h1 svg, h2 svg, h3 svg { width: 1em; height: 1em; vertical-align: -.12em; }

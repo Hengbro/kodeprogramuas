@@ -1,6 +1,7 @@
 const express = require('express');
 const { db } = require('../../db');
 const { allowedClasses } = require('../../lib/auth');
+const { verifyPassword } = require('../../lib/password');
 
 const router = express.Router();
 
@@ -21,7 +22,9 @@ router.get('/', (req, res) => {
     guru: db.prepare("SELECT COUNT(*) n FROM users WHERE role = 'guru'").get().n,
     tanpaKelas: db.prepare("SELECT COUNT(*) n FROM students WHERE status = 'aktif' AND class_id IS NULL").get().n,
   };
-  res.render('app/dashboard', { title: 'Dasbor', classes, stats });
+  const me = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(res.locals.user.id);
+  const sandiBawaan = verifyPassword('admin123', me.password_hash) || verifyPassword('guru123', me.password_hash);
+  res.render('app/dashboard', { title: 'Dasbor', classes, stats, sandiBawaan });
 });
 
 module.exports = router;

@@ -30,7 +30,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use('/static', express.static(path.join(__dirname, 'public'), { maxAge: isProd ? '7d' : 0 }));
-app.use(express.urlencoded({ extended: true, limit: '5mb', parameterLimit: 50000 }));
+app.use(express.urlencoded({ extended: true, limit: '50mb', parameterLimit: 50000 }));
 app.use(cookieSession({
   name: 'rapor_sess',
   secret,
@@ -80,7 +80,28 @@ app.use((err, req, res, next) => {
 });
 
 if (require.main === module) {
-  app.listen(PORT, () => console.log(`E-Rapor berjalan di http://localhost:${PORT}`));
+  // HOST=127.0.0.1 → hanya komputer ini; kosong/0.0.0.0 → bisa dibuka perangkat lain di jaringan yang sama
+  const HOST = process.env.HOST || '0.0.0.0';
+  app.listen(PORT, HOST, () => {
+    const lokal = `http://localhost:${PORT}`;
+    console.log('');
+    console.log('  E-Rapor SD sudah berjalan.');
+    console.log(`  Buka di komputer ini : ${lokal}`);
+    if (HOST !== '127.0.0.1' && HOST !== 'localhost') {
+      const os = require('os');
+      for (const list of Object.values(os.networkInterfaces())) {
+        for (const a of list || []) {
+          if (a.family === 'IPv4' && !a.internal) console.log(`  Buka dari HP/laptop lain di jaringan yang sama : http://${a.address}:${PORT}`);
+        }
+      }
+    }
+    console.log('  Jangan tutup jendela ini selama aplikasi dipakai.');
+    console.log('');
+    if (process.env.OPEN_BROWSER === '1') {
+      const cmd = process.platform === 'win32' ? `start "" "${lokal}"` : process.platform === 'darwin' ? `open "${lokal}"` : `xdg-open "${lokal}"`;
+      require('child_process').exec(cmd, () => {});
+    }
+  });
 }
 
 module.exports = app;

@@ -38,7 +38,7 @@ test('alur admin & halaman utama', async () => {
     '/app/kelas/1/leger', '/app/kelas/1/leger?print=1', '/app/kelas/1/cetak', '/app/siswa/1', '/app/siswa/1/edit',
     '/app/rapor/1/akhir?part=cover&part=sekolah&part=identitas&part=nilai', '/app/rapor/1/tts', '/app/rapor/1/projek', '/app/rapor/1/piagam',
     '/app/kelas/1/cetak-semua/akhir', '/app/kelas/1/cetak-semua/projek', '/app/kelas/1/cetak-semua/piagam', '/app/kelas/1/cetak-semua/tts',
-    '/app/panduan', '/app/kelas/1/progres', '/app/kelas/1/rekap', '/app/kelas/1/rekap?mapel=agama', '/app/rapor/1/induk', '/app/rapor/1/pindah',
+    '/app/panduan', '/app/paket', '/app/kelas/1/progres', '/app/kelas/1/rekap', '/app/kelas/1/rekap?mapel=agama', '/app/rapor/1/induk', '/app/rapor/1/pindah',
     '/app/kelas/1/cetak-semua/induk?part=cover&part=nilai', '/app/kelas/1/cetak-semua/projek?part=cover&part=nilai'];
   for (let sid = 1; sid <= 16; sid += 1) pages.push(`/app/kelas/1/tp/${sid}`, `/app/kelas/1/nilai/${sid}`);
   for (const p of pages) {
