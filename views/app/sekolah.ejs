@@ -1,9 +1,16 @@
 <%- include('../partials/top') %>
 <div class="page-head"><div><h1>Profil Sekolah</h1><p>Data ini tercetak pada sampul, identitas sekolah, dan kop rapor.</p></div></div>
+<% if (settings.lisensi) { %>
+<div class="card" style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+  <span class="badge badge-success">Berlisensi</span>
+  <span><b><%= settings.lisensi.sekolah %></b> · NPSN <%= settings.lisensi.npsn %> · No. seri <%= settings.lisensi.seri %> · seumur hidup · diterbitkan <%= h.tanggal(settings.lisensi.dibuat) %></span>
+</div>
+<% } %>
 <form method="post" class="card">
   <input type="hidden" name="_csrf" value="<%= csrf %>">
-  <% const f = (name, label, hint) => { %>
-    <div class="field"><label for="<%= name %>"><%= label %></label><input id="<%= name %>" name="<%= name %>" value="<%= settings[name] || '' %>"><% if (hint) { %><div class="hint"><%= hint %></div><% } %></div>
+  <% const terkunci = settings.lisensi ? ['nama_sekolah', 'npsn'] : [];
+     const f = (name, label, hint) => { const kunci = terkunci.includes(name); %>
+    <div class="field"><label for="<%= name %>"><%= label %><%= kunci ? ' 🔒' : '' %></label><input id="<%= name %>" name="<%= name %>" value="<%= settings[name] || '' %>" <%= kunci ? 'readonly' : '' %>><% if (kunci) { %><div class="hint">Terkunci sesuai lisensi aplikasi.</div><% } else if (hint) { %><div class="hint"><%= hint %></div><% } %></div>
   <% } %>
   <fieldset><legend>Identitas</legend>
     <div class="form-grid">

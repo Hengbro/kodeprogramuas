@@ -6,6 +6,7 @@ set "PORT=3210"
 set "NODE_ENV=production"
 set "COOKIE_SECURE=0"
 set "OPEN_BROWSER=1"
+set "LISENSI_WAJIB=1"
 set "HOST=0.0.0.0"
 echo.
 echo   Menyalakan E-Rapor SD untuk jaringan WiFi/LAN ...

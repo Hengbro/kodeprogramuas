@@ -6,8 +6,10 @@ MENJALANKAN
    (jangan dijalankan langsung dari dalam ZIP).
 2. Klik dua kali "Jalankan-Rapor.bat".
 3. Browser akan terbuka di http://localhost:3210
-   Login bawaan:  admin  /  admin123
-4. Segera ganti kata sandi di menu "Akun Saya".
+4. AKTIVASI (sekali saja): tempel Kode Aktivasi yang Anda terima saat membeli,
+   lalu buat akun admin sekolah (nama pengguna & kata sandi milik sekolah sendiri).
+   Kode berlaku untuk satu sekolah (sesuai NPSN) dan seumur hidup.
+   Nama sekolah dan NPSN di rapor otomatis mengikuti kode aktivasi.
 5. Selama memakai aplikasi, JANGAN tutup jendela hitam "E-Rapor SD".
    Untuk berhenti, tutup jendela hitam tersebut.
 

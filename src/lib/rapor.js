@@ -1,4 +1,5 @@
 const { db } = require('../db');
+const { lisensiAktif } = require('./lisensi');
 const { hitungMapel, deskripsiMapel, ranking, avg, predikatFor, P5_LEVEL } = require('./calc');
 
 function getSettings() {
@@ -6,6 +7,10 @@ function getSettings() {
   const s = Object.fromEntries(rows.map((r) => [r.key, r.value]));
   try { s.predikat = JSON.parse(s.predikat); } catch { s.predikat = []; }
   s.bobot = { f: Number(s.bobot_f) || 0, s: Number(s.bobot_s) || 0, as: Number(s.bobot_as) || 0 };
+  // nama sekolah & NPSN selalu mengikuti lisensi (tidak bisa diganti sekolah lain)
+  const lis = lisensiAktif(db);
+  if (lis) { s.nama_sekolah = lis.sekolah; s.npsn = lis.npsn; }
+  s.lisensi = lis;
   return s;
 }
 

@@ -1,0 +1,45 @@
+<%- include('partials/head') %>
+<body class="public">
+  <nav class="public-nav">
+    <span class="brand"><div class="brand-logo">R</div><div><b>E-Rapor SD</b><small>Kurikulum Merdeka</small></div></span>
+  </nav>
+  <div class="auth-box" style="max-width:560px">
+    <div class="card">
+      <% if (!data) { %>
+        <span class="badge badge-primary">Langkah 1 dari 2</span>
+        <h1 style="margin-top:.5rem">Aktivasi aplikasi</h1>
+        <p class="muted">Masukkan Kode Aktivasi yang Anda terima saat membeli aplikasi. Kode berlaku untuk satu sekolah (sesuai NPSN) dan seumur hidup.</p>
+        <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+        <form method="post" action="/aktivasi">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <div class="field"><label for="kode">Kode Aktivasi</label>
+            <textarea id="kode" name="kode" rows="5" placeholder="ERAPOR-…" style="font-family:monospace;font-size:.82rem" required autofocus><%= kode %></textarea>
+            <div class="hint">Tempel (paste) seluruh kode, termasuk awalan ERAPOR-.</div></div>
+          <button class="btn btn-primary" style="width:100%">Periksa kode</button>
+        </form>
+      <% } else { %>
+        <span class="badge badge-success">Kode valid · Langkah 2 dari 2</span>
+        <h1 style="margin-top:.5rem">Buat akun admin sekolah</h1>
+        <table class="table" style="margin-bottom:1rem"><tbody>
+          <tr><th>Sekolah</th><td><b><%= data.sekolah %></b></td></tr>
+          <tr><th>NPSN</th><td><%= data.npsn %></td></tr>
+          <tr><th>No. seri lisensi</th><td><%= data.seri %> · seumur hidup</td></tr>
+        </tbody></table>
+        <p class="muted">Akun ini dipakai operator/kepala sekolah untuk masuk dan mengelola seluruh data. Simpan kata sandinya baik-baik.</p>
+        <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+        <form method="post" action="/aktivasi/akun">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <div class="field"><label for="nama">Nama lengkap (dengan gelar)</label><input id="nama" name="nama" required></div>
+          <div class="field"><label for="nip">NIP (opsional)</label><input id="nip" name="nip"></div>
+          <div class="field"><label for="username">Nama pengguna untuk login</label><input id="username" name="username" autocomplete="username" required></div>
+          <div class="form-grid">
+            <div class="field"><label for="password">Kata sandi (min. 8)</label><input id="password" type="password" name="password" minlength="8" autocomplete="new-password" required></div>
+            <div class="field"><label for="password2">Ulangi kata sandi</label><input id="password2" type="password" name="password2" minlength="8" autocomplete="new-password" required></div>
+          </div>
+          <button class="btn btn-primary" style="width:100%">Aktifkan &amp; masuk</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

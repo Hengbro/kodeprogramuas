@@ -5,6 +5,7 @@ const cookieSession = require('cookie-session');
 const { db } = require('./src/db');
 const { getSettings, getActivePeriod } = require('./src/lib/rapor');
 const helpers = require('./src/lib/view-helpers');
+const lisensi = require('./src/lib/lisensi');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -68,6 +69,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// Wajib aktivasi (versi offline yang dijual ke sekolah): semua halaman diarahkan ke /aktivasi
+app.use((req, res, next) => {
+  if (!lisensi.wajib() || res.locals.settings.lisensi || req.path.startsWith('/aktivasi')) return next();
+  return res.redirect('/aktivasi');
+});
+app.use('/', require('./src/routes/aktivasi'));
 app.use('/', require('./src/routes/public'));
 app.use('/', require('./src/routes/auth'));
 app.use('/app', require('./src/routes/app'));

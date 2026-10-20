@@ -38,7 +38,7 @@ test -f "$STAGE/app/node_modules/better-sqlite3/build/Release/better_sqlite3.nod
 rm -rf "$STAGE/app/node_modules/better-sqlite3/deps" "$STAGE/app/node_modules/better-sqlite3/src"
 
 echo "5/5 Berkas peluncur & ZIP"
-cp "$ROOT/windows/"*.bat "$ROOT/windows/BACA-SAYA.txt" "$STAGE/"
+cp "$ROOT/windows/"Jalankan-*.bat "$ROOT/windows/BACA-SAYA.txt" "$STAGE/"
 # baris CRLF agar Notepad & cmd.exe membaca dengan benar
 for f in "$STAGE"/*.bat "$STAGE"/BACA-SAYA.txt; do sed -i 's/\r\{0,1\}$/\r/' "$f"; done
 (cd "$OUT" && rm -f "$NAME.zip" && zip -qr "$NAME.zip" "$NAME")

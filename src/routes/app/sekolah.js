@@ -16,7 +16,8 @@ router.get('/sekolah', requireAdmin, (req, res) => {
 
 router.post('/sekolah', requireAdmin, (req, res) => {
   db.transaction(() => {
-    for (const f of PROFIL_FIELDS) setSetting.run(f, String(req.body[f] || '').trim());
+    const terkunci = res.locals.settings.lisensi ? ['nama_sekolah', 'npsn'] : [];
+    for (const f of PROFIL_FIELDS) if (!terkunci.includes(f)) setSetting.run(f, String(req.body[f] || '').trim());
   })();
   req.flash('success', 'Profil sekolah disimpan.');
   res.redirect('/app/sekolah');

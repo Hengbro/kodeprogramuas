@@ -72,6 +72,19 @@ Guru cukup ekstrak lalu klik **Jalankan-Rapor.bat**; browser terbuka di `http://
 (login bawaan `admin` / `admin123`, aplikasi mengingatkan untuk mengganti kata sandi).
 Data tersimpan di folder `data/` di samping file .bat.
 
+### Penjualan ke sekolah: kode aktivasi per sekolah
+Versi Windows wajib aktivasi (`LISENSI_WAJIB=1` di file .bat). Saat pertama dibuka, sekolah memasukkan
+**Kode Aktivasi** lalu membuat akun admin sendiri (akun bawaan `admin` diganti). Kode ditandatangani digital
+(Ed25519) dan memuat NPSN + nama sekolah; nama sekolah & NPSN di rapor terkunci sesuai kode, sehingga kode
+tidak berguna bagi sekolah lain. Lisensi berlaku seumur hidup.
+
+- `node tools/buat-kunci.js` — membuat kunci penjual (sekali). Kunci rahasia di `kunci-penjual/` (tidak di-commit),
+  kunci publik di `src/lib/lisensi-publik.pem` (ikut aplikasi).
+- `node tools/buat-kode.js --npsn 12345678 --sekolah "SD NEGERI ..."` — membuat kode untuk satu sekolah,
+  dicatat di `kunci-penjual/daftar-lisensi.csv`.
+- `./scripts/build-penjual.sh` — paket Windows "Alat Penjual" (Buat-Kode-Aktivasi.bat). RAHASIA.
+- Versi web/online tidak mewajibkan aktivasi kecuali `LISENSI_WAJIB=1` diset.
+
 Pertukaran data antar komputer memakai menu **Paket Data (ekspor/impor)**:
 - **Paket awal** (operator → guru): profil sekolah, pengaturan nilai, mapel, periode, kelas, KKTP, TP & lingkup materi, rancangan projek — tanpa siswa dan nilai.
 - **Data kelas lengkap** (guru → operator): ditambah siswa, nilai, ekskul, absensi, catatan, kenaikan, penilaian P5.

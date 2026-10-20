@@ -1,0 +1,19 @@
+ALAT PENJUAL E-RAPOR SD - PEMBUAT KODE AKTIVASI
+================================================
+!!! FOLDER INI RAHASIA. JANGAN DIBERIKAN KE SEKOLAH ATAU SIAPA PUN !!!
+Siapa pun yang memegang file kunci-penjual\kunci-rahasia.pem bisa membuat kode aktivasi sendiri.
+Simpan cadangannya di 2 tempat aman (mis. flashdisk pribadi + Google Drive pribadi).
+Jika file ini hilang, Anda tidak bisa membuat kode baru untuk aplikasi yang sudah beredar.
+
+MEMBUAT KODE UNTUK SEKOLAH YANG MEMBELI
+1. Klik dua kali "Buat-Kode-Aktivasi.bat".
+2. Ketik NPSN (8 digit) dan nama sekolah persis seperti yang akan tercetak di rapor,
+   misalnya: SD NEGERI 071116 SIWALAWA
+3. Salin kode yang muncul (diawali ERAPOR-) dan kirim ke sekolah lewat WhatsApp/e-mail.
+4. Semua kode tercatat otomatis di kunci-penjual\daftar-lisensi.csv (bisa dibuka di Excel).
+
+YANG DITERIMA SEKOLAH
+- File E-Rapor-SD-Windows.zip (sama untuk semua sekolah)
+- Kode aktivasi khusus sekolah tersebut
+Saat pertama dijalankan, sekolah memasukkan kode lalu membuat akun admin sendiri.
+Nama sekolah & NPSN di rapor terkunci sesuai kode, jadi kode tidak berguna bagi sekolah lain.
