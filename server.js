@@ -7,6 +7,8 @@ const { getSettings, getActivePeriod } = require('./src/lib/rapor');
 const helpers = require('./src/lib/view-helpers');
 const lisensi = require('./src/lib/lisensi');
 
+require('./src/lib/paket-otomatis').pasangJikaAda();
+
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const isProd = process.env.NODE_ENV === 'production';

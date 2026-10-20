@@ -91,6 +91,12 @@ Pertukaran data antar komputer memakai menu **Paket Data (ekspor/impor)**:
 - Pencocokan memakai nama kelas, NISN siswa, kode mapel, dan tahun pelajaran + semester, sehingga impor ulang tidak menggandakan data.
   Diuji di `test/paket.test.js`: rapor di komputer tujuan identik dengan komputer asal.
 
+**Bagikan aplikasi ke guru:** dari menu Paket Data, admin mengunduh ZIP aplikasi khusus untuk satu guru
+(atau semua guru). ZIP berisi aplikasi + `data/paket-awal.rapor.json` (lisensi, pengaturan & logo sekolah,
+kelas/siswa/TP guru itu, dan akun guru). Saat pertama dijalankan, paket dipasang otomatis
+(`src/lib/paket-otomatis.js`): tanpa aktivasi, akun bawaan admin dihapus, guru login dengan akun dari admin,
+dan menu pengaturan sekolah tidak tersedia. Guru mengirim hasil lewat menu "Kirim Data ke Admin".
+
 `Jalankan-Rapor-Jaringan.bat` membuka akses dari HP/laptop lain di WiFi yang sama.
 
 ## Supaya bisa diakses publik

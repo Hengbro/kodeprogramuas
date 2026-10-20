@@ -24,6 +24,13 @@ Semua data ada di folder "data" (file rapor.sqlite) di samping file ini.
 - Memperbarui aplikasi: ganti folder "app" dan "node" dengan versi baru,
   folder "data" JANGAN dihapus.
 
+MEMBAGIKAN APLIKASI KE GURU (oleh admin sekolah)
+Setelah logo, profil, kelas, siswa, TP, dan akun guru diatur, buka menu
+"Paket Data & Bagikan ke Guru" -> pilih guru -> "Unduh aplikasi (ZIP)".
+Kirim ZIP itu ke guru. Guru cukup ekstrak, jalankan Jalankan-Rapor.bat, dan login dengan
+username & kata sandi yang dibuat admin. Tanpa kode aktivasi; pengaturan sekolah terkunci.
+Guru mengirim hasil nilai lewat menu "Kirim Data ke Admin".
+
 BERBAGI DATA DENGAN OPERATOR / GURU LAIN
 Menu "Paket Data (ekspor/impor)":
 - Operator mengekspor "Paket awal" (profil sekolah, mapel, TP) untuk guru.

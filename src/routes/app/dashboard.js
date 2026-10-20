@@ -10,8 +10,11 @@ router.get('/', (req, res) => {
   const period = res.locals.activePeriod;
   for (const c of classes) {
     const tp = db.prepare('SELECT COUNT(*) n FROM tujuan_pembelajaran WHERE period_id = ? AND class_id = ?').get(period.id, c.id).n;
-    const nilai = db.prepare(`SELECT COUNT(DISTINCT tp.subject_id) n FROM nilai_formatif nf
-      JOIN tujuan_pembelajaran tp ON tp.id = nf.tp_id WHERE tp.period_id = ? AND tp.class_id = ?`).get(period.id, c.id).n;
+    // mapel agama dihitung sebagai satu mapel, sama seperti penyebutnya
+    const dinilai = db.prepare(`SELECT DISTINCT s.id, s.kelompok FROM nilai_formatif nf
+      JOIN tujuan_pembelajaran tp ON tp.id = nf.tp_id JOIN subjects s ON s.id = tp.subject_id
+      WHERE tp.period_id = ? AND tp.class_id = ?`).all(period.id, c.id);
+    const nilai = dinilai.filter((s) => s.kelompok !== 'agama').length + (dinilai.some((s) => s.kelompok === 'agama') ? 1 : 0);
     const mapel = db.prepare(`SELECT COUNT(*) n FROM class_subjects cs JOIN subjects s ON s.id = cs.subject_id
       WHERE cs.class_id = ? AND cs.aktif = 1 AND s.kelompok != 'agama'`).get(c.id).n + 1;
     c.progress = { tp, nilai, mapel };

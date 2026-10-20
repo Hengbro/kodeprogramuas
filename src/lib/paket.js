@@ -316,4 +316,45 @@ function importPaket(pkg, opts = {}) {
   return hasil;
 }
 
-module.exports = { exportPaket, parsePaket, ringkas, importPaket };
+// ===================== PAKET APLIKASI GURU =====================
+
+/**
+ * Paket untuk dipasang di komputer guru: lisensi sekolah + pengaturan sekolah + kelas guru + akun guru.
+ * @param {number[]} userIds guru yang disertakan
+ */
+function exportPaketGuru(userIds) {
+  const users = userIds.map((id) => db.prepare('SELECT id, username, password_hash, nama, nip FROM users WHERE id = ?').get(id)).filter(Boolean);
+  const kelas = [];
+  for (const u of users) for (const c of db.prepare('SELECT id FROM classes WHERE guru_id = ? ORDER BY tingkat, nama').all(u.id)) kelas.push(c.id);
+  const lis = db.prepare("SELECT value FROM settings WHERE key = '_lisensi'").get();
+  const pkg = exportPaket({ sekolah: true, kelas, denganNilai: true });
+  pkg.jenis = 'guru';
+  pkg.lisensi = lis ? lis.value : null;
+  pkg.akun = users.map((u) => ({ username: u.username, password_hash: u.password_hash, nama: u.nama, nip: u.nip }));
+  return pkg;
+}
+
+/**
+ * Memasang paket guru di database yang masih baru (dipanggil saat aplikasi guru pertama kali jalan).
+ * Akun guru dibuat lebih dulu agar kelas langsung terhubung ke gurunya (dicocokkan lewat nama).
+ */
+function pasangPaketGuru(pkg) {
+  const hasil = { pesan: [], akunBaru: [] };
+  db.transaction(() => {
+    const set = db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value');
+    for (const a of pkg.akun || []) {
+      const ada = db.prepare('SELECT id FROM users WHERE username = ? COLLATE NOCASE').get(a.username);
+      if (ada) db.prepare("UPDATE users SET password_hash = ?, nama = ?, nip = ?, role = 'guru' WHERE id = ?").run(a.password_hash, a.nama, a.nip || null, ada.id);
+      else db.prepare("INSERT INTO users (username, password_hash, nama, nip, role) VALUES (?, ?, ?, ?, 'guru')").run(a.username, a.password_hash, a.nama, a.nip || null);
+    }
+    // akun bawaan admin/admin123 dihapus: pengaturan sekolah dikelola admin di komputer sekolah
+    if ((pkg.akun || []).length) db.prepare("DELETE FROM users WHERE username = 'admin' AND role = 'admin'").run();
+    if (pkg.lisensi) set.run('_lisensi', pkg.lisensi);
+    set.run('_instalasi_guru', '1');
+    if (pkg.sekolah) importSekolah(pkg.sekolah, { aktifkanPeriode: true }, hasil);
+    for (const k of pkg.kelas || []) importKelas(k, hasil);
+  })();
+  return hasil;
+}
+
+module.exports = { exportPaket, parsePaket, ringkas, importPaket, exportPaketGuru, pasangPaketGuru };

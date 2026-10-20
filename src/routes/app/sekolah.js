@@ -192,7 +192,10 @@ router.post('/mapel/:id', requireAdmin, (req, res) => {
 });
 
 // ===== Cadangan database =====
-router.get('/backup', requireAdmin, async (req, res, next) => {
+router.get('/backup', (req, res, next) => {
+  if (res.locals.user.role === 'admin' || res.locals.settings._instalasi_guru === '1') return next();
+  return requireAdmin(req, res, next);
+}, async (req, res, next) => {
   try {
     const os = require('os');
     const path = require('path');

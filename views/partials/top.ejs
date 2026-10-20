@@ -12,6 +12,10 @@
       <a href="/app/kelas" class="<%= path.startsWith('/kelas') ? 'active' : '' %>"><%- h.icon('class') %> Kelas &amp; Penilaian</a>
       <a href="/app/siswa" class="<%= path.startsWith('/siswa') ? 'active' : '' %>"><%- h.icon('users') %> Data Siswa</a>
       <a href="/app/panduan" class="<%= path === '/panduan' ? 'active' : '' %>"><%- h.icon('file') %> Panduan dari Excel</a>
+      <% if (user.role !== 'admin') { %>
+      <a href="/app/paket" class="<%= path.startsWith('/paket') ? 'active' : '' %>"><%- h.icon('upload') %> Kirim Data ke Admin</a>
+      <% if (settings._instalasi_guru === '1') { %><a href="/app/backup"><%- h.icon('database') %> Unduh Cadangan</a><% } %>
+      <% } %>
       <% if (user.role === 'admin') { %>
       <div class="nav-label">Administrasi</div>
       <a href="/app/sekolah" class="<%= path === '/sekolah' ? 'active' : '' %>"><%- h.icon('school') %> Profil Sekolah</a>
@@ -19,7 +23,7 @@
       <a href="/app/mapel" class="<%= path === '/mapel' ? 'active' : '' %>"><%- h.icon('book') %> Mata Pelajaran</a>
       <a href="/app/pengaturan" class="<%= path === '/pengaturan' ? 'active' : '' %>"><%- h.icon('settings') %> Pengaturan Nilai</a>
       <a href="/app/pengguna" class="<%= path === '/pengguna' ? 'active' : '' %>"><%- h.icon('user') %> Pengguna &amp; Guru</a>
-      <a href="/app/paket" class="<%= path.startsWith('/paket') ? 'active' : '' %>"><%- h.icon('layers') %> Paket Data (ekspor/impor)</a>
+      <a href="/app/paket" class="<%= path.startsWith('/paket') ? 'active' : '' %>"><%- h.icon('layers') %> Paket Data &amp; Bagikan ke Guru</a>
       <a href="/app/backup"><%- h.icon('database') %> Unduh Cadangan DB</a>
       <% } %>
       <div class="nav-label">Akun</div>

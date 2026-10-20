@@ -1,41 +1,76 @@
 <%- include('../partials/top') %>
-<div class="page-head"><div><h1>Paket Data</h1>
-<p>Untuk sekolah yang memakai aplikasi di beberapa komputer, masing-masing dengan database sendiri. Data dipindahkan lewat file (flashdisk, WhatsApp, e-mail), tanpa internet.</p></div></div>
+<% if (!isAdmin) { %>
+<div class="page-head"><div><h1>Kirim Data ke Admin</h1>
+<p>Setelah nilai dan kelengkapan rapor selesai, unduh file data kelas lalu kirim ke admin sekolah lewat flashdisk, WhatsApp, atau e-mail.</p></div></div>
+<form class="card" method="get" action="/app/paket/ekspor" style="max-width:720px">
+  <input type="hidden" name="isi" value="lengkap">
+  <h2><%- h.icon('download') %> Data kelas lengkap</h2>
+  <p class="muted">Berisi siswa, TP, nilai, ekstrakurikuler, ketidakhadiran, catatan, kenaikan, dan penilaian projek P5.</p>
+  <% if (!classes.length) { %><p class="muted">Anda belum ditetapkan sebagai guru kelas.</p><% } %>
+  <% classes.forEach(c => { %><label class="checkbox"><input type="checkbox" name="kelas" value="<%= c.id %>" checked> Kelas <%= c.nama %> <span class="muted">(<%= c.jumlah %> siswa)</span></label><% }) %>
+  <div class="form-actions"><button class="btn btn-primary" <%= classes.length ? '' : 'disabled' %>><%- h.icon('download') %> Unduh file data kelas</button></div>
+</form>
+<% } else { %>
+<div class="page-head"><div><h1>Paket Data &amp; Bagikan ke Guru</h1>
+<p>Untuk sekolah yang memakai aplikasi di beberapa komputer, masing-masing dengan database sendiri. Semua dipindahkan lewat file, tanpa internet.</p></div></div>
+
+<div class="card" id="bagikan" style="border-color:#cfdcff">
+  <div class="card-head"><h2><%- h.icon('upload') %> Bagikan aplikasi ke guru</h2><span class="badge badge-primary">Disarankan</span></div>
+  <p>Membuat aplikasi siap pakai untuk laptop guru, <b>sudah berisi pengaturan dari Anda</b>: logo, profil sekolah, pengaturan nilai, mapel, periode, lisensi, serta kelas, siswa, dan TP milik guru tersebut. Guru cukup ekstrak ZIP, klik <b>Jalankan-Rapor.bat</b>, lalu login dengan <b>username &amp; kata sandi yang Anda buat</b> di menu Pengguna &amp; Guru. Tanpa kode aktivasi.</p>
+  <% if (!gurus.length) { %>
+    <div class="alert alert-info">Belum ada akun guru. Buat dulu di <a href="/app/pengguna">Pengguna &amp; Guru</a>, lalu pilih guru kelas di setiap kelas.</div>
+  <% } else { %>
+  <form method="get" action="/app/paket/guru" class="grid" style="grid-template-columns:minmax(0,1fr) auto auto;gap:.6rem;align-items:end">
+    <div class="field" style="margin:0"><label for="guru">Untuk guru</label>
+      <select id="guru" name="guru">
+        <% gurus.forEach(g => { %><option value="<%= g.id %>"><%= g.nama %> (<%= g.username %>) — <%= g.kelas ? 'Kelas ' + g.kelas : 'belum punya kelas' %></option><% }) %>
+        <option value="semua">Semua guru (untuk satu komputer bersama)</option>
+      </select></div>
+    <button class="btn btn-primary" name="bentuk" value="zip" <%= windows ? '' : 'disabled title="Hanya di aplikasi versi Windows"' %>><%- h.icon('download') %> Unduh aplikasi (ZIP)</button>
+    <button class="btn" name="bentuk" value="json">Unduh paketnya saja</button>
+  </form>
+  <% if (!windows) { %><p class="hint muted" style="margin-top:.5rem">Tombol ZIP aktif saat aplikasi dijalankan dari paket Windows. Alternatif: unduh paketnya saja, lalu taruh file itu di folder <code>data</code> pada salinan baru E-Rapor-SD-Windows sebelum dijalankan pertama kali.</p><% } %>
+  <div class="alert alert-info" style="margin:1rem 0 0">
+    Pembuatan ZIP butuh beberapa detik (± 35 MB). Kirim ZIP hanya ke guru yang bersangkutan, karena berisi data siswa kelasnya.
+    Di laptop guru, pengaturan sekolah <b>terkunci</b>: guru hanya bisa mengisi data kelasnya, lalu mengirim hasilnya kembali lewat menu <b>Kirim Data ke Admin</b>.
+  </div>
+  <% } %>
+</div>
 
 <div class="grid grid-2">
   <form class="card" method="get" action="/app/paket/ekspor">
     <h2><%- h.icon('download') %> Ekspor dari komputer ini</h2>
     <div class="field"><label>Jenis paket</label>
-      <label class="checkbox"><input type="radio" name="isi" value="lengkap" checked> <span><b>Data kelas lengkap</b> — siswa, TP, nilai, ekskul, absensi, catatan, P5. Dikirim guru ke operator.</span></label>
-      <label class="checkbox"><input type="radio" name="isi" value="awal"> <span><b>Paket awal</b> — tanpa siswa &amp; nilai: hanya kelas, mapel, KKTP, TP &amp; lingkup materi, rancangan projek. Dikirim operator ke guru.</span></label>
+      <label class="checkbox"><input type="radio" name="isi" value="lengkap" checked> <span><b>Data kelas lengkap</b>: siswa, TP, nilai, ekskul, absensi, catatan, P5.</span></label>
+      <label class="checkbox"><input type="radio" name="isi" value="awal"> <span><b>Paket awal</b>: tanpa siswa &amp; nilai; hanya kelas, mapel, KKTP, TP &amp; lingkup materi, rancangan projek.</span></label>
     </div>
-    <div class="field"><label class="checkbox"><input type="checkbox" name="sekolah" value="1" checked> Sertakan profil sekolah, pengaturan nilai, mata pelajaran, periode, bank kalimat</label></div>
+    <div class="field"><label class="checkbox"><input type="checkbox" name="sekolah" value="1" checked> Sertakan profil sekolah, logo, pengaturan nilai, mata pelajaran, periode, bank kalimat</label></div>
     <div class="field"><label>Kelas yang disertakan</label>
       <% if (!classes.length) { %><p class="muted">Belum ada kelas.</p><% } %>
       <% classes.forEach(c => { %><label class="checkbox"><input type="checkbox" name="kelas" value="<%= c.id %>" checked> Kelas <%= c.nama %> <span class="muted">(<%= c.jumlah %> siswa)</span></label><% }) %>
     </div>
-    <div class="form-actions"><button class="btn btn-primary"><%- h.icon('download') %> Unduh paket (.rapor.json)</button></div>
+    <div class="form-actions"><button class="btn"><%- h.icon('download') %> Unduh paket (.rapor.json)</button></div>
   </form>
 
   <form class="card" method="post" action="/app/paket/periksa" id="impor-form">
     <input type="hidden" name="_csrf" value="<%= csrf %>">
     <h2><%- h.icon('upload') %> Impor ke komputer ini</h2>
-    <p class="muted">Pilih file paket. Isinya akan ditampilkan dulu sebelum diterapkan.</p>
+    <p class="muted">Untuk menerima <b>data kelas dari guru</b>. Isi file ditampilkan dulu sebelum diterapkan.</p>
     <div class="field"><label for="file">File paket</label><input id="file" type="file" accept=".json,.rapor" required></div>
     <textarea name="isi" id="isi" hidden></textarea>
     <div class="form-actions"><button class="btn btn-primary" id="btn-periksa" disabled>Periksa isi paket</button></div>
     <div class="alert alert-info" style="margin-top:1rem;margin-bottom:0">
-      <b>Cara pencocokan:</b> kelas dicocokkan dengan nama kelas, siswa dengan NISN (atau nama + tanggal lahir), mapel dengan kodenya, periode dengan tahun pelajaran + semester. Data kelas pada periode yang ada di paket akan <b>diganti</b> dengan isi paket.
+      Kelas dicocokkan dengan nama kelas, siswa dengan NISN (atau nama + tanggal lahir), mapel dengan kodenya, periode dengan tahun pelajaran + semester. Data kelas pada periode yang ada di paket akan <b>diganti</b> dengan isi paket.
     </div>
   </form>
 </div>
 
 <div class="card">
-  <h2>Alur kerja yang disarankan</h2>
+  <h2>Alur kerja</h2>
   <div class="grid grid-3">
-    <div><span class="badge badge-primary">1. Operator</span><p style="margin-top:.4rem">Isi profil sekolah, periode, mapel, kelas, TP. Ekspor <b>Paket awal</b> per kelas, bagikan ke guru.</p></div>
-    <div><span class="badge badge-primary">2. Guru</span><p style="margin-top:.4rem">Di komputer sendiri: impor paket awal, isi siswa &amp; nilai, cetak rapor. Setelah selesai, ekspor <b>Data kelas lengkap</b>.</p></div>
-    <div><span class="badge badge-primary">3. Operator</span><p style="margin-top:.4rem">Impor file dari setiap guru untuk arsip, leger sekolah, dan Buku Induk.</p></div>
+    <div><span class="badge badge-primary">1. Admin</span><p style="margin-top:.4rem">Atur logo, profil, nilai, mapel, kelas, TP, siswa, dan akun guru. Lalu <b>Bagikan aplikasi ke guru</b>.</p></div>
+    <div><span class="badge badge-primary">2. Guru</span><p style="margin-top:.4rem">Ekstrak ZIP, jalankan, login dengan akun dari admin. Isi nilai &amp; kelengkapan rapor, lalu <b>Kirim Data ke Admin</b>.</p></div>
+    <div><span class="badge badge-primary">3. Admin</span><p style="margin-top:.4rem"><b>Impor</b> file dari setiap guru. Leger, rapor, dan Buku Induk seluruh sekolah ada di komputer admin.</p></div>
   </div>
 </div>
 <script>
@@ -47,4 +82,5 @@ document.getElementById('file').addEventListener('change', function () {
   r.readAsText(f);
 });
 </script>
+<% } %>
 <%- include('../partials/bottom') %>
