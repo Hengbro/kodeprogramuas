@@ -39,6 +39,7 @@ rm -rf "$STAGE/app/node_modules/better-sqlite3/deps" "$STAGE/app/node_modules/be
 
 echo "5/5 Berkas peluncur & ZIP"
 cp "$ROOT/windows/"Jalankan-*.bat "$ROOT/windows/BACA-SAYA.txt" "$STAGE/"
+[ -f "$ROOT/docs/Panduan-Instalasi-E-Rapor-SD.pdf" ] && cp "$ROOT/docs/Panduan-Instalasi-E-Rapor-SD.pdf" "$STAGE/"
 # baris CRLF agar Notepad & cmd.exe membaca dengan benar
 for f in "$STAGE"/*.bat "$STAGE"/BACA-SAYA.txt; do sed -i 's/\r\{0,1\}$/\r/' "$f"; done
 (cd "$OUT" && rm -f "$NAME.zip" && zip -qr "$NAME.zip" "$NAME")

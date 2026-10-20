@@ -1,6 +1,8 @@
 E-RAPOR SD KURIKULUM MERDEKA - VERSI WINDOWS (OFFLINE)
 =====================================================
 
+Panduan lengkap bergambar: buka file Panduan-Instalasi-E-Rapor-SD.pdf
+
 MENJALANKAN
 1. Ekstrak (Extract All) file ZIP ini ke folder mana saja, misalnya D:\E-Rapor-SD
    (jangan dijalankan langsung dari dalam ZIP).
