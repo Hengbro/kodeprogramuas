@@ -104,9 +104,28 @@ const P5_LEVEL = {
   4: { kode: 'SB', label: 'Sangat Berkembang', ket: 'Siswa mengembangkan kemampuannya melampaui harapan' },
 };
 
+const SATUAN = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh', 'sebelas'];
+function terbilang(n) {
+  n = Math.floor(n);
+  if (n < 12) return SATUAN[n];
+  if (n < 20) return `${SATUAN[n - 10]} belas`;
+  if (n < 100) return `${SATUAN[Math.floor(n / 10)]} puluh ${terbilang(n % 10)}`.trim();
+  if (n < 200) return `seratus ${terbilang(n - 100)}`.trim();
+  if (n < 1000) return `${SATUAN[Math.floor(n / 100)]} ratus ${terbilang(n % 100)}`.trim();
+  return String(n);
+}
+
+/** Sebutan peringkat: 1 → Pertama, 2 → Kedua, 12 → Kedua Belas, 21 → Kedua Puluh Satu. */
+function peringkatKata(n) {
+  if (!n || n < 1) return '-';
+  if (n === 1) return 'Pertama';
+  const kata = `ke${terbilang(n)}`;
+  return kata.split(' ').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
 const ROMAWI = ['', 'I', 'II', 'III', 'IV', 'V', 'VI'];
 const TERBILANG_KELAS = ['', 'I (Satu)', 'II (Dua)', 'III (Tiga)', 'IV (Empat)', 'V (Lima)', 'VI (Enam)'];
 
 module.exports = {
-  avg, round, predikatFor, hitungMapel, deskripsiMapel, ranking, P5_LEVEL, ROMAWI, TERBILANG_KELAS, isNum,
+  avg, round, predikatFor, terbilang, peringkatKata, hitungMapel, deskripsiMapel, ranking, P5_LEVEL, ROMAWI, TERBILANG_KELAS, isNum,
 };

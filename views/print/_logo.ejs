@@ -1,0 +1,2 @@
+<% const lg = r.settings.logo || {}; const pilih = locals.jenis === 'pemda' ? (lg.pemda ? 'pemda' : null) : (lg.sekolah ? 'sekolah' : (locals.jenis === 'kiri' && lg.pemda ? 'pemda' : null)); %>
+<% if (pilih) { %><img class="emblem logo-img" src="/logo/<%= pilih %>?v=<%= lg[pilih] %>" alt="Logo"><% } else if (!locals.kosong) { %><%- include('_emblem') %><% } %>

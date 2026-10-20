@@ -31,6 +31,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use('/static', express.static(path.join(__dirname, 'public'), { maxAge: isProd ? '7d' : 0 }));
+app.use('/', require('./src/routes/logo'));
 app.use(express.urlencoded({ extended: true, limit: '50mb', parameterLimit: 50000 }));
 app.use(cookieSession({
   name: 'rapor_sess',

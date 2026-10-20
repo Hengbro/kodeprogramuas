@@ -3,8 +3,15 @@ const { lisensiAktif } = require('./lisensi');
 const { hitungMapel, deskripsiMapel, ranking, avg, predikatFor, P5_LEVEL } = require('./calc');
 
 function getSettings() {
-  const rows = db.prepare('SELECT key, value FROM settings').all();
+  const rows = db.prepare("SELECT key, value FROM settings WHERE key NOT LIKE 'logo\\_%' ESCAPE '\\'").all();
   const s = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  // logo disimpan sebagai data URI; di sini cukup penanda versinya (untuk URL /logo/...)
+  s.logo = {};
+  for (const r of db.prepare("SELECT key, length(value) AS n, substr(value, -16) AS t FROM settings WHERE key IN ('logo_sekolah', 'logo_pemda') AND value != ''").all()) {
+    s.logo[r.key.slice(5)] = `${r.n.toString(36)}${Buffer.from(r.t).toString('hex').slice(0, 8)}`;
+  }
+  s.juara = Math.max(1, Math.min(200, Number(s.juara_jumlah) || 3));
+  s.rankingBatas = Math.max(1, Math.min(200, Number(s.ranking_batas) || 10));
   try { s.predikat = JSON.parse(s.predikat); } catch { s.predikat = []; }
   s.bobot = { f: Number(s.bobot_f) || 0, s: Number(s.bobot_s) || 0, as: Number(s.bobot_as) || 0 };
   // nama sekolah & NPSN selalu mengikuti lisensi (tidak bisa diganti sekolah lain)
@@ -154,7 +161,8 @@ function buildStudentRapor(periodId, studentId) {
 
   let catatan = rs.catatan || '';
   const n = report.students.length;
-  if (row && row.rank && (settings.catatan_ranking === 'all' || (settings.catatan_ranking === 'top10' && row.rank <= 10))) {
+  const modeTop = settings.catatan_ranking === 'top' || settings.catatan_ranking === 'top10';
+  if (row && row.rank && (settings.catatan_ranking === 'all' || (modeTop && row.rank <= settings.rankingBatas))) {
     catatan = `${catatan} (Ranking ${row.rank} dari ${n} siswa)`.trim();
   }
 

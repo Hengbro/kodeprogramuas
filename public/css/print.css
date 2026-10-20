@@ -58,3 +58,7 @@ table.info td.sep { width: 12px; }
   tr, .ttd, .avoid { page-break-inside: avoid; break-inside: avoid; }
   thead { display: table-header-group; }
 }
+
+.logo-img { object-fit: contain; }
+.cover-logo .emblem { width: 120px; height: 120px; }
+.cover-logo .logo-img { width: 34mm; height: 34mm; }

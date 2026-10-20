@@ -2,7 +2,7 @@
 <body>
 <div class="public">
   <nav class="public-nav">
-    <a href="/" class="brand" style="text-decoration:none"><div class="brand-logo">R</div><div><b>E-Rapor SD</b><small><%= settings.nama_sekolah %></small></div></a>
+    <a href="/" class="brand" style="text-decoration:none"><%- include('partials/brand-mark') %><div><b>E-Rapor SD</b><small><%= settings.nama_sekolah %></small></div></a>
     <form method="post" action="/keluar-portal"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm">Keluar</button></form>
   </nav>
   <div class="content" style="max-width:760px;margin:0 auto">

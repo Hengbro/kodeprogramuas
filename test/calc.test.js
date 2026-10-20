@@ -39,3 +39,10 @@ test('ranking dengan nilai sama', () => {
   const r = ranking(items, 'j');
   assert.deepStrictEqual(items.map((i) => r.get(i) || null), [2, 1, 2, null]);
 });
+
+test('sebutan peringkat untuk berapa pun juara', () => {
+  const { peringkatKata } = require('../src/lib/calc');
+  assert.deepStrictEqual([1, 2, 3, 10, 11, 12, 19, 20, 21, 35, 100, 125].map(peringkatKata), [
+    'Pertama', 'Kedua', 'Ketiga', 'Kesepuluh', 'Kesebelas', 'Kedua Belas', 'Kesembilan Belas', 'Kedua Puluh',
+    'Kedua Puluh Satu', 'Ketiga Puluh Lima', 'Keseratus', 'Keseratus Dua Puluh Lima']);
+});

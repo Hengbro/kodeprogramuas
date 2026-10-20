@@ -49,9 +49,13 @@
     <div class="field"><label>Peringkat pada catatan guru</label>
       <select name="catatan_ranking">
         <option value="none" <%= settings.catatan_ranking === 'none' ? 'selected' : '' %>>Saran saja</option>
-        <option value="top10" <%= settings.catatan_ranking === 'top10' ? 'selected' : '' %>>Saran dan Ranking 1–10</option>
+        <option value="top" <%= ['top', 'top10'].includes(settings.catatan_ranking) ? 'selected' : '' %>>Saran dan Ranking 1 sampai batas di samping</option>
         <option value="all" <%= settings.catatan_ranking === 'all' ? 'selected' : '' %>>Saran dan Ranking semua siswa</option>
       </select></div>
+    <div class="field"><label>Batas ranking di catatan</label><input type="number" name="ranking_batas" min="1" max="200" value="<%= settings.rankingBatas %>">
+      <div class="hint">Contoh 10 → “(Ranking 1 dari 30 siswa)” hanya untuk peringkat 1–10.</div></div>
+    <div class="field"><label>Jumlah juara (piagam)</label><input type="number" name="juara_jumlah" min="1" max="200" value="<%= settings.juara %>">
+      <div class="hint">Piagam dicetak untuk peringkat 1 sampai angka ini. Bisa diubah lagi saat mencetak.</div></div>
     <div class="field"><label>Label tanda tangan orang tua</label>
       <select name="ttd_ortu"><% ['Orang Tua/Wali', 'Ayah', 'Ibu', 'Wali'].forEach(o => { %><option <%= settings.ttd_ortu === o ? 'selected' : '' %>><%= o %></option><% }) %></select></div>
     <div class="field"><label>&nbsp;</label><label class="checkbox"><input type="checkbox" name="public_portal" value="1" <%= settings.public_portal === '1' ? 'checked' : '' %>> Aktifkan portal cek rapor orang tua</label></div>

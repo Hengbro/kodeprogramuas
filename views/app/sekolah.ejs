@@ -38,6 +38,24 @@
       <% f('kode_pos', 'Kode pos') %>
     </div>
   </fieldset>
+  <fieldset><legend>Logo</legend>
+    <p class="muted" style="margin-top:0">Tampil di sampul rapor, kop rapor tengah semester, piagam, Buku Induk, dan aplikasi. Format PNG/JPG/WEBP; gambar diperkecil otomatis. Logo PNG berlatar transparan memberi hasil terbaik.</p>
+    <div class="grid grid-2">
+    <% [['sekolah', 'Logo sekolah'], ['pemda', 'Logo pemerintah daerah (opsional, di kiri kop)']].forEach(([j, label]) => { const v = settings.logo[j]; %>
+      <div class="field">
+        <label for="file_<%= j %>"><%= label %></label>
+        <div style="display:flex;gap:1rem;align-items:center">
+          <div class="logo-prev" id="prev_<%= j %>"><% if (v) { %><img src="/logo/<%= j %>?v=<%= v %>" alt="<%= label %>"><% } else { %><span class="muted">Belum ada</span><% } %></div>
+          <div style="flex:1;min-width:0">
+            <input type="file" id="file_<%= j %>" accept="image/png,image/jpeg,image/webp" data-logo="<%= j %>">
+            <input type="hidden" name="logo_<%= j %>" id="logo_<%= j %>">
+            <% if (v) { %><label class="checkbox" style="margin-top:.4rem"><input type="checkbox" name="hapus_logo_<%= j %>" value="1"> Hapus logo ini</label><% } %>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+    </div>
+  </fieldset>
   <fieldset><legend>Kepala sekolah</legend>
     <div class="form-grid">
       <% f('kepsek_nama', 'Nama kepala sekolah') %>
@@ -46,4 +64,26 @@
   </fieldset>
   <div class="form-actions"><button class="btn btn-primary"><%- h.icon('check') %> Simpan</button></div>
 </form>
+<script>
+// perkecil logo di browser (maks. 600 px) sebelum dikirim
+document.querySelectorAll('[data-logo]').forEach(function (inp) {
+  inp.addEventListener('change', function () {
+    var f = inp.files[0], j = inp.getAttribute('data-logo');
+    if (!f) return;
+    var img = new Image();
+    img.onload = function () {
+      var k = Math.min(1, 600 / Math.max(img.width, img.height));
+      var c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      var data = c.toDataURL('image/png');
+      if (data.length > 1350000) data = c.toDataURL('image/jpeg', 0.85);
+      document.getElementById('logo_' + j).value = data;
+      document.getElementById('prev_' + j).innerHTML = '<img src="' + data + '" alt="">';
+      URL.revokeObjectURL(img.src);
+    };
+    img.src = URL.createObjectURL(f);
+  });
+});
+</script>
 <%- include('../partials/bottom') %>

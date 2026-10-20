@@ -66,7 +66,7 @@ router.get('/kelas/:classId/cetak-semua/:kind', loadClass, (req, res) => {
   let students = studentsOfClass(period.id, req.cls.id);
   if (kind === 'piagam') {
     const report = buildClassReport(period.id, req.cls.id);
-    const top = report.students.filter((r) => r.rank && r.rank <= (Number(req.query.top) || 3)).sort((a, b) => a.rank - b.rank);
+    const top = report.students.filter((r) => r.rank && r.rank <= (Number(req.query.top) || res.locals.settings.juara)).sort((a, b) => a.rank - b.rank);
     students = top.map((r) => r.student);
   }
   const items = students.map((s) => buildFor(kind, period.id, s.id)).filter((x) => x && x.cls);

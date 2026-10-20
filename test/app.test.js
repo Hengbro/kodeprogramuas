@@ -85,6 +85,33 @@ test('penilaian umum dimensi P5 tampil di ringkasan rapor projek', async () => {
   assert.strictEqual((ringkasan.slice(0, ringkasan.indexOf('</table>')).match(/>SB</g) || []).length >= 6, true);
 });
 
+test('logo sekolah: unggah, tampil di cetak, dan bisa dihapus', async () => {
+  // PNG 1x1 piksel
+  const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+  let r = await req('GET', '/app/sekolah');
+  r = await req('POST', '/app/sekolah', { _csrf: csrf(r.text), nama_sekolah: 'SD NEGERI 1 NUSANTARA', logo_sekolah: png });
+  assert.strictEqual(r.status, 302);
+  r = await req('GET', '/logo/sekolah');
+  assert.strictEqual(r.status, 200);
+  r = await req('GET', '/app/rapor/1/akhir?part=cover');
+  assert.match(r.text, /src="\/logo\/sekolah\?v=/);
+  r = await req('GET', '/app/rapor/1/tts');
+  assert.match(r.text, /src="\/logo\/sekolah\?v=/);
+  r = await req('GET', '/app/sekolah');
+  r = await req('POST', '/app/sekolah', { _csrf: csrf(r.text), nama_sekolah: 'SD NEGERI 1 NUSANTARA', logo_sekolah: 'data:text/html;base64,PHNjcmlwdD4=' });
+  r = await req('GET', '/app/sekolah');
+  assert.match(r.text, /PNG, JPG, atau WEBP/);
+  r = await req('POST', '/app/sekolah', { _csrf: csrf(r.text), nama_sekolah: 'SD NEGERI 1 NUSANTARA', hapus_logo_sekolah: '1' });
+  r = await req('GET', '/logo/sekolah');
+  assert.strictEqual(r.status, 404);
+});
+
+test('piagam untuk juara lebih dari 3', async () => {
+  const r = await req('GET', '/app/kelas/1/cetak-semua/piagam?top=7');
+  assert.strictEqual((r.text.match(/PIAGAM PENGHARGAAN/g) || []).length >= 7, true);
+  assert.match(r.text, /Peringkat Ketujuh/);
+});
+
 test('portal orang tua: NISN + tanggal lahir', async () => {
   const { db } = require('../src/db');
   const st = db.prepare('SELECT * FROM students WHERE id = 1').get();

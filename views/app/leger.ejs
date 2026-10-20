@@ -15,7 +15,7 @@
       <tr><td class="num"><%= i + 1 %></td><td><a href="/app/siswa/<%= r.student.id %>"><%= r.student.nama %></a></td>
       <% cols.forEach(c => { const v = legerValue(r, c); const k = c.subject ? c.subject.kktp : null; %><td class="num" style="<%= v != null && k && v < k ? 'color:var(--danger);font-weight:700' : '' %>"><%= v ?? '–' %></td><% }) %>
       <td class="num"><b><%= r.jumlah ?? '' %></b></td><td class="num"><%= h.angka(r.rata, 2) %></td>
-      <td class="num"><% if (r.rank) { %><span class="badge <%= r.rank <= 3 ? 'badge-success' : '' %>"><%= r.rank %></span><% } %></td></tr>
+      <td class="num"><% if (r.rank) { %><span class="badge <%= r.rank <= settings.juara ? 'badge-success' : '' %>"><%= r.rank %></span><% } %></td></tr>
     <% }) %>
     <tr style="background:var(--surface-2)"><td></td><td><b>Rata-rata kelas</b></td><% colAvg.forEach(a => { %><td class="num"><b><%= h.angka(a, 1) %></b></td><% }) %><td colspan="3"></td></tr>
     </tbody>

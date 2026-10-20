@@ -65,6 +65,8 @@ const DEFAULT_SETTINGS = {
   kalimat_tinggi: 'menunjukkan penguasaan dalam',
   kalimat_rendah: 'perlu bimbingan dalam',
   catatan_ranking: 'none',
+  ranking_batas: '10',
+  juara_jumlah: '3',
   ttd_ortu: 'Orang Tua/Wali',
   public_portal: '1',
 };

@@ -14,11 +14,26 @@ router.get('/sekolah', requireAdmin, (req, res) => {
   res.render('app/sekolah', { title: 'Profil Sekolah' });
 });
 
+const LOGO_RE = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
+const LOGO_MAX = Math.ceil((1024 * 1024 * 4) / 3) + 40; // ±1 MB berkas asli
+
 router.post('/sekolah', requireAdmin, (req, res) => {
+  let pesanLogo = null;
   db.transaction(() => {
     const terkunci = res.locals.settings.lisensi ? ['nama_sekolah', 'npsn'] : [];
     for (const f of PROFIL_FIELDS) if (!terkunci.includes(f)) setSetting.run(f, String(req.body[f] || '').trim());
+    for (const jenis of ['sekolah', 'pemda']) {
+      if (req.body[`hapus_logo_${jenis}`]) setSetting.run(`logo_${jenis}`, '');
+      const data = String(req.body[`logo_${jenis}`] || '');
+      if (!data) continue;
+      if (!LOGO_RE.test(data) || data.length > LOGO_MAX) {
+        pesanLogo = 'Logo harus berupa gambar PNG, JPG, atau WEBP dengan ukuran maksimal 1 MB.';
+        continue;
+      }
+      setSetting.run(`logo_${jenis}`, data);
+    }
   })();
+  if (pesanLogo) { req.flash('error', `Profil disimpan, tetapi ${pesanLogo.charAt(0).toLowerCase()}${pesanLogo.slice(1)}`); return res.redirect('/app/sekolah'); }
   req.flash('success', 'Profil sekolah disimpan.');
   res.redirect('/app/sekolah');
 });
@@ -48,7 +63,9 @@ router.post('/pengaturan', requireAdmin, (req, res) => {
     setSetting.run('desk_nama', b.desk_nama ? '1' : '0');
     setSetting.run('kalimat_tinggi', String(b.kalimat_tinggi || '').trim());
     setSetting.run('kalimat_rendah', String(b.kalimat_rendah || '').trim());
-    setSetting.run('catatan_ranking', ['none', 'all', 'top10'].includes(b.catatan_ranking) ? b.catatan_ranking : 'none');
+    setSetting.run('catatan_ranking', ['none', 'all', 'top'].includes(b.catatan_ranking) ? b.catatan_ranking : 'none');
+    setSetting.run('ranking_batas', String(Math.max(1, Math.min(200, parseInt(b.ranking_batas, 10) || 10))));
+    setSetting.run('juara_jumlah', String(Math.max(1, Math.min(200, parseInt(b.juara_jumlah, 10) || 3))));
     setSetting.run('ttd_ortu', String(b.ttd_ortu || 'Orang Tua/Wali').trim());
     setSetting.run('public_portal', b.public_portal ? '1' : '0');
   })();

@@ -1,4 +1,4 @@
-const { ROMAWI, TERBILANG_KELAS, P5_LEVEL } = require('./calc');
+const { ROMAWI, TERBILANG_KELAS, P5_LEVEL, peringkatKata } = require('./calc');
 
 const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
@@ -30,7 +30,7 @@ function ttl(st) {
   return [st.tempat_lahir, tanggal(st.tanggal_lahir)].filter(Boolean).join(', ');
 }
 
-module.exports = { tanggal, angka, jk, semesterLabel, periodLabel, ttl, ROMAWI, TERBILANG_KELAS, P5_LEVEL, BULAN };
+module.exports = { tanggal, angka, jk, semesterLabel, periodLabel, ttl, ROMAWI, TERBILANG_KELAS, P5_LEVEL, BULAN, peringkatKata };
 
 const ICONS = {
   home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
