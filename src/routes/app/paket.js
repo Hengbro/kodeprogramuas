@@ -79,7 +79,8 @@ router.get('/paket/guru', requireAdmin, (req, res, next) => {
     const entries = [];
     for (const name of fs.readdirSync(ROOT)) {
       const abs = path.join(ROOT, name);
-      if (name === 'data' || name.toLowerCase().endsWith('.zip')) continue;
+      // aplikasi yang dipasang lewat pemasang: jangan ikutkan program penghapus & pemasang
+      if (name === 'data' || /\.(zip|exe)$/i.test(name)) continue;
       if (fs.statSync(abs).isDirectory()) {
         for (const [rel, file] of listFiles(abs, name)) entries.push({ name: `${folder}/${rel}`, file });
       } else {

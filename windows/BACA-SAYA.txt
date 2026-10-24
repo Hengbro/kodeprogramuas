@@ -1,7 +1,7 @@
 E-RAPOR SD KURIKULUM MERDEKA - VERSI WINDOWS (OFFLINE)
 =====================================================
 
-Panduan lengkap bergambar: buka file Panduan-Instalasi-E-Rapor-SD.pdf
+Panduan bergambar: Panduan-Admin-Sekolah.pdf (untuk admin) dan Panduan-Guru.pdf (berikan ke setiap guru)
 
 PALING MUDAH: pakai pemasang "Pasang-E-Rapor-SD.exe" (Lanjut -> Pasang -> Selesai),
 lalu klik ikon "E-Rapor SD" di desktop. Langkah di bawah ini untuk versi ZIP.

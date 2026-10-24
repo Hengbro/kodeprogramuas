@@ -57,16 +57,22 @@ Section "E-Rapor SD"
   RMDir /r "$INSTDIR\app"
   File /r /x "data" "${SRC}\*"
   CreateDirectory "$INSTDIR\data"
-  ; paket dari admin sekolah (untuk guru) yang diletakkan di samping pemasang ikut dipasang
-  IfFileExists "$EXEDIR\paket-awal.rapor.json" 0 +2
-    CopyFiles /SILENT "$EXEDIR\paket-awal.rapor.json" "$INSTDIR\data\paket-awal.rapor.json"
+  ; paket dari admin sekolah (untuk guru), diletakkan di folder yang sama dengan pemasang, ikut dipasang
+  ; (nama file dari menu admin: paket-awal-<username>.rapor.json)
+  FindFirst $0 $1 "$EXEDIR\paket-awal*.rapor.json"
+  StrCmp $1 "" +3
+    CopyFiles /SILENT "$EXEDIR\$1" "$INSTDIR\data\paket-awal.rapor.json"
+    DetailPrint "Paket dari admin sekolah dipasang: $1"
+  FindClose $0
 
   CreateShortcut "$DESKTOP\E-Rapor SD.lnk" "$INSTDIR\Jalankan-Rapor.bat" "" "$INSTDIR\e-rapor.ico" 0 SW_SHOWMINIMIZED
   CreateDirectory "$SMPROGRAMS\E-Rapor SD"
   CreateShortcut "$SMPROGRAMS\E-Rapor SD\E-Rapor SD.lnk" "$INSTDIR\Jalankan-Rapor.bat" "" "$INSTDIR\e-rapor.ico" 0 SW_SHOWMINIMIZED
   CreateShortcut "$SMPROGRAMS\E-Rapor SD\E-Rapor SD (bisa dibuka dari HP).lnk" "$INSTDIR\Jalankan-Rapor-Jaringan.bat" "" "$INSTDIR\e-rapor.ico" 0
-  IfFileExists "$INSTDIR\Panduan-Instalasi-E-Rapor-SD.pdf" 0 +2
-    CreateShortcut "$SMPROGRAMS\E-Rapor SD\Panduan E-Rapor SD.lnk" "$INSTDIR\Panduan-Instalasi-E-Rapor-SD.pdf"
+  IfFileExists "$INSTDIR\Panduan-Admin-Sekolah.pdf" 0 +2
+    CreateShortcut "$SMPROGRAMS\E-Rapor SD\Panduan Admin Sekolah.lnk" "$INSTDIR\Panduan-Admin-Sekolah.pdf"
+  IfFileExists "$INSTDIR\Panduan-Guru.pdf" 0 +2
+    CreateShortcut "$SMPROGRAMS\E-Rapor SD\Panduan Guru.lnk" "$INSTDIR\Panduan-Guru.pdf"
   CreateShortcut "$SMPROGRAMS\E-Rapor SD\Folder data (cadangan).lnk" "$INSTDIR\data"
   CreateShortcut "$SMPROGRAMS\E-Rapor SD\Hapus E-Rapor SD.lnk" "$INSTDIR\Hapus-E-Rapor-SD.exe"
 

@@ -70,7 +70,8 @@
     <div class="btn-group">
       <% if (offline.setup) { %><a class="btn btn-sm btn-primary" href="/super/unduh/setup"><%- h.icon('download') %> Pemasang .exe (<%= (offline.setup.ukuran / 1024 / 1024).toFixed(0) %> MB)</a><% } %>
       <% if (offline.zip) { %><a class="btn btn-sm" href="/super/unduh/windows"><%- h.icon('download') %> ZIP Windows (<%= (offline.zip.ukuran / 1024 / 1024).toFixed(0) %> MB)</a><% } %>
-      <% if (offline.panduan) { %><a class="btn btn-sm" href="/super/unduh/panduan"><%- h.icon('file') %> Panduan PDF</a><% } %>
+      <% if (offline.panduan) { %><a class="btn btn-sm" href="/super/unduh/panduan"><%- h.icon('file') %> Panduan Admin</a><% } %>
+      <% if (offline.panduanGuru) { %><a class="btn btn-sm" href="/super/unduh/panduan?untuk=guru"><%- h.icon('file') %> Panduan Guru</a><% } %>
     </div></div>
   <p class="muted">Sekolah versi offline dibuat lewat formulir <a href="#tambah">Tambah sekolah</a> di bawah (centang <b>Offline</b>). Sekolah yang online <i>dan</i> offline tampil di daftar atas dengan label Offline; di sini hanya sekolah yang <b>offline saja</b>.</p>
   <% if (!offline.kunci) { %><div class="alert alert-error">Kunci rahasia penjual tidak ada di server ini, jadi kode aktivasi belum bisa dibuat dari panel. Salin <code>kunci-penjual/kunci-rahasia.pem</code> ke server.</div><% } %>

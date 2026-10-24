@@ -22,7 +22,7 @@
       <textarea id="kode" readonly rows="5" onclick="this.select()" style="font-family:monospace;font-size:.8rem;word-break:break-all"><%= l.kode %></textarea>
       <button type="button" class="btn btn-sm" onclick="var k=document.getElementById('kode');k.select();(navigator.clipboard?navigator.clipboard.writeText(k.value):Promise.reject()).then(()=>{this.textContent='Kode disalin ✓'},()=>{document.execCommand('copy');this.textContent='Kode disalin ✓'})">Salin kode</button>
       <p class="muted" style="font-size:.85rem;margin-top:.8rem">Kode ini hanya untuk <%= l.sekolah %>. Nama sekolah &amp; NPSN di rapor terkunci sesuai kode.
-        <% if (adaPanduan) { %><a href="?berkas=panduan">Panduan bergambar (PDF)</a><% } %><% if (adaSetup && adaZip) { %> · <a href="?berkas=zip">versi ZIP</a><% } %></p>
+        <% if (adaPanduan) { %><a href="?berkas=panduan">Panduan Admin (PDF)</a> · <a href="?berkas=panduan-guru">Panduan Guru (PDF)</a><% } %><% if (adaSetup && adaZip) { %> · <a href="?berkas=zip">versi ZIP</a><% } %></p>
     </div>
   </div>
 </body>

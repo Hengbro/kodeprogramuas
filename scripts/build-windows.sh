@@ -39,7 +39,7 @@ rm -rf "$STAGE/app/node_modules/better-sqlite3/deps" "$STAGE/app/node_modules/be
 
 echo "5/5 Berkas peluncur, ZIP & pemasang"
 cp "$ROOT/windows/"Jalankan-*.bat "$ROOT/windows/BACA-SAYA.txt" "$ROOT/windows/e-rapor.ico" "$STAGE/"
-[ -f "$ROOT/docs/Panduan-Instalasi-E-Rapor-SD.pdf" ] && cp "$ROOT/docs/Panduan-Instalasi-E-Rapor-SD.pdf" "$STAGE/"
+cp "$ROOT/docs/Panduan-Admin-Sekolah.pdf" "$ROOT/docs/Panduan-Guru.pdf" "$STAGE/"
 # baris CRLF agar Notepad & cmd.exe membaca dengan benar
 for f in "$STAGE"/*.bat "$STAGE"/BACA-SAYA.txt; do sed -i 's/\r\{0,1\}$/\r/' "$f"; done
 (cd "$OUT" && rm -f "$NAME.zip" && zip -qr "$NAME.zip" "$NAME")
@@ -50,6 +50,13 @@ if command -v makensis >/dev/null; then
   VERSI="$(node -p "require('$ROOT/package.json').version")"
   makensis -V2 -DSRC="$STAGE" -DOUT="$OUT/Pasang-E-Rapor-SD.exe" -DVERSI="$VERSI" "$ROOT/windows/pemasang.nsi"
   echo "Selesai: $OUT/Pasang-E-Rapor-SD.exe ($(du -h "$OUT/Pasang-E-Rapor-SD.exe" | cut -f1))"
+  # paket kedua: pemasang + kedua panduan (ZIP aplikasi di atas tetap jadi cadangan bila pemasang gagal)
+  PEM="$OUT/E-Rapor-SD-Pemasang"
+  rm -rf "$PEM" "$PEM.zip" && mkdir -p "$PEM"
+  cp "$OUT/Pasang-E-Rapor-SD.exe" "$ROOT/docs/Panduan-Admin-Sekolah.pdf" "$ROOT/docs/Panduan-Guru.pdf" "$PEM/"
+  sed 's/\r\{0,1\}$/\r/' "$ROOT/windows/BACA-SAYA-PEMASANG.txt" > "$PEM/BACA-SAYA.txt"
+  (cd "$OUT" && zip -qr "E-Rapor-SD-Pemasang.zip" "E-Rapor-SD-Pemasang")
+  echo "Selesai: $PEM.zip ($(du -h "$PEM.zip" | cut -f1))"
 else
   echo "makensis (NSIS) tidak ada: pemasang .exe tidak dibuat (apt install nsis)."
 fi

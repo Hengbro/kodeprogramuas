@@ -91,7 +91,8 @@ router.get('/unduh/setup', wajibSuper, (req, res) => {
 
 router.get('/unduh/panduan', wajibSuper, (req, res) => {
   if (!fs.existsSync(master.PANDUAN_PDF)) return res.redirect('/super#offline');
-  res.download(master.PANDUAN_PDF, 'Panduan-Instalasi-E-Rapor-SD.pdf');
+  if (req.query.untuk === 'guru' && fs.existsSync(master.PANDUAN_GURU_PDF)) return res.download(master.PANDUAN_GURU_PDF, 'Panduan-Guru.pdf');
+  res.download(master.PANDUAN_PDF, 'Panduan-Admin-Sekolah.pdf');
 });
 
 // Tambah sekolah: online (web), offline (Windows), atau keduanya sekaligus

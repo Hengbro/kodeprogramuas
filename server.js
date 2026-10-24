@@ -178,7 +178,8 @@ if (MULTI) {
   app.get('/unduh/offline/:token', (req, res) => {
     const l = master.m().prepare('SELECT * FROM lisensi_offline WHERE token = ?').get(req.params.token);
     if (!l) return res.status(404).render('error', { title: 'Tautan tidak berlaku', message: 'Tautan unduhan tidak ditemukan. Minta tautan baru kepada penyedia aplikasi.' });
-    if (req.query.berkas === 'panduan' && require('fs').existsSync(master.PANDUAN_PDF)) return res.download(master.PANDUAN_PDF, 'Panduan-Instalasi-E-Rapor-SD.pdf');
+    if (req.query.berkas === 'panduan' && require('fs').existsSync(master.PANDUAN_PDF)) return res.download(master.PANDUAN_PDF, 'Panduan-Admin-Sekolah.pdf');
+    if (req.query.berkas === 'panduan-guru' && require('fs').existsSync(master.PANDUAN_GURU_PDF)) return res.download(master.PANDUAN_GURU_PDF, 'Panduan-Guru.pdf');
     const berkas = { setup: [master.SETUP_WINDOWS, 'Pasang-E-Rapor-SD.exe'], zip: [master.ZIP_WINDOWS, 'E-Rapor-SD-Windows.zip'] }[req.query.berkas];
     if (berkas && require('fs').existsSync(berkas[0])) {
       master.m().prepare('UPDATE lisensi_offline SET unduhan = unduhan + 1 WHERE id = ?').run(l.id);
