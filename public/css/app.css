@@ -243,3 +243,5 @@ h1 svg, h2 svg, h3 svg { width: 1em; height: 1em; vertical-align: -.12em; }
   .tp-editor .tp-list { margin-left: .2rem; }
 }
 .sheet .tp-head small { display: block; font-weight: 600; color: #15803d; font-size: .66rem; }
+.sheet td.hapus-cell { padding: .3rem .6rem; white-space: nowrap; font-size: .8rem; color: var(--danger); }
+.sheet td.hapus-cell input { width: auto; }

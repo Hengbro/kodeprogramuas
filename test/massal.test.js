@@ -79,6 +79,33 @@ test('input banyak siswa: guru tidak bisa memakai kelas atau siswa milik guru la
   assert.deepStrictEqual({ ...db.prepare('SELECT nama, class_id FROM students WHERE id = ?').get(siswaLain) }, { nama: 'Siswa Lain', class_id: kelasLain });
 });
 
+test('input banyak siswa: NISN tidak dobel dan bisa hapus beberapa siswa sekaligus', async () => {
+  const { req, token } = await masuk('guru4a', 'guru123');
+  const siswa = db.prepare("SELECT * FROM students WHERE class_id = ? AND status = 'aktif' ORDER BY id").all(kelas);
+  const n0 = siswa.length;
+  // tempel ulang siswa yang sudah ada (NISN sama) → diperbarui, bukan ditambah; NISN siswa kelas lain → ditolak
+  const lain = db.prepare("SELECT nisn FROM students WHERE nama = 'Siswa Lain'").get();
+  db.prepare("UPDATE students SET nisn = '7770001' WHERE nama = 'Siswa Lain'").run();
+  let r = await req('POST', '/app/siswa/massal', { _csrf: token, class_id: String(kelas), n: '4',
+    nama__0: 'Ani Baru Diperbarui', nisn__0: siswa.find((s) => s.nama === 'Ani Baru').nisn || '',
+    nama__1: 'Dobel A', nisn__1: '5550001', nama__2: 'Dobel A lagi', nisn__2: '5550001', nama__3: 'Pakai NISN Kelas Lain', nisn__3: '7770001' });
+  assert.strictEqual(r.status, 302);
+  assert.strictEqual(db.prepare("SELECT COUNT(*) n FROM students WHERE nisn = '5550001'").get().n, 1);
+  assert.strictEqual(db.prepare("SELECT nama FROM students WHERE nisn = '5550001'").get().nama, 'Dobel A lagi');
+  assert.ok(!db.prepare("SELECT 1 FROM students WHERE nama = 'Pakai NISN Kelas Lain'").get());
+  r = await req('GET', `/app/siswa/massal?kelas=${kelas}`);
+  assert.match(r.text, /Tidak disimpan: Pakai NISN Kelas Lain \(NISN 7770001 sudah terdaftar di kelas VI Z\)/);
+  assert.ok(lain);
+  // hapus dua siswa sekaligus
+  const sekarang = db.prepare("SELECT id FROM students WHERE class_id = ? AND status = 'aktif' ORDER BY id").all(kelas);
+  const hapus = sekarang.slice(-2).map((s) => s.id);
+  r = await req('POST', '/app/siswa/massal', { _csrf: token, class_id: String(kelas), n: '2',
+    id__0: String(hapus[0]), nama__0: 'x', hapus__0: '1', id__1: String(hapus[1]), nama__1: 'y', hapus__1: '1' });
+  assert.strictEqual(db.prepare(`SELECT COUNT(*) n FROM students WHERE id IN (${hapus.join(',')})`).get().n, 0);
+  assert.strictEqual(db.prepare("SELECT COUNT(*) n FROM students WHERE class_id = ? AND status = 'aktif'").get(kelas).n, sekarang.length - 2);
+  assert.ok(n0 > 0);
+});
+
 test('nilai SAS semua mapel: satu lembar, agama mengikuti siswa, deskripsi manual tidak tertimpa', async () => {
   const { req, token } = await masuk('guru4a', 'guru123');
   const period = getActivePeriod();

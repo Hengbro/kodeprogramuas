@@ -114,19 +114,30 @@ router.post('/siswa/massal', (req, res) => {
   const n = Math.min(2000, Number(b.n) || 0);
   const ins = db.prepare(`INSERT INTO students (${FIELDS.join(',')}, class_id) VALUES (${FIELDS.map(() => '?').join(',')}, ?)`);
   const upd = db.prepare(`UPDATE students SET ${FIELDS.map((f) => `${f} = ?`).join(', ')} WHERE id = ? AND class_id = ?`);
-  let baru = 0; let ubah = 0;
+  const byNisn = db.prepare('SELECT s.id, s.class_id, c.nama AS kelas FROM students s LEFT JOIN classes c ON c.id = s.class_id WHERE s.nisn = ?');
+  const del = db.prepare('DELETE FROM students WHERE id = ? AND class_id = ?');
+  let baru = 0; let ubah = 0; let hapus = 0;
+  const lewat = [];
   db.transaction(() => {
     for (let i = 0; i < n; i += 1) {
+      const id = Number(b[`id__${i}`]) || null;
+      if (id && b[`hapus__${i}`]) { hapus += del.run(id, cls.id).changes; continue; }
       const row = {};
       for (const f of FIELDS) row[f] = b[`${f}__${i}`];
       const data = studentFromBody(row);
-      const id = Number(b[`id__${i}`]) || null;
       if (!data.nama) continue; // baris kosong dilewati; siswa lama tidak terhapus karena nama dikosongkan
-      if (id) ubah += upd.run(...FIELDS.map((f) => data[f]), id, cls.id).changes;
-      else { ins.run(...FIELDS.map((f) => data[f]), cls.id); baru += 1; }
+      if (id) { ubah += upd.run(...FIELDS.map((f) => data[f]), id, cls.id).changes; continue; }
+      // NISN yang sudah ada tidak dibuat dobel (mis. data yang sama ditempel dua kali)
+      const ada = data.nisn && byNisn.get(data.nisn);
+      if (ada && ada.class_id === cls.id) { ubah += upd.run(...FIELDS.map((f) => data[f]), ada.id, cls.id).changes; continue; }
+      if (ada) { lewat.push(`${data.nama} (NISN ${data.nisn} sudah terdaftar${ada.kelas ? ` di kelas ${ada.kelas}` : ''})`); continue; }
+      ins.run(...FIELDS.map((f) => data[f]), cls.id);
+      baru += 1;
     }
   })();
-  req.flash('success', `${baru} siswa baru ditambahkan, ${ubah} siswa diperbarui di kelas ${cls.nama}.`);
+  const pesan = `${baru} siswa baru ditambahkan, ${ubah} diperbarui${hapus ? `, ${hapus} dihapus` : ''} di kelas ${cls.nama}.`;
+  if (lewat.length) req.flash('error', `${pesan} Tidak disimpan: ${lewat.join('; ')}.`);
+  else req.flash('success', pesan);
   res.redirect(`/app/siswa/massal?kelas=${cls.id}`);
 });
 

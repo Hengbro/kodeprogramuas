@@ -368,6 +368,14 @@
     });
   }
 
+  // Konfirmasi bila ada siswa yang dicentang untuk dihapus di lembar massal
+  document.addEventListener('submit', function (e) {
+    var n = e.target.querySelectorAll('input[name^="hapus__"]:checked').length;
+    if (!n || e.target.getAttribute('data-hapus-ok') === String(n)) return;
+    if (!window.confirm(n + ' siswa yang dicentang akan dihapus beserta seluruh nilainya. Lanjutkan?')) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+    e.target.setAttribute('data-hapus-ok', String(n));
+  }, true);
+
   // Sebelum mengirim, pastikan server bisa dihubungi; bila tidak, isian tetap di layar
   var sudahDicek = false;
   document.addEventListener('submit', function (e) {
