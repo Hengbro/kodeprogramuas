@@ -34,6 +34,7 @@ app.use((req, res, next) => {
 });
 app.use('/static', express.static(path.join(__dirname, 'public'), { maxAge: isProd ? '7d' : 0 }));
 app.use('/', require('./src/routes/logo'));
+app.get('/sehat', (req, res) => res.set('Cache-Control', 'no-store').json({ ok: true }));
 app.use(express.urlencoded({ extended: true, limit: '50mb', parameterLimit: 50000 }));
 app.use(cookieSession({
   name: 'rapor_sess',
@@ -41,8 +42,13 @@ app.use(cookieSession({
   httpOnly: true,
   sameSite: 'lax',
   secure: isProd && process.env.COOKIE_SECURE !== '0',
-  maxAge: 12 * 60 * 60 * 1000,
+  maxAge: 30 * 24 * 60 * 60 * 1000,
 }));
+// perpanjang sesi selama aplikasi dipakai (cookie diperbarui paling lambat tiap 10 menit)
+app.use((req, res, next) => {
+  if (req.session && req.session.userId) req.session.aktif = Math.floor(Date.now() / 600000);
+  next();
+});
 
 app.use((req, res, next) => {
   res.locals.settings = getSettings();
@@ -59,13 +65,21 @@ app.use((req, res, next) => {
   next();
 });
 
+// Permintaan dari halaman aplikasi ini sendiri (header Origin/Referer sama dengan host)
+function dariSitusSendiri(req) {
+  const asal = req.get('origin') || req.get('referer');
+  if (!asal) return false;
+  try { return new URL(asal).host === req.get('host'); } catch { return false; }
+}
+
 // CSRF token sederhana berbasis sesi
 app.use((req, res, next) => {
   if (!req.session.csrf) req.session.csrf = crypto.randomBytes(16).toString('hex');
   res.locals.csrf = req.session.csrf;
   if (req.method === 'POST') {
     const token = req.body && req.body._csrf;
-    if (token !== req.session.csrf) {
+    // token bisa berbeda bila halaman dibuka sebelum sesi diperbarui; asal yang sama tetap aman diterima
+    if (token !== req.session.csrf && !dariSitusSendiri(req)) {
       return res.status(403).render('error', { title: 'Sesi kedaluwarsa', message: 'Formulir kedaluwarsa. Muat ulang halaman lalu coba lagi.' });
     }
   }

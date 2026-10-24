@@ -1,0 +1,19 @@
+<%- include('partials/head') %>
+<body class="public">
+  <div class="auth-box">
+    <div class="card">
+      <h1>Sesi berakhir</h1>
+      <div class="alert alert-success">Isian Anda <b>belum hilang</b>. Masuk lagi, lalu data langsung disimpan.</div>
+      <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+      <form method="post" action="/lanjutkan">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <input type="hidden" name="_tujuan" value="<%= tujuan %>">
+        <input type="hidden" name="_data" value="<%= data %>">
+        <div class="field"><label for="username">Nama pengguna</label><input id="username" name="username" value="<%= username %>" autocomplete="username" required autofocus></div>
+        <div class="field"><label for="password">Kata sandi</label><input id="password" type="password" name="password" autocomplete="current-password" required></div>
+        <button class="btn btn-primary" style="width:100%">Masuk &amp; simpan</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -6,7 +6,7 @@
   <span><b><%= settings.lisensi.sekolah %></b> · NPSN <%= settings.lisensi.npsn %> · No. seri <%= settings.lisensi.seri %> · seumur hidup · diterbitkan <%= h.tanggal(settings.lisensi.dibuat) %></span>
 </div>
 <% } %>
-<form method="post" class="card">
+<form method="post" class="card" data-track>
   <input type="hidden" name="_csrf" value="<%= csrf %>">
   <% const terkunci = settings.lisensi ? ['nama_sekolah', 'npsn'] : [];
      const f = (name, label, hint) => { const kunci = terkunci.includes(name); %>

@@ -1,6 +1,6 @@
 <%- include('../partials/top') %>
 <div class="page-head"><div><h1>Pengaturan Penilaian</h1><p>Bobot nilai rapor, rentang predikat, dan format deskripsi capaian kompetensi.</p></div></div>
-<form method="post" class="card">
+<form method="post" class="card" data-track>
   <input type="hidden" name="_csrf" value="<%= csrf %>">
   <h2>Bobot nilai rapor</h2>
   <p class="muted">NA Rapor = (bobot F × Formatif + bobot S × Sumatif Lingkup Materi + bobot AS × Sumatif Akhir Semester) ÷ jumlah bobot komponen yang terisi.</p>

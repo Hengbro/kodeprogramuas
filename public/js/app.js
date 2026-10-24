@@ -184,4 +184,109 @@
     });
     dirty = true;
   });
+  // ===== Jangan sampai isian hilang saat koneksi putus =====
+  var store = null;
+  try { store = window.localStorage; store.getItem('x'); } catch (err) { store = null; }
+  var KUNCI = 'draf:' + location.pathname + location.search;
+  var draftForms = Array.prototype.slice.call(document.querySelectorAll('form[data-track], #nilai-form'));
+
+  function ambilIsian(f) {
+    var out = {};
+    Array.prototype.forEach.call(f.elements, function (el, i) {
+      if (!el.name || el.name === '_csrf' || el.type === 'password' || el.type === 'file' || el.type === 'submit' || el.type === 'button') return;
+      out[i + ':' + el.name] = (el.type === 'checkbox' || el.type === 'radio') ? el.checked : el.value;
+    });
+    return out;
+  }
+  function pasangIsian(f, isi) {
+    Array.prototype.forEach.call(f.elements, function (el, i) {
+      var k = i + ':' + el.name;
+      if (!(k in isi)) return;
+      if (el.type === 'checkbox' || el.type === 'radio') el.checked = isi[k]; else el.value = isi[k];
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
+  function simpanDraf(terkirim) {
+    if (!store || !draftForms.length) return;
+    try { store.setItem(KUNCI, JSON.stringify({ t: Date.now(), terkirim: !!terkirim, isi: draftForms.map(ambilIsian) })); } catch (err) { /* penyimpanan penuh */ }
+  }
+
+  if (store) {
+    // berhasil disimpan → buang draf yang sudah terkirim
+    if (document.querySelector('.alert-success')) {
+      try {
+        Object.keys(store).forEach(function (k) {
+          if (k.indexOf('draf:') !== 0) return;
+          var d = JSON.parse(store.getItem(k) || '{}');
+          if (d.terkirim) store.removeItem(k);
+        });
+      } catch (err) { /* abaikan */ }
+    }
+    var draf = null;
+    try { draf = JSON.parse(store.getItem(KUNCI) || 'null'); } catch (err) { draf = null; }
+    if (draf && draftForms.length && Date.now() - draf.t < 30 * 24 * 3600 * 1000) {
+      var bar = document.createElement('div');
+      bar.className = 'alert alert-error';
+      bar.innerHTML = 'Ada isian di halaman ini yang <b>belum tersimpan</b> (' + new Date(draf.t).toLocaleString('id-ID') + '). ' +
+        '<button type="button" class="btn btn-sm btn-primary" data-draf="pulihkan">Pulihkan isian</button> ' +
+        '<button type="button" class="btn btn-sm btn-ghost" data-draf="buang">Buang</button>';
+      draftForms[0].parentNode.insertBefore(bar, draftForms[0]);
+      bar.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-draf]');
+        if (!b) return;
+        if (b.getAttribute('data-draf') === 'pulihkan') {
+          draftForms.forEach(function (f, i) { if (draf.isi[i]) pasangIsian(f, draf.isi[i]); });
+          dirty = true;
+          bar.className = 'alert alert-success';
+          bar.textContent = 'Isian dipulihkan. Periksa lalu klik Simpan.';
+        } else {
+          try { store.removeItem(KUNCI); } catch (err) { /* abaikan */ }
+          bar.remove();
+        }
+      });
+    }
+    var tunda = null;
+    draftForms.forEach(function (f) {
+      f.addEventListener('input', function () { clearTimeout(tunda); tunda = setTimeout(function () { simpanDraf(false); }, 800); });
+      f.addEventListener('change', function () { clearTimeout(tunda); tunda = setTimeout(function () { simpanDraf(false); }, 800); });
+    });
+  }
+
+  // Sebelum mengirim, pastikan server bisa dihubungi; bila tidak, isian tetap di layar
+  var sudahDicek = false;
+  document.addEventListener('submit', function (e) {
+    var f = e.target;
+    if ((f.getAttribute('method') || 'get').toLowerCase() !== 'post' || f.target || !window.fetch || !f.requestSubmit) return;
+    if (draftForms.indexOf(f) >= 0) simpanDraf(true);
+    if (sudahDicek) { sudahDicek = false; return; }
+    e.preventDefault();
+    var submitter = e.submitter || null;
+    var btns = f.querySelectorAll('button, input[type=submit]');
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var waktu = setTimeout(function () { if (ctrl) ctrl.abort(); }, 10000);
+    fetch('/sehat', { cache: 'no-store', credentials: 'same-origin', signal: ctrl ? ctrl.signal : undefined })
+      .then(function (r) { if (!r.ok) throw new Error('status ' + r.status); })
+      .then(function () {
+        clearTimeout(waktu);
+        sudahDicek = true;
+        dirty = false;
+        f.requestSubmit(submitter && submitter.form === f ? submitter : undefined);
+      })
+      .catch(function () {
+        clearTimeout(waktu);
+        var old = document.getElementById('putus-koneksi');
+        if (old) old.remove();
+        var msg = document.createElement('div');
+        msg.id = 'putus-koneksi';
+        msg.className = 'alert alert-error';
+        msg.style.cssText = 'position:fixed;left:16px;right:16px;bottom:16px;z-index:999;box-shadow:0 6px 24px rgba(0,0,0,.2)';
+        msg.innerHTML = '<b>Koneksi ke server terputus.</b> Data belum tersimpan, tetapi isian Anda masih aman di halaman ini. ' +
+          'Jangan tutup halaman; tunggu sebentar lalu klik Simpan lagi.';
+        document.body.appendChild(msg);
+        setTimeout(function () { msg.remove(); }, 15000);
+        Array.prototype.forEach.call(btns, function (b) { b.disabled = false; });
+        if (draftForms.indexOf(f) >= 0) dirty = true;
+      });
+  });
 })();

@@ -1,0 +1,17 @@
+<%- include('partials/head') %>
+<body class="public">
+  <div class="auth-box">
+    <div class="card" style="text-align:center">
+      <h1>Menyimpan…</h1>
+      <p class="muted">Anda sudah masuk kembali. Isian sedang disimpan.</p>
+      <form method="post" action="<%= tujuan %>" id="kirim-ulang">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <% for (const [n, v] of fields) { %><input type="hidden" name="<%= n %>" value="<%= v %>">
+        <% } %>
+        <button class="btn btn-primary">Simpan sekarang</button>
+      </form>
+    </div>
+  </div>
+  <script src="/static/js/kirim-ulang.js"></script>
+</body>
+</html>
