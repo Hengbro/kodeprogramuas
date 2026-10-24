@@ -55,14 +55,17 @@ router.post('/keluar', (req, res) => {
 });
 
 router.get('/', wajibSuper, (req, res) => {
-  const daftar = master.daftar().map((s) => ({ ...s, stat: master.statistik(s) }));
-  res.render('super/panel', { title: 'Panel Superadmin', daftar, hasil: null, offline: master.infoOffline() });
+  const offline = master.infoOffline();
+  const daftar = master.daftar().map((s) => ({ ...s, stat: master.statistik(s), lisensi: offline.daftar.filter((l) => l.sekolah_kode === s.kode) }));
+  offline.saja = offline.daftar.filter((l) => !l.sekolah_kode || !daftar.some((s) => s.kode === l.sekolah_kode));
+  res.render('super/panel', { title: 'Panel Superadmin', daftar, hasil: null, offline });
 });
 
 // ===== Versi offline (Windows) =====
 router.post('/offline/kode', wajibSuper, (req, res) => {
   try {
-    const l = master.buatLisensiOffline({ npsn: req.body.npsn, sekolah: req.body.sekolah, catatan: req.body.catatan });
+    const s = req.body.sekolah_kode ? master.cari(req.body.sekolah_kode) : null;
+    const l = master.buatLisensiOffline({ npsn: req.body.npsn, sekolah: req.body.sekolah, catatan: req.body.catatan, sekolahKode: s && s.kode });
     res.render('super/offline-hasil', { title: 'Kode aktivasi offline', l, offline: master.infoOffline() });
   } catch (e) {
     req.flash('error', e.message);
@@ -86,16 +89,27 @@ router.get('/unduh/panduan', wajibSuper, (req, res) => {
   res.download(master.PANDUAN_PDF, 'Panduan-Instalasi-E-Rapor-SD.pdf');
 });
 
+// Tambah sekolah: online (web), offline (Windows), atau keduanya sekaligus
 router.post('/sekolah', wajibSuper, (req, res) => {
+  const online = !!req.body.online;
+  const offline = !!req.body.offline;
   try {
-    const r = master.buatSekolah({
+    if (!online && !offline) throw new Error('Pilih minimal satu: versi online atau versi offline.');
+    // periksa isian offline dulu agar tidak ada yang setengah jadi
+    if (offline) master.cekLisensiOffline({ npsn: req.body.npsn, sekolah: req.body.nama });
+    const r = online ? master.buatSekolah({
       nama: req.body.nama, npsn: req.body.npsn, kode: req.body.kode,
       adminUsername: req.body.admin_username, adminPassword: req.body.admin_password, adminNama: req.body.admin_nama,
+    }) : null;
+    if (r && req.body.catatan) master.m().prepare('UPDATE sekolah SET catatan = ? WHERE id = ?').run(String(req.body.catatan).trim(), r.sekolah.id);
+    const l = offline ? master.buatLisensiOffline({ npsn: req.body.npsn, sekolah: req.body.nama, catatan: req.body.catatan, sekolahKode: r && r.sekolah.kode }) : null;
+    res.render('super/hasil', {
+      title: 'Sekolah dibuat', judul: `Sekolah ${r ? r.sekolah.nama : l.sekolah} dibuat`,
+      sekolah: r && r.sekolah, username: r && r.username, password: r && r.password, l,
     });
-    res.render('super/hasil', { title: 'Sekolah dibuat', judul: `Sekolah ${r.sekolah.nama} dibuat`, sekolah: r.sekolah, username: r.username, password: r.password });
   } catch (e) {
     req.flash('error', e.message);
-    res.redirect('/super');
+    res.redirect('/super#tambah');
   }
 });
 

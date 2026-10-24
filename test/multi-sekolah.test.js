@@ -67,16 +67,16 @@ test('superadmin membuat dua sekolah; data lama menjadi sekolah pertama', async 
   r = await su('POST', '/super/login', { _csrf: await su.token('/super/login'), username: 'superadmin', password: 'rahasia-super' });
   assert.strictEqual(r.location, '/super');
   const tok = await su.token('/super');
-  r = await su('POST', '/super/sekolah', { _csrf: tok, nama: 'SD NEGERI 1 AMBON', npsn: '60100001', admin_username: 'kepsek', admin_password: 'sandi-ambon' });
+  r = await su('POST', '/super/sekolah', { _csrf: tok, online: '1', nama: 'SD NEGERI 1 AMBON', npsn: '60100001', admin_username: 'kepsek', admin_password: 'sandi-ambon' });
   assert.strictEqual(r.status, 200);
   assert.match(r.text, /\/sekolah\/60100001\/login/);
-  r = await su('POST', '/super/sekolah', { _csrf: tok, nama: 'SD INPRES 2 TUAL', kode: 'sd-tual' });
-  B = { kode: 'sd-tual', user: ambil(r.text, 'Username'), pass: ambil(r.text, 'Sandi') };
+  r = await su('POST', '/super/sekolah', { _csrf: tok, online: '1', nama: 'SD INPRES 2 TUAL', kode: 'sd-tual' });
+  B = { kode: 'sd-tual', user: ambil(r.text, 'Username'), pass: ambil(r.text, 'Kata sandi') };
   assert.strictEqual(B.user, 'admin');
   assert.ok(B.pass && B.pass.length >= 8);
   A = { kode: '60100001', user: 'kepsek', pass: 'sandi-ambon' };
-  r = await su('POST', '/super/sekolah', { _csrf: tok, nama: 'Dobel', kode: 'sd-tual' });
-  assert.strictEqual(r.location, '/super');
+  r = await su('POST', '/super/sekolah', { _csrf: tok, online: '1', nama: 'Dobel', kode: 'sd-tual' });
+  assert.strictEqual(r.location, '/super#tambah');
   r = await su('GET', '/super');
   assert.match(r.text, /SD NEGERI 1 AMBON/);
   assert.match(r.text, /SD INPRES 2 TUAL/);
@@ -185,7 +185,7 @@ test('superadmin: buka sekolah sebagai admin, nonaktifkan, reset sandi', async (
   const d = master.dbSekolah(master.cari(B.kode));
   const id = d.prepare("SELECT id FROM users WHERE username = 'admin'").get().id;
   r = await su('POST', `/super/sekolah/${B.kode}/reset`, { _csrf: tok, user_id: String(id) });
-  const baru = ambil(r.text, 'Sandi');
+  const baru = ambil(r.text, 'Kata sandi');
   assert.strictEqual((await masuk(B.kode, B.user, B.pass)).r.status, 401);
   assert.strictEqual((await masuk(B.kode, B.user, baru)).r.location, `/sekolah/${B.kode}/app`);
 
@@ -200,7 +200,7 @@ test('superadmin membuat kode aktivasi offline dan tautan unduhan untuk sekolah'
   const su = klien();
   await su('POST', '/super/login', { _csrf: await su.token('/super/login'), username: 'superadmin', password: 'rahasia-super' });
   let r = await su('GET', '/super');
-  assert.match(r.text, /Versi offline \(Windows\)/);
+  assert.match(r.text, /Sekolah versi offline \(Windows\)/);
   const tok = await su.token('/super');
   r = await su('POST', '/super/offline/kode', { _csrf: tok, sekolah: 'sd negeri 9 saumlaki', npsn: '123' });
   assert.strictEqual(r.location, '/super#offline');
@@ -264,4 +264,36 @@ test('orang tua memantau dua anak di sekolah berbeda dari satu perangkat', async
   r = await ortu('POST', '/keluar-portal', { _csrf: tok });
   r = await ortu('GET', '/anak');
   assert.strictEqual(r.location, '/');
+});
+
+test('tambah sekolah online + offline sekaligus, atau offline saja', async () => {
+  const su = klien();
+  await su('POST', '/super/login', { _csrf: await su.token('/super/login'), username: 'superadmin', password: 'rahasia-super' });
+  const tok = await su.token('/super');
+  // offline dengan NPSN tidak valid: tidak ada yang dibuat sama sekali
+  let r = await su('POST', '/super/sekolah', { _csrf: tok, online: '1', offline: '1', nama: 'SD GAGAL', npsn: '12' });
+  assert.strictEqual(r.location, '/super#tambah');
+  assert.ok(!master.daftar().some((s) => s.nama === 'SD GAGAL'));
+  r = await su('POST', '/super/sekolah', { _csrf: tok, nama: 'SD TANPA VERSI', npsn: '60100005' });
+  assert.ok(!master.daftar().some((s) => s.nama === 'SD TANPA VERSI'));
+  // keduanya
+  r = await su('POST', '/super/sekolah', { _csrf: tok, online: '1', offline: '1', nama: 'SD NEGERI 5 MASOHI', npsn: '60100005', catatan: 'paket lengkap' });
+  assert.strictEqual(r.status, 200);
+  assert.match(r.text, /VERSI ONLINE/);
+  assert.match(r.text, /VERSI OFFLINE/);
+  assert.match(r.text, /\/sekolah\/60100005\/login/);
+  const kode = /(ERAPOR-[A-Za-z0-9_.-]+)/.exec(r.text)[1];
+  assert.strictEqual(require('../src/lib/lisensi').periksaKode(kode).npsn, '60100005');
+  const l = master.m().prepare('SELECT * FROM lisensi_offline WHERE kode = ?').get(kode);
+  assert.strictEqual(l.sekolah_kode, '60100005');
+  assert.strictEqual(master.cari('60100005').catatan, 'paket lengkap');
+  // offline saja: tidak membuat sekolah online
+  r = await su('POST', '/super/sekolah', { _csrf: tok, offline: '1', nama: 'SD TERPENCIL', npsn: '60100006' });
+  assert.match(r.text, /VERSI OFFLINE/);
+  assert.doesNotMatch(r.text, /VERSI ONLINE/);
+  assert.ok(!master.cari('60100006'));
+  r = await su('GET', '/super');
+  // sekolah online+offline ditandai di kartunya; offline saja tampil di bagian offline
+  assert.match(r.text, /SD NEGERI 5 MASOHI[\s\S]*badge-success">Offline/);
+  assert.match(r.text, /SD TERPENCIL/);
 });

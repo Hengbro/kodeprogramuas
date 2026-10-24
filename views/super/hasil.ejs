@@ -1,22 +1,44 @@
 <%- include('_top') %>
-<div class="card" style="max-width:640px;margin:0 auto">
+<% const l = locals.l || null; const nama = sekolah ? sekolah.nama : l.sekolah; %>
+<div class="card" style="max-width:760px;margin:0 auto">
   <h1><%= judul %></h1>
-  <div class="alert alert-success">Catat atau salin data di bawah ini sekarang. <b>Kata sandi hanya ditampilkan sekali.</b></div>
+  <div class="alert alert-success">Catat atau salin data di bawah ini sekarang. <b>Kata sandi hanya ditampilkan sekali.</b><%= l ? ' Kode aktivasi offline bisa dilihat lagi di panel.' : '' %></div>
+  <% if (sekolah) { %>
+  <h3><span class="badge badge-primary">Online</span> Akses web</h3>
   <table class="table">
-    <tr><th style="width:180px">Sekolah</th><td><b><%= sekolah.nama %></b></td></tr>
+    <tr><th style="width:190px">Sekolah</th><td><b><%= sekolah.nama %></b></td></tr>
     <tr><th>Kode sekolah</th><td><code><%= sekolah.kode %></code></td></tr>
     <tr><th>Alamat masuk</th><td><code><%= baseUrl %>/sekolah/<%= sekolah.kode %>/login</code></td></tr>
     <tr><th>Portal orang tua</th><td><code><%= baseUrl %>/sekolah/<%= sekolah.kode %>/</code></td></tr>
-    <tr><th>Username</th><td><code><%= username %></code></td></tr>
-    <tr><th>Kata sandi</th><td><code><%= password %></code></td></tr>
+    <% if (username) { %><tr><th>Username</th><td><code><%= username %></code></td></tr>
+    <tr><th>Kata sandi</th><td><code><%= password %></code></td></tr><% } %>
   </table>
-  <p class="muted">Kirim alamat masuk, kode sekolah, username, dan kata sandi ini ke admin/kepala sekolah. Minta mereka mengganti kata sandi di menu Akun setelah masuk.</p>
-  <textarea readonly rows="7" style="font-family:monospace;font-size:.85rem" onclick="this.select()">Akses E-Rapor <%= sekolah.nama %>
-Alamat   : <%= baseUrl %>/sekolah/<%= sekolah.kode %>/login
-Kode     : <%= sekolah.kode %>
-Username : <%= username %>
-Sandi    : <%= password %>
-Portal orang tua: <%= baseUrl %>/sekolah/<%= sekolah.kode %>/</textarea>
+  <% } %>
+  <% if (l) { %>
+  <h3><span class="badge badge-success">Offline</span> Aplikasi Windows</h3>
+  <table class="table">
+    <tr><th style="width:190px">NPSN · No. seri</th><td><%= l.npsn %> · <%= l.seri %> (seumur hidup)</td></tr>
+    <tr><th>Halaman unduhan</th><td><code><%= baseUrl %>/unduh/offline/<%= l.token %></code></td></tr>
+  </table>
+  <label><b>Kode aktivasi</b></label>
+  <textarea readonly rows="4" onclick="this.select()" style="font-family:monospace;font-size:.8rem;word-break:break-all"><%= l.kode %></textarea>
+  <% } %>
+  <h3 style="margin-top:1rem">Pesan siap kirim ke sekolah</h3>
+  <textarea readonly rows="<%= sekolah && l ? 18 : 10 %>" onclick="this.select()" style="font-size:.85rem">Akses E-Rapor SD — <%= nama %>
+<% if (sekolah) { %>
+VERSI ONLINE (web)
+Alamat masuk : <%= baseUrl %>/sekolah/<%= sekolah.kode %>/login
+<% if (username) { %>Username     : <%= username %>
+Kata sandi   : <%= password %>
+<% } %>Portal orang tua: <%= baseUrl %>/sekolah/<%= sekolah.kode %>/
+Segera ganti kata sandi di menu Akun setelah masuk.
+<% } %><% if (l) { %>
+VERSI OFFLINE (Windows, tanpa internet)
+1. Unduh aplikasi: <%= baseUrl %>/unduh/offline/<%= l.token %>
+2. Ekstrak ZIP, klik dua kali Jalankan-Rapor.bat
+3. Tempel kode aktivasi berikut, lalu buat akun admin:
+<%= l.kode %>
+<% } %></textarea>
   <div class="form-actions"><a class="btn btn-primary" href="/super">Kembali ke daftar sekolah</a></div>
 </div>
 <%- include('_bottom') %>
