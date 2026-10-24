@@ -1,0 +1,23 @@
+<%- include('partials/head') %>
+<body class="public">
+  <nav class="public-nav"><span class="brand"><div class="brand-logo">R</div><div><b>E-Rapor SD</b><small>Versi offline untuk Windows</small></div></span></nav>
+  <div class="auth-box" style="max-width:640px">
+    <div class="card">
+      <h1>E-Rapor SD untuk <%= l.sekolah %></h1>
+      <p class="muted">NPSN <%= l.npsn %> · No. seri <%= l.seri %> · lisensi seumur hidup</p>
+      <ol style="padding-left:1.2rem;line-height:1.7">
+        <li>Unduh aplikasinya, lalu ekstrak ZIP ke laptop/komputer sekolah (mis. ke <code>D:\E-Rapor</code>).</li>
+        <li>Klik dua kali <b>Jalankan-Rapor.bat</b>. Browser terbuka di <code>http://localhost:3210</code>.</li>
+        <li>Saat diminta, tempel <b>Kode Aktivasi</b> di bawah, lalu buat akun admin sekolah.</li>
+      </ol>
+      <div class="btn-group" style="margin:.5rem 0 1rem">
+        <a class="btn btn-primary" href="?berkas=zip">Unduh aplikasi (ZIP, ±40 MB)</a>
+        <% if (adaPanduan) { %><a class="btn" href="?berkas=panduan">Panduan instalasi (PDF)</a><% } %>
+      </div>
+      <label for="kode"><b>Kode Aktivasi</b></label>
+      <textarea id="kode" readonly rows="5" onclick="this.select()" style="font-family:monospace;font-size:.8rem;word-break:break-all"><%= l.kode %></textarea>
+      <p class="muted" style="font-size:.85rem">Kode ini hanya untuk <%= l.sekolah %>. Nama sekolah &amp; NPSN di rapor akan terkunci sesuai kode. Jangan bagikan kode ke sekolah lain.</p>
+    </div>
+  </div>
+</body>
+</html>

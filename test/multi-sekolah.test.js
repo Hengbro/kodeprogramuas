@@ -9,6 +9,18 @@ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rapor-multi-'));
 process.env.DATA_DIR = dir;
 process.env.MULTI_SEKOLAH = '1';
 process.env.SUPERADMIN_PASSWORD = 'rahasia-super';
+// kunci penjual khusus tes (tidak memakai kunci asli)
+{
+  const crypto = require('crypto');
+  const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
+  fs.mkdirSync(path.join(dir, 'kunci'));
+  fs.writeFileSync(path.join(dir, 'kunci', 'rahasia.pem'), privateKey.export({ type: 'pkcs8', format: 'pem' }));
+  fs.writeFileSync(path.join(dir, 'kunci', 'publik.pem'), publicKey.export({ type: 'spki', format: 'pem' }));
+  process.env.LISENSI_PRIVAT = path.join(dir, 'kunci', 'rahasia.pem');
+  process.env.LISENSI_PUBLIK = path.join(dir, 'kunci', 'publik.pem');
+  fs.writeFileSync(path.join(dir, 'app.zip'), 'ZIPDUMMY');
+  process.env.ZIP_WINDOWS = path.join(dir, 'app.zip');
+}
 // database satu sekolah lama sudah berisi data → harus menjadi sekolah pertama
 {
   const { bukaDb } = require('../src/db');
@@ -176,4 +188,36 @@ test('superadmin: buka sekolah sebagai admin, nonaktifkan, reset sandi', async (
   r = await su('POST', `/super/sekolah/${B.kode}/hapus`, { _csrf: tok, konfirmasi: B.kode });
   assert.ok(!master.cari(B.kode));
   assert.ok(fs.readdirSync(path.join(dir, 'terhapus')).some((f) => f.startsWith('sd-tual-')));
+});
+
+test('superadmin membuat kode aktivasi offline dan tautan unduhan untuk sekolah', async () => {
+  const su = klien();
+  await su('POST', '/super/login', { _csrf: await su.token('/super/login'), username: 'superadmin', password: 'rahasia-super' });
+  let r = await su('GET', '/super');
+  assert.match(r.text, /Versi offline \(Windows\)/);
+  const tok = await su.token('/super');
+  r = await su('POST', '/super/offline/kode', { _csrf: tok, sekolah: 'sd negeri 9 saumlaki', npsn: '123' });
+  assert.strictEqual(r.location, '/super#offline');
+  r = await su('POST', '/super/offline/kode', { _csrf: tok, sekolah: 'sd negeri 9 saumlaki', npsn: '60109999', catatan: 'lunas' });
+  assert.strictEqual(r.status, 200);
+  const kode = /(ERAPOR-[A-Za-z0-9_.-]+)/.exec(r.text)[1];
+  const { periksaKode } = require('../src/lib/lisensi');
+  assert.deepStrictEqual([periksaKode(kode).npsn, periksaKode(kode).sekolah], ['60109999', 'SD NEGERI 9 SAUMLAKI']);
+  assert.ok(fs.readFileSync(path.join(dir, 'kunci', 'daftar-lisensi.csv'), 'utf8').includes(kode));
+  const link = /\/unduh\/offline\/([A-Za-z0-9_-]+)/.exec(r.text)[1];
+  // sekolah membuka tautan tanpa login: ada kode & tombol unduh
+  const tamu = klien();
+  r = await tamu('GET', `/unduh/offline/${link}`);
+  assert.strictEqual(r.status, 200);
+  assert.ok(r.text.includes(kode));
+  r = await tamu('GET', `/unduh/offline/${link}?berkas=zip`);
+  assert.strictEqual(r.text, 'ZIPDUMMY');
+  assert.strictEqual(master.m().prepare('SELECT unduhan FROM lisensi_offline WHERE token = ?').get(link).unduhan, 1);
+  r = await tamu('GET', '/unduh/offline/salah');
+  assert.strictEqual(r.status, 404);
+  // ZIP lengkap hanya untuk superadmin
+  r = await tamu('GET', '/super/unduh/windows');
+  assert.strictEqual(r.location, '/super/login');
+  r = await su('GET', '/super/unduh/windows');
+  assert.strictEqual(r.text, 'ZIPDUMMY');
 });

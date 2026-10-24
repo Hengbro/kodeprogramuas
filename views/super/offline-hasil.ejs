@@ -1,0 +1,25 @@
+<%- include('_top') %>
+<div class="card" style="max-width:760px;margin:0 auto">
+  <h1>Kode aktivasi offline: <%= l.sekolah %></h1>
+  <table class="table">
+    <tr><th style="width:190px">Sekolah</th><td><b><%= l.sekolah %></b></td></tr>
+    <tr><th>NPSN</th><td><%= l.npsn %></td></tr>
+    <tr><th>No. seri</th><td><%= l.seri %> · seumur hidup · dibuat <%= String(l.dibuat).slice(0, 10) %></td></tr>
+    <tr><th>Halaman unduhan sekolah</th><td><code><%= baseUrl %>/unduh/offline/<%= l.token %></code><br><small class="muted">Berisi tombol unduh aplikasi, panduan PDF, dan kode aktivasi. Diunduh <%= l.unduhan %>×.</small></td></tr>
+  </table>
+  <label><b>Kode Aktivasi</b></label>
+  <textarea readonly rows="5" onclick="this.select()" style="font-family:monospace;font-size:.8rem;word-break:break-all"><%= l.kode %></textarea>
+  <h3 style="margin-top:1rem">Pesan siap kirim (WhatsApp/email)</h3>
+  <textarea readonly rows="10" onclick="this.select()" style="font-size:.85rem">E-Rapor SD (versi offline Windows) untuk <%= l.sekolah %>
+
+1. Buka tautan ini dan unduh aplikasinya:
+<%= baseUrl %>/unduh/offline/<%= l.token %>
+2. Ekstrak ZIP, lalu klik dua kali Jalankan-Rapor.bat
+3. Tempel Kode Aktivasi berikut, lalu buat akun admin sekolah:
+
+<%= l.kode %>
+
+Lisensi seumur hidup, khusus <%= l.sekolah %> (NPSN <%= l.npsn %>).</textarea>
+  <div class="form-actions"><a class="btn" href="/super/unduh/windows">Unduh ZIP (untuk dikirim sendiri / flashdisk)</a><a class="btn btn-primary" href="/super#offline">Kembali ke panel</a></div>
+</div>
+<%- include('_bottom') %>

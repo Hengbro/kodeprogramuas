@@ -17,6 +17,7 @@
     <div class="btn-group">
       <form method="post" action="/super/sekolah/<%= s.kode %>/masuk" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-primary" <%= s.aktif ? '' : 'disabled' %>><%- h.icon('home') %> Buka sebagai admin</button></form>
       <a class="btn btn-sm" href="/super/sekolah/<%= s.kode %>/cadangan"><%- h.icon('database') %> Cadangan</a>
+      <% if (offline.kunci && /^\d{8}$/.test(s.npsn || '')) { %><form method="post" action="/super/offline/kode" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="sekolah" value="<%= s.nama %>"><input type="hidden" name="npsn" value="<%= s.npsn %>"><button class="btn btn-sm" title="Buat kode aktivasi versi offline untuk sekolah ini">Kode offline</button></form><% } %>
       <form method="post" action="/super/sekolah/<%= s.kode %>/aktif" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm" data-confirm="<%= s.aktif ? 'Nonaktifkan sekolah ini? Guru, admin, dan portal orang tua sekolah ini tidak bisa diakses.' : 'Aktifkan kembali sekolah ini?' %>"><%= s.aktif ? 'Nonaktifkan' : 'Aktifkan' %></button></form>
     </div>
   </div>
@@ -59,6 +60,33 @@
   </details>
 </div>
 <% }) %>
+
+<div class="card" id="offline">
+  <div class="card-head"><h2 style="margin:0">Versi offline (Windows) untuk sekolah</h2>
+    <div class="btn-group">
+      <% if (offline.zip) { %><a class="btn btn-sm" href="/super/unduh/windows"><%- h.icon('download') %> ZIP Windows (<%= (offline.zip.ukuran / 1024 / 1024).toFixed(0) %> MB)</a><% } %>
+      <% if (offline.panduan) { %><a class="btn btn-sm" href="/super/unduh/panduan"><%- h.icon('file') %> Panduan PDF</a><% } %>
+    </div></div>
+  <p class="muted">Untuk sekolah yang memakai aplikasi tanpa internet di laptopnya sendiri. Buat <b>kode aktivasi</b> (terkunci ke nama sekolah &amp; NPSN, seumur hidup), lalu kirim pesan berisi tautan unduhan + kode ke sekolah.</p>
+  <% if (!offline.kunci) { %><div class="alert alert-error">Kunci rahasia penjual tidak ada di server ini, jadi kode aktivasi belum bisa dibuat dari panel. Salin <code>kunci-penjual/kunci-rahasia.pem</code> ke server.</div><% } %>
+  <% if (!offline.zip) { %><div class="alert alert-error">Berkas ZIP Windows belum ada di server. Jalankan <code>scripts/build-windows.sh</code>.</div><% } %>
+  <form method="post" action="/super/offline/kode" class="grid grid-4" style="align-items:end">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <div class="field"><label>Nama sekolah (seperti di rapor) *</label><input name="sekolah" required placeholder="SD NEGERI 1 AMBON"></div>
+    <div class="field"><label>NPSN (8 digit) *</label><input name="npsn" required inputmode="numeric" pattern="\d{8}" maxlength="8"></div>
+    <div class="field"><label>Catatan</label><input name="catatan" placeholder="mis. lunas, kontak operator"></div>
+    <div class="field"><button class="btn btn-primary" <%= offline.kunci ? '' : 'disabled' %>><%- h.icon('plus') %> Buat kode aktivasi</button></div>
+  </form>
+  <% if (offline.daftar.length) { %>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Tanggal</th><th>Sekolah</th><th>NPSN</th><th>No. seri</th><th class="num">Diunduh</th><th>Catatan</th><th class="actions"></th></tr></thead>
+    <tbody><% offline.daftar.forEach(l => { %><tr>
+      <td><%= String(l.dibuat).slice(0, 10) %></td><td><b><%= l.sekolah %></b></td><td><%= l.npsn %></td><td><code><%= l.seri %></code></td>
+      <td class="num"><%= l.unduhan %>×</td><td><%= l.catatan || '' %></td>
+      <td class="actions"><a class="btn btn-sm" href="/super/offline/<%= l.id %>">Lihat kode &amp; pesan</a></td></tr><% }) %></tbody>
+  </table></div>
+  <% } %>
+</div>
 
 <form method="post" action="/super/sekolah" class="card" id="tambah">
   <input type="hidden" name="_csrf" value="<%= csrf %>">

@@ -122,6 +122,10 @@ Untuk penyedia yang melayani banyak sekolah dari satu alamat web, jalankan denga
   Portal orang tua: `/sekolah/<kode>/` (atau pilih sekolah di halaman depan).
 - Admin sekolah (kepala sekolah/operator) tidak bisa mengubah nama sekolah & NPSN; itu diatur superadmin.
 - Database satu sekolah yang sudah ada (`data/rapor.sqlite`) otomatis menjadi sekolah pertama.
+- **Versi offline dari panel**: bagian "Versi offline (Windows)" membuat kode aktivasi per sekolah (sama dengan
+  `tools/buat-kode.js`, dicatat di `kunci-penjual/daftar-lisensi.csv`) dan tautan unduhan rahasia
+  `/unduh/offline/<token>` berisi ZIP, panduan PDF, dan kode. Butuh `kunci-penjual/kunci-rahasia.pem`
+  (atau `LISENSI_PRIVAT`) dan `dist/E-Rapor-SD-Windows.zip` (atau `ZIP_WINDOWS`) di server.
 - Diuji di `test/multi-sekolah.test.js`. Tanpa `MULTI_SEKOLAH=1` (mis. versi Windows) aplikasi tetap satu sekolah.
 
 ## Supaya bisa diakses publik

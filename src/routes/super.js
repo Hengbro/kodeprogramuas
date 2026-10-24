@@ -56,7 +56,34 @@ router.post('/keluar', (req, res) => {
 
 router.get('/', wajibSuper, (req, res) => {
   const daftar = master.daftar().map((s) => ({ ...s, stat: master.statistik(s) }));
-  res.render('super/panel', { title: 'Panel Superadmin', daftar, hasil: null });
+  res.render('super/panel', { title: 'Panel Superadmin', daftar, hasil: null, offline: master.infoOffline() });
+});
+
+// ===== Versi offline (Windows) =====
+router.post('/offline/kode', wajibSuper, (req, res) => {
+  try {
+    const l = master.buatLisensiOffline({ npsn: req.body.npsn, sekolah: req.body.sekolah, catatan: req.body.catatan });
+    res.render('super/offline-hasil', { title: 'Kode aktivasi offline', l, offline: master.infoOffline() });
+  } catch (e) {
+    req.flash('error', e.message);
+    res.redirect('/super#offline');
+  }
+});
+
+router.get('/offline/:id', wajibSuper, (req, res) => {
+  const l = master.m().prepare('SELECT * FROM lisensi_offline WHERE id = ?').get(req.params.id);
+  if (!l) return res.redirect('/super#offline');
+  res.render('super/offline-hasil', { title: 'Kode aktivasi offline', l, offline: master.infoOffline() });
+});
+
+router.get('/unduh/windows', wajibSuper, (req, res) => {
+  if (!fs.existsSync(master.ZIP_WINDOWS)) { req.flash('error', 'Berkas ZIP Windows belum dibuat di server (jalankan scripts/build-windows.sh).'); return res.redirect('/super#offline'); }
+  res.download(master.ZIP_WINDOWS, 'E-Rapor-SD-Windows.zip');
+});
+
+router.get('/unduh/panduan', wajibSuper, (req, res) => {
+  if (!fs.existsSync(master.PANDUAN_PDF)) return res.redirect('/super#offline');
+  res.download(master.PANDUAN_PDF, 'Panduan-Instalasi-E-Rapor-SD.pdf');
 });
 
 router.post('/sekolah', wajibSuper, (req, res) => {

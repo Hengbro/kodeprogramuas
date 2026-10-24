@@ -25,6 +25,10 @@ function m() {
       id INTEGER PRIMARY KEY, username TEXT NOT NULL UNIQUE COLLATE NOCASE, password_hash TEXT NOT NULL,
       nama TEXT NOT NULL, dibuat TEXT NOT NULL DEFAULT (datetime('now'))
     );
+    CREATE TABLE IF NOT EXISTS lisensi_offline (
+      id INTEGER PRIMARY KEY, npsn TEXT NOT NULL, sekolah TEXT NOT NULL, seri TEXT NOT NULL, kode TEXT NOT NULL,
+      token TEXT NOT NULL UNIQUE, unduhan INTEGER NOT NULL DEFAULT 0, catatan TEXT, dibuat TEXT NOT NULL DEFAULT (datetime('now'))
+    );
     CREATE TABLE IF NOT EXISTS sekolah (
       id INTEGER PRIMARY KEY, kode TEXT NOT NULL UNIQUE, nama TEXT NOT NULL, npsn TEXT, file TEXT NOT NULL,
       aktif INTEGER NOT NULL DEFAULT 1, catatan TEXT, dibuat TEXT NOT NULL DEFAULT (datetime('now'))
@@ -140,4 +144,41 @@ function tutup(kode) {
   if (d) { d.close(); terbuka.delete(kode); }
 }
 
-module.exports = { m, daftar, cari, dbSekolah, buatSekolah, siapkan, statistik, pengaturan, sandiAcak, slug, tutup, KODE_RE, MASTER_PATH };
+// ===== Versi offline (Windows): kode aktivasi & berkas unduhan =====
+const ROOT = path.join(__dirname, '..', '..');
+const KUNCI_PRIVAT = process.env.LISENSI_PRIVAT || path.join(ROOT, 'kunci-penjual', 'kunci-rahasia.pem');
+const ZIP_WINDOWS = process.env.ZIP_WINDOWS || path.join(ROOT, 'dist', 'E-Rapor-SD-Windows.zip');
+const PANDUAN_PDF = path.join(ROOT, 'docs', 'Panduan-Instalasi-E-Rapor-SD.pdf');
+
+function infoOffline() {
+  const zip = fs.existsSync(ZIP_WINDOWS) ? fs.statSync(ZIP_WINDOWS) : null;
+  return {
+    kunci: fs.existsSync(KUNCI_PRIVAT),
+    zip: zip ? { ukuran: zip.size, tanggal: zip.mtime } : null,
+    panduan: fs.existsSync(PANDUAN_PDF),
+    daftar: m().prepare('SELECT * FROM lisensi_offline ORDER BY id DESC').all(),
+  };
+}
+
+/** Membuat kode aktivasi offline (sama dengan tools/buat-kode.js) dan tautan unduhan khusus sekolah itu. */
+function buatLisensiOffline({ npsn, sekolah, catatan }) {
+  const { buatKode, periksaKode } = require('./lisensi');
+  npsn = String(npsn || '').trim();
+  sekolah = String(sekolah || '').toUpperCase().replace(/\s+/g, ' ').trim();
+  if (!/^\d{8}$/.test(npsn)) throw new Error('NPSN harus 8 digit angka.');
+  if (!sekolah) throw new Error('Nama sekolah wajib diisi.');
+  if (!fs.existsSync(KUNCI_PRIVAT)) throw new Error('Kunci rahasia penjual tidak ada di server ini (kunci-penjual/kunci-rahasia.pem).');
+  const data = { npsn, sekolah, seri: crypto.randomBytes(4).toString('hex').toUpperCase(), berlaku: 'selamanya', dibuat: new Date().toISOString().slice(0, 10) };
+  const kode = buatKode(data, fs.readFileSync(KUNCI_PRIVAT));
+  if (!periksaKode(kode)) throw new Error('Kode gagal diverifikasi: kunci publik aplikasi tidak cocok dengan kunci rahasia.');
+  const token = crypto.randomBytes(18).toString('base64url');
+  m().prepare('INSERT INTO lisensi_offline (npsn, sekolah, seri, kode, token, catatan) VALUES (?, ?, ?, ?, ?, ?)')
+    .run(npsn, sekolah, data.seri, kode, token, String(catatan || '').trim() || null);
+  // catatan yang sama dengan alat penjual
+  const csv = path.join(path.dirname(KUNCI_PRIVAT), 'daftar-lisensi.csv');
+  if (!fs.existsSync(csv)) fs.writeFileSync(csv, 'tanggal,npsn,sekolah,seri,kode\n');
+  fs.appendFileSync(csv, `${data.dibuat},${npsn},"${sekolah.replace(/"/g, '""')}",${data.seri},${kode}\n`);
+  return m().prepare('SELECT * FROM lisensi_offline WHERE token = ?').get(token);
+}
+
+module.exports = { m, daftar, cari, dbSekolah, buatSekolah, siapkan, statistik, pengaturan, sandiAcak, slug, tutup, KODE_RE, MASTER_PATH, infoOffline, buatLisensiOffline, ZIP_WINDOWS, PANDUAN_PDF };

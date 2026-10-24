@@ -100,7 +100,7 @@ if (MULTI) {
       if (req.method === 'GET' && pilih && ['/', '/login', '/pilih-sekolah'].includes(req.path)) {
         return res.redirect(`/sekolah/${encodeURIComponent(pilih)}${req.path === '/login' ? '/login' : '/'}`);
       }
-      if (['/', '/login', '/pilih-sekolah', '/logout'].includes(req.path) || req.path.startsWith('/super')) {
+      if (['/', '/login', '/pilih-sekolah', '/logout'].includes(req.path) || req.path.startsWith('/super') || req.path.startsWith('/unduh/')) {
         res.locals.sekolah = null;
         return next();
       }
@@ -171,7 +171,20 @@ app.use((req, res, next) => {
   if (!lisensi.wajib() || res.locals.settings.lisensi || req.path.startsWith('/aktivasi')) return next();
   return res.redirect('/aktivasi');
 });
-if (MULTI) app.use('/super', require('./src/routes/super'));
+if (MULTI) {
+  app.use('/super', require('./src/routes/super'));
+  // tautan unduhan versi offline untuk satu sekolah (token rahasia dari panel superadmin)
+  app.get('/unduh/offline/:token', (req, res) => {
+    const l = master.m().prepare('SELECT * FROM lisensi_offline WHERE token = ?').get(req.params.token);
+    if (!l) return res.status(404).render('error', { title: 'Tautan tidak berlaku', message: 'Tautan unduhan tidak ditemukan. Minta tautan baru kepada penyedia aplikasi.' });
+    if (req.query.berkas === 'panduan' && require('fs').existsSync(master.PANDUAN_PDF)) return res.download(master.PANDUAN_PDF, 'Panduan-Instalasi-E-Rapor-SD.pdf');
+    if (req.query.berkas === 'zip' && require('fs').existsSync(master.ZIP_WINDOWS)) {
+      master.m().prepare('UPDATE lisensi_offline SET unduhan = unduhan + 1 WHERE id = ?').run(l.id);
+      return res.download(master.ZIP_WINDOWS, 'E-Rapor-SD-Windows.zip');
+    }
+    res.render('unduh-offline', { title: 'Unduh E-Rapor SD (offline)', l, adaPanduan: require('fs').existsSync(master.PANDUAN_PDF) });
+  });
+}
 app.use('/', require('./src/routes/aktivasi'));
 app.use('/', require('./src/routes/public'));
 app.use('/', require('./src/routes/auth'));
