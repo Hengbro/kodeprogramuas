@@ -3,10 +3,15 @@ E-RAPOR SD KURIKULUM MERDEKA - VERSI WINDOWS (OFFLINE)
 
 Panduan bergambar: Panduan-Admin-Sekolah.pdf (untuk admin) dan Panduan-Guru.pdf (berikan ke setiap guru)
 
-PALING MUDAH: pakai pemasang "Pasang-E-Rapor-SD.exe" (Lanjut -> Pasang -> Selesai),
-lalu klik ikon "E-Rapor SD" di desktop. Langkah di bawah ini untuk versi ZIP.
+CARA MEMASANG (SATU PAKET, DUA CARA)
+1. Ekstrak ZIP: klik kanan file ZIP -> "Extract All..." (Ekstrak Semua).
+2. Buka folder hasil ekstrak, klik dua kali "Pasang-E-Rapor-SD.exe"
+   (jika muncul layar biru: "Info selengkapnya" -> "Tetap jalankan"),
+   lalu Lanjut -> Pasang -> Selesai. Ikon "E-Rapor SD" muncul di desktop.
+3. JIKA PEMASANG GAGAL: di folder yang sama, klik dua kali "Jalankan-Rapor.bat".
+   Aplikasi tetap berjalan dari folder ini (langkah di bawah).
 
-MENJALANKAN (versi ZIP)
+MENJALANKAN TANPA PEMASANG (Jalankan-Rapor.bat)
 1. Ekstrak (Extract All) file ZIP ini ke folder mana saja, misalnya D:\E-Rapor-SD
    (jangan dijalankan langsung dari dalam ZIP).
 2. Klik dua kali "Jalankan-Rapor.bat".

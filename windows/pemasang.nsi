@@ -1,4 +1,6 @@
 ; Pemasang E-Rapor SD untuk Windows (dibuat dengan NSIS: makensis -DSRC=<folder hasil build> -DOUT=<berkas .exe>)
+; Pemasang ini ikut di dalam ZIP aplikasi dan MENYALIN isi folder ZIP yang sudah diekstrak (tidak membawa salinan sendiri),
+; sehingga satu paket ZIP berisi: Pasang-E-Rapor-SD.exe (cara utama) dan Jalankan-Rapor.bat (cadangan bila pemasang gagal).
 ; - Dipasang per pengguna (tidak perlu hak administrator) di %LOCALAPPDATA%\E-Rapor-SD
 ; - Ikon "E-Rapor SD" di desktop dan Start Menu
 ; - Memasang ulang/memperbarui TIDAK menghapus data rapor (folder data)
@@ -51,20 +53,34 @@ Function BukaAplikasi
   ExecShell "open" "$DESKTOP\E-Rapor SD.lnk"
 FunctionEnd
 
+Function .onInit
+  ; dijalankan langsung dari dalam ZIP (belum diekstrak): isi aplikasi tidak ada di sampingnya
+  IfFileExists "$EXEDIR\node\node.exe" +3 0
+    MessageBox MB_OK|MB_ICONEXCLAMATION "File ZIP belum diekstrak.$\r$\n$\r$\nKlik kanan file ZIP > Extract All (Ekstrak Semua), lalu buka Pasang-E-Rapor-SD.exe dari folder hasil ekstrak."
+    Abort
+FunctionEnd
+
 Section "E-Rapor SD"
   SetOutPath "$INSTDIR"
+  ; dijalankan dari folder yang sudah terpasang (mis. memasang ulang ikon): tidak perlu menyalin
+  StrCmp "$EXEDIR" "$INSTDIR" ikon
   ; ganti kode aplikasi lama sepenuhnya, data rapor tetap
   RMDir /r "$INSTDIR\app"
-  File /r /x "data" "${SRC}\*"
+  RMDir /r "$INSTDIR\node"
+  DetailPrint "Menyalin aplikasi (± 1 menit) ..."
+  CopyFiles /SILENT "$EXEDIR\app" "$INSTDIR"
+  CopyFiles /SILENT "$EXEDIR\node" "$INSTDIR"
+  CopyFiles /SILENT "$EXEDIR\*.bat" "$INSTDIR"
+  CopyFiles /SILENT "$EXEDIR\*.pdf" "$INSTDIR"
+  CopyFiles /SILENT "$EXEDIR\*.txt" "$INSTDIR"
+  CopyFiles /SILENT "$EXEDIR\e-rapor.ico" "$INSTDIR"
+  CopyFiles /SILENT "$EXEPATH" "$INSTDIR\Pasang-E-Rapor-SD.exe"
   CreateDirectory "$INSTDIR\data"
-  ; paket dari admin sekolah (untuk guru), diletakkan di folder yang sama dengan pemasang, ikut dipasang
-  ; (nama file dari menu admin: paket-awal-<username>.rapor.json)
-  FindFirst $0 $1 "$EXEDIR\paket-awal*.rapor.json"
-  StrCmp $1 "" +3
-    CopyFiles /SILENT "$EXEDIR\$1" "$INSTDIR\data\paket-awal.rapor.json"
-    DetailPrint "Paket dari admin sekolah dipasang: $1"
-  FindClose $0
-
+  ; isi folder data dari ZIP ikut dipindah bila komputer ini belum punya data:
+  ; paket dari admin sekolah (paket-awal.rapor.json) atau data yang sempat diisi lewat Jalankan-Rapor.bat
+  IfFileExists "$INSTDIR\data\rapor.sqlite" ikon 0
+    CopyFiles /SILENT "$EXEDIR\data\*.*" "$INSTDIR\data"
+  ikon:
   CreateShortcut "$DESKTOP\E-Rapor SD.lnk" "$INSTDIR\Jalankan-Rapor.bat" "" "$INSTDIR\e-rapor.ico" 0 SW_SHOWMINIMIZED
   CreateDirectory "$SMPROGRAMS\E-Rapor SD"
   CreateShortcut "$SMPROGRAMS\E-Rapor SD\E-Rapor SD.lnk" "$INSTDIR\Jalankan-Rapor.bat" "" "$INSTDIR\e-rapor.ico" 0 SW_SHOWMINIMIZED
@@ -97,6 +113,7 @@ Section "Uninstall"
   Delete "$INSTDIR\*.txt"
   Delete "$INSTDIR\*.pdf"
   Delete "$INSTDIR\e-rapor.ico"
+  Delete "$INSTDIR\Pasang-E-Rapor-SD.exe"
   Delete "$INSTDIR\Hapus-E-Rapor-SD.exe"
   MessageBox MB_YESNO|MB_ICONEXCLAMATION|MB_DEFBUTTON2 "Hapus juga SEMUA DATA RAPOR (nilai, siswa, akun)?$\r$\n$\r$\nPilih Tidak jika ingin memasang ulang nanti dengan data yang sama." IDNO +2
     RMDir /r "$INSTDIR\data"

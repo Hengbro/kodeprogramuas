@@ -80,7 +80,7 @@ router.get('/paket/guru', requireAdmin, (req, res, next) => {
     for (const name of fs.readdirSync(ROOT)) {
       const abs = path.join(ROOT, name);
       // aplikasi yang dipasang lewat pemasang: jangan ikutkan program penghapus & pemasang
-      if (name === 'data' || /\.(zip|exe)$/i.test(name)) continue;
+      if (name === 'data' || /\.zip$/i.test(name) || (/\.exe$/i.test(name) && name !== 'Pasang-E-Rapor-SD.exe')) continue;
       if (fs.statSync(abs).isDirectory()) {
         for (const [rel, file] of listFiles(abs, name)) entries.push({ name: `${folder}/${rel}`, file });
       } else {

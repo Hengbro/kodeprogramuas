@@ -12,14 +12,15 @@
   <h3 style="margin-top:1rem">Pesan siap kirim (WhatsApp/email)</h3>
   <textarea readonly rows="10" onclick="this.select()" style="font-size:.85rem">E-Rapor SD (versi offline Windows) untuk <%= l.sekolah %>
 
-1. Buka tautan ini dan unduh aplikasinya:
+1. Buka tautan ini dan unduh aplikasinya (ZIP):
 <%= baseUrl %>/unduh/offline/<%= l.token %>
-2. Buka file Pasang-E-Rapor-SD.exe, klik Lanjut sampai selesai (ikon E-Rapor SD muncul di desktop)
+2. Klik kanan ZIP > Extract All, lalu buka Pasang-E-Rapor-SD.exe > Lanjut > Pasang > Selesai
+   (jika gagal: klik Jalankan-Rapor.bat di folder yang sama)
 3. Saat E-Rapor SD terbuka, tempel Kode Aktivasi berikut, lalu buat akun admin sekolah:
 
 <%= l.kode %>
 
 Lisensi seumur hidup, khusus <%= l.sekolah %> (NPSN <%= l.npsn %>).</textarea>
-  <div class="form-actions"><% if (offline.setup) { %><a class="btn" href="/super/unduh/setup">Unduh pemasang .exe (untuk flashdisk)</a><% } %><a class="btn" href="/super/unduh/windows">Unduh ZIP</a><a class="btn btn-primary" href="/super#offline">Kembali ke panel</a></div>
+  <div class="form-actions"><a class="btn" href="/super/unduh/windows">Unduh ZIP (untuk flashdisk)</a><a class="btn btn-primary" href="/super#offline">Kembali ke panel</a></div>
 </div>
 <%- include('_bottom') %>

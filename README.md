@@ -71,7 +71,7 @@ Untuk sekolah tanpa internet atau yang ingin tiap guru bekerja di komputernya se
 ```
 
 ZIP berisi Node.js portabel, aplikasi, dan modul SQLite versi Windows — tidak perlu instal apa pun.
-Jika NSIS (`makensis`) tersedia, skrip juga membuat **`dist/Pasang-E-Rapor-SD.exe`**: pemasang biasa
+Jika NSIS (`makensis`) tersedia, ZIP juga berisi **`Pasang-E-Rapor-SD.exe`** (menyalin isi folder ZIP; bila gagal, `Jalankan-Rapor.bat` tetap bisa dipakai): pemasang biasa
 (Lanjut → Pasang → Selesai) tanpa hak administrator, ikon **E-Rapor SD** di desktop & Start Menu,
 data tetap aman saat memasang ulang/memperbarui, dan "Hapus E-Rapor SD" menanyakan dulu sebelum menghapus data.
 Guru cukup ekstrak lalu klik **Jalankan-Rapor.bat**; browser terbuka di `http://localhost:3210`

@@ -27,13 +27,13 @@
         <option value="semua">Semua guru (untuk satu komputer bersama)</option>
       </select></div>
     <button class="btn btn-primary" name="bentuk" value="zip" <%= windows ? '' : 'disabled title="Hanya di aplikasi versi Windows"' %>><%- h.icon('download') %> Unduh aplikasi (ZIP)</button>
-    <button class="btn" name="bentuk" value="json" title="Untuk dipakai bersama Pasang-E-Rapor-SD.exe">Unduh paket untuk pemasang</button>
+    <button class="btn" name="bentuk" value="json" title="File data saja, untuk diletakkan di folder data salinan aplikasi">Unduh paketnya saja</button>
   </form>
   <% if (!windows) { %><p class="hint muted" style="margin-top:.5rem">Tombol ZIP aktif saat aplikasi dijalankan dari paket Windows. Alternatif: unduh paketnya saja, lalu taruh file itu di folder <code>data</code> pada salinan baru E-Rapor-SD-Windows sebelum dijalankan pertama kali.</p><% } %>
   <div class="alert alert-info" style="margin:1rem 0 0">
-    <b>Cara paling mudah untuk guru:</b> klik <b>Unduh paket untuk pemasang</b>, lalu berikan ke guru <b>dua file dalam satu folder</b>:
-    <code>Pasang-E-Rapor-SD.exe</code> dan file paket itu (<code>paket-awal-…rapor.json</code>). Guru cukup membuka pemasang;
-    pengaturan sekolah, kelas, siswa, dan akunnya terpasang otomatis. Jika pemasang tidak bisa dipakai, berikan ZIP aplikasi.<br><br>
+    Klik <b>Unduh aplikasi (ZIP)</b> lalu berikan ZIP itu ke guru bersama <b>Panduan-Guru.pdf</b>. Guru mengekstrak ZIP, membuka
+    <b>Pasang-E-Rapor-SD.exe</b> (atau <b>Jalankan-Rapor.bat</b> jika pemasang gagal), lalu masuk dengan akun dari Anda —
+    pengaturan sekolah, kelas, siswa, dan akunnya sudah terpasang.<br><br>
     Pembuatan ZIP butuh beberapa detik (± 35 MB). Kirim ZIP hanya ke guru yang bersangkutan, karena berisi data siswa kelasnya.
     Di laptop guru, pengaturan sekolah <b>terkunci</b>: guru hanya bisa mengisi data kelasnya, lalu mengirim hasilnya kembali lewat menu <b>Kirim Data ke Admin</b>.
   </div>
