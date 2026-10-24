@@ -16,40 +16,46 @@
   <button class="btn btn-sm btn-primary" name="action" value="contoh">Gunakan contoh</button>
 </form>
 <% } %>
-<form method="post">
+<form method="post" data-track data-no-draft>
   <input type="hidden" name="_csrf" value="<%= csrf %>">
-  <div class="grid grid-2">
-    <div class="card">
-      <div class="card-head"><h2>Lingkup Materi</h2><span class="badge badge-success">Sumatif LM</span></div>
-      <p class="muted">Setiap lingkup materi menjadi satu kolom nilai Sumatif Lingkup Materi.</p>
-      <div class="list-editor" data-list="lm">
-        <% lm.forEach((l, i) => { %>
-        <div class="row"><span class="idx">LM<%= i + 1 %></span><input type="hidden" name="lm_id" value="<%= l.id %>"><textarea name="lm" rows="1"><%= l.nama %></textarea><button type="button" class="btn btn-sm btn-ghost" data-remove title="Hapus">✕</button></div>
-        <% }) %>
+  <%
+    const tpRow = (tpItem, key) => `<div class="row tp-row"><span class="idx">TP</span><input type="hidden" name="tp_id" value="${tpItem ? tpItem.id : ''}"><input type="hidden" name="tp_lm" value="${key}"><textarea name="tp" rows="1" placeholder="mis. mengidentifikasi …">${tpItem ? h.esc(tpItem.deskripsi) : ''}</textarea><select class="tp-move" title="Pindahkan TP ke lingkup materi lain"></select><button type="button" class="btn btn-sm btn-ghost" data-tp-remove title="Hapus TP">✕</button></div>`;
+    const lmIdSet = new Set(lm.map(l => l.id));
+    const tanpa = tp.filter(x => !x.lm_id || !lmIdSet.has(x.lm_id));
+  %>
+  <div class="card">
+    <div class="card-head"><h2>Lingkup Materi &amp; Tujuan Pembelajaran</h2>
+      <span><span class="badge badge-success">Sumatif per LM</span> <span class="badge badge-primary">Formatif per TP</span></span></div>
+    <p class="muted">Setiap <b>lingkup materi</b> (mis. Bab 1) berisi beberapa <b>TP</b>. Klik <b>+ TP</b> di dalam LM untuk menambah TP ke LM tersebut, atau pindahkan TP lewat pilihan di ujung barisnya.
+      Nilai sumatif diisi per LM, nilai formatif per TP; deskripsi rapor memakai TP dengan nilai formatif tertinggi &amp; terendah. Tulis TP diawali kata kerja.</p>
+    <details class="box"><summary>Contoh penulisan TP (dari sheet “contoh tp”)</summary>
+      <table class="table" style="font-size:.82rem;margin-top:.4rem"><thead><tr><th>TP di modul ajar</th><th>TP di aplikasi rapor</th></tr></thead><tbody>
+        <tr><td>Setelah mengamati lingkungan sekitar, siswa dapat menyebutkan jenis tanaman berdasarkan tempat tinggalnya</td><td><b>menyebutkan jenis tanaman berdasarkan tempat tinggalnya</b></td></tr>
+        <tr><td>Dengan mengamati contoh, siswa dapat mengklasifikasi tanaman berdasarkan tempat hidupnya</td><td><b>mengklasifikasi tanaman berdasarkan tempat hidupnya</b></td></tr>
+        <tr><td>Melalui wawancara, siswa dapat menyebutkan tanaman yang bermanfaat bagi manusia</td><td><b>menyebutkan tanaman yang bermanfaat bagi manusia</b></td></tr>
+      </tbody></table>
+      <p class="muted" style="margin:0">Buang bagian “Setelah…/Dengan…, siswa dapat”, mulai dari kata kerja dengan huruf kecil. Hasilnya di rapor: “Budi menunjukkan penguasaan yang baik dalam <b>menyebutkan jenis tanaman …</b>”.</p>
+    </details>
+    <div class="tp-editor" data-tp-editor>
+      <% lm.forEach(l => { const key = 'id' + l.id; %>
+      <div class="lm-block" data-key="<%= key %>">
+        <div class="row lm-row"><span class="idx lm-idx">LM</span><input type="hidden" name="lm_id" value="<%= l.id %>"><input type="hidden" name="lm_key" value="<%= key %>"><textarea name="lm" rows="1" placeholder="Nama lingkup materi / bab"><%= l.nama %></textarea><button type="button" class="btn btn-sm btn-ghost" data-lm-remove title="Hapus lingkup materi (TP-nya dipindah ke “tanpa LM”)">✕</button></div>
+        <div class="tp-list"><% tp.filter(x => x.lm_id === l.id).forEach(x => { %><%- tpRow(x, key) %><% }) %></div>
+        <button type="button" class="btn btn-sm" data-tp-add><%- h.icon('plus') %> TP</button>
       </div>
-      <button type="button" class="btn btn-sm" data-add="lm"><%- h.icon('plus') %> Tambah lingkup materi</button>
-    </div>
-    <div class="card">
-      <div class="card-head"><h2>Tujuan Pembelajaran</h2><span class="badge badge-primary">Formatif per TP</span></div>
-      <p class="muted">Deskripsi rapor otomatis memakai TP dengan nilai formatif tertinggi &amp; terendah. Tulis diawali kata kerja (mis. “mengidentifikasi …”).</p>
-      <details class="box"><summary>Contoh penulisan TP (dari sheet “contoh tp”)</summary>
-        <table class="table" style="font-size:.82rem;margin-top:.4rem"><thead><tr><th>TP di modul ajar</th><th>TP di aplikasi rapor</th></tr></thead><tbody>
-          <tr><td>Setelah mengamati lingkungan sekitar, siswa dapat menyebutkan jenis tanaman berdasarkan tempat tinggalnya</td><td><b>menyebutkan jenis tanaman berdasarkan tempat tinggalnya</b></td></tr>
-          <tr><td>Dengan mengamati contoh, siswa dapat mengklasifikasi tanaman berdasarkan tempat hidupnya</td><td><b>mengklasifikasi tanaman berdasarkan tempat hidupnya</b></td></tr>
-          <tr><td>Melalui wawancara, siswa dapat menyebutkan tanaman yang bermanfaat bagi manusia</td><td><b>menyebutkan tanaman yang bermanfaat bagi manusia</b></td></tr>
-        </tbody></table>
-        <p class="muted" style="margin:0">Buang bagian “Setelah…/Dengan…, siswa dapat”, mulai dari kata kerja dengan huruf kecil. Hasilnya di rapor: “Budi menunjukkan penguasaan yang baik dalam <b>menyebutkan jenis tanaman …</b>”.</p>
-      </details>
-      <div class="list-editor" data-list="tp">
-        <% tp.forEach((t, i) => { %>
-        <div class="row"><span class="idx">TP<%= i + 1 %></span><input type="hidden" name="tp_id" value="<%= t.id %>"><textarea name="tp" rows="1"><%= t.deskripsi %></textarea><button type="button" class="btn btn-sm btn-ghost" data-remove title="Hapus">✕</button></div>
-        <% }) %>
+      <% }) %>
+      <div class="lm-block lm-none" data-key="">
+        <div class="lm-none-head"><b>TP tanpa lingkup materi</b> <span class="muted">— tetap dinilai formatif seperti biasa</span></div>
+        <div class="tp-list"><% tanpa.forEach(x => { %><%- tpRow(x, '') %><% }) %></div>
+        <button type="button" class="btn btn-sm" data-tp-add><%- h.icon('plus') %> TP</button>
       </div>
-      <button type="button" class="btn btn-sm" data-add="tp"><%- h.icon('plus') %> Tambah TP</button>
     </div>
+    <button type="button" class="btn btn-sm" data-lm-add style="margin-top:.6rem"><%- h.icon('plus') %> Tambah lingkup materi</button>
+    <template data-tp-template><%- tpRow(null, '__KEY__') %></template>
+    <template data-lm-template><div class="lm-block" data-key="__KEY__"><div class="row lm-row"><span class="idx lm-idx">LM</span><input type="hidden" name="lm_id" value=""><input type="hidden" name="lm_key" value="__KEY__"><textarea name="lm" rows="1" placeholder="Nama lingkup materi / bab"></textarea><button type="button" class="btn btn-sm btn-ghost" data-lm-remove title="Hapus lingkup materi">✕</button></div><div class="tp-list"></div><button type="button" class="btn btn-sm" data-tp-add><%- h.icon('plus') %> TP</button></div></template>
   </div>
   <div class="card sticky-actions" style="position:sticky">
-    <span class="muted">Menghapus baris TP/LM juga menghapus nilai pada kolom tersebut.</span>
+    <span class="muted">Menghapus TP/LM juga menghapus nilai pada kolom tersebut. Memindahkan TP antar-LM tidak mengubah nilainya.</span>
     <div class="btn-group"><button class="btn">Simpan</button><button class="btn btn-primary" name="next" value="nilai">Simpan &amp; input nilai →</button></div>
   </div>
 </form>

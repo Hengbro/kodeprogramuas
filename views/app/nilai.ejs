@@ -18,9 +18,15 @@
   <div class="card empty"><%- h.icon('users') %><p>Tidak ada siswa untuk mapel ini.</p></div>
 <% } else { %>
 <details class="box no-print"><summary>Daftar TP &amp; lingkup materi</summary>
-  <div class="grid grid-2" style="margin-top:.5rem">
-    <ol style="margin:0;padding-left:1.4rem"><% tp.forEach(t => { %><li><%= t.deskripsi %></li><% }) %></ol>
-    <ol style="margin:0;padding-left:1.4rem"><% lm.forEach(l => { %><li><%= l.nama %></li><% }) %></ol>
+  <% const lmNo = new Map(lm.map((l, i) => [l.id, i + 1])); const tpNo = new Map(tp.map((x, i) => [x.id, i + 1])); %>
+  <div style="margin-top:.5rem;display:grid;gap:.5rem">
+    <% lm.forEach((l, i) => { const isi = tp.filter(x => x.lm_id === l.id); %>
+      <div><b>LM<%= i + 1 %>. <%= l.nama %></b>
+        <% if (isi.length) { %><ul style="margin:.2rem 0 0;padding-left:1.4rem;list-style:none"><% isi.forEach(x => { %><li><b>TP<%= tpNo.get(x.id) %></b> <%= x.deskripsi %></li><% }) %></ul><% } %></div>
+    <% }) %>
+    <% const tanpa = tp.filter(x => !lmNo.has(x.lm_id)); if (tanpa.length) { %>
+      <div><b><%= lm.length ? 'TP tanpa lingkup materi' : 'Tujuan pembelajaran' %></b><ul style="margin:.2rem 0 0;padding-left:1.4rem;list-style:none"><% tanpa.forEach(x => { %><li><b>TP<%= tpNo.get(x.id) %></b> <%= x.deskripsi %></li><% }) %></ul></div>
+    <% } %>
   </div>
 </details>
 <form method="post" id="nilai-form" data-kktp="<%= subject.kktp %>">
@@ -38,7 +44,7 @@
         <th rowspan="2" style="min-width:360px">Deskripsi capaian kompetensi</th>
       </tr>
       <tr>
-        <% tp.forEach((t, i) => { %><th class="group-f tp-head" title="<%= t.deskripsi %>">TP<%= i + 1 %></th><% }) %>
+        <% tp.forEach((t, i) => { %><th class="group-f tp-head" title="<%= t.deskripsi %>">TP<%= i + 1 %><% if (lmNo.has(t.lm_id)) { %><small>LM<%= lmNo.get(t.lm_id) %></small><% } %></th><% }) %>
         <% lm.forEach((l, i) => { %><th class="group-s tp-head" title="<%= l.nama %>">LM<%= i + 1 %></th><% }) %>
         <th class="group-as">Non-tes</th><th class="group-as">Tes</th>
         <th>F</th><th>S</th><th>AS</th><th>NA</th><th>Predikat</th>

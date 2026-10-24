@@ -106,10 +106,15 @@ router.post('/periode', requireAdmin, (req, res) => {
     const src = db.prepare('SELECT * FROM periods WHERE id = ?').get(req.body.copy_from);
     if (src) {
       db.transaction(() => {
-        for (const t of ['lingkup_materi', 'tujuan_pembelajaran']) {
-          const col = t === 'lingkup_materi' ? 'nama' : 'deskripsi';
-          db.prepare(`INSERT INTO ${t} (period_id, class_id, subject_id, urutan, ${col})
-            SELECT ?, class_id, subject_id, urutan, ${col} FROM ${t} WHERE period_id = ?`).run(info.lastInsertRowid, src.id);
+        const baru = info.lastInsertRowid;
+        const lmBaru = new Map();
+        const insLm = db.prepare('INSERT INTO lingkup_materi (period_id, class_id, subject_id, urutan, nama) VALUES (?, ?, ?, ?, ?)');
+        for (const l of db.prepare('SELECT * FROM lingkup_materi WHERE period_id = ?').all(src.id)) {
+          lmBaru.set(l.id, insLm.run(baru, l.class_id, l.subject_id, l.urutan, l.nama).lastInsertRowid);
+        }
+        const insTp = db.prepare('INSERT INTO tujuan_pembelajaran (period_id, class_id, subject_id, urutan, deskripsi, lm_id) VALUES (?, ?, ?, ?, ?, ?)');
+        for (const x of db.prepare('SELECT * FROM tujuan_pembelajaran WHERE period_id = ?').all(src.id)) {
+          insTp.run(baru, x.class_id, x.subject_id, x.urutan, x.deskripsi, lmBaru.get(x.lm_id) || null);
         }
       })();
     }

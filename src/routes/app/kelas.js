@@ -127,32 +127,43 @@ router.post('/:classId/tp/:subjectId', loadClass, (req, res) => {
   }
   const lmIds = [].concat(req.body.lm_id || []);
   const tpIds = [].concat(req.body.tp_id || []);
+  const lmKeys = [].concat(req.body.lm_key || []);
+  const tpLm = [].concat(req.body.tp_lm || []);
   const replaceAll = req.body.action === 'contoh';
 
   // Sinkronisasi daftar dengan tetap mempertahankan id (agar nilai yang sudah diinput tidak hilang).
-  function sync(table, col, lines, ids) {
+  // Mengembalikan id baris ke-i (null bila baris kosong).
+  function sync(table, col, lines, ids, extra = () => ({})) {
     const existing = db.prepare(`SELECT id FROM ${table} WHERE period_id = ? AND class_id = ? AND subject_id = ?`)
       .all(period.id, req.cls.id, subject.id).map((r) => r.id);
     const keep = new Set();
+    const hasil = [];
     let urut = 0;
     lines.forEach((text, i) => {
-      if (!text) return;
+      if (!text) { hasil.push(null); return; }
       urut += 1;
+      const ex = extra(i);
+      const cols = Object.keys(ex);
       const id = replaceAll ? null : Number(ids[i]);
       if (id && existing.includes(id)) {
-        db.prepare(`UPDATE ${table} SET ${col} = ?, urutan = ? WHERE id = ?`).run(text, urut, id);
+        db.prepare(`UPDATE ${table} SET ${col} = ?, urutan = ?${cols.map((c) => `, ${c} = ?`).join('')} WHERE id = ?`).run(text, urut, ...Object.values(ex), id);
         keep.add(id);
+        hasil.push(id);
       } else {
-        db.prepare(`INSERT INTO ${table} (period_id, class_id, subject_id, urutan, ${col}) VALUES (?, ?, ?, ?, ?)`)
-          .run(period.id, req.cls.id, subject.id, urut, text);
+        hasil.push(db.prepare(`INSERT INTO ${table} (period_id, class_id, subject_id, urutan, ${col}${cols.map((c) => `, ${c}`).join('')})
+          VALUES (?, ?, ?, ?, ?${cols.map(() => ', ?').join('')})`).run(period.id, req.cls.id, subject.id, urut, text, ...Object.values(ex)).lastInsertRowid);
       }
     });
     for (const id of existing) if (!keep.has(id)) db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id);
+    return hasil;
   }
 
   db.transaction(() => {
-    sync('lingkup_materi', 'nama', lmLines, lmIds);
-    sync('tujuan_pembelajaran', 'deskripsi', tpLines, tpIds);
+    const lmBaru = sync('lingkup_materi', 'nama', lmLines, lmIds);
+    // kunci LM di formulir → id LM tersimpan (LM baru belum punya id saat formulir diisi)
+    const lmOf = new Map();
+    lmLines.forEach((_, i) => { if (lmKeys[i] && lmBaru[i]) lmOf.set(String(lmKeys[i]), lmBaru[i]); });
+    sync('tujuan_pembelajaran', 'deskripsi', tpLines, tpIds, (i) => ({ lm_id: replaceAll ? null : lmOf.get(String(tpLm[i] || '')) || null }));
   })();
   req.flash('success', 'Lingkup materi & tujuan pembelajaran disimpan.');
   res.redirect(req.body.next === 'nilai' ? `/app/kelas/${req.cls.id}/nilai/${subject.id}` : base);

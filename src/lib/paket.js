@@ -62,6 +62,7 @@ function exportKelas(classId, { denganNilai }) {
       periode: { tahun_pelajaran: p.tahun_pelajaran, semester: p.semester },
       tp: tp.map((t) => ({
         mapel: subj.get(t.subject_id).kode, urutan: t.urutan, deskripsi: t.deskripsi,
+        lm: (lm.find((l) => l.id === t.lm_id) || {}).urutan || null,
         nilai: denganNilai ? db.prepare('SELECT student_id, nilai FROM nilai_formatif WHERE tp_id = ?').all(t.id)
           .filter((r) => key.has(r.student_id)).map((r) => [key.get(r.student_id), r.nilai]) : [],
       })),
@@ -264,15 +265,17 @@ function importKelas(k, hasil) {
     db.prepare('DELETE FROM tujuan_pembelajaran WHERE period_id = ? AND class_id = ?').run(pid, cls.id);
     db.prepare('DELETE FROM lingkup_materi WHERE period_id = ? AND class_id = ?').run(pid, cls.id);
     db.prepare('DELETE FROM projects WHERE period_id = ? AND class_id = ?').run(pid, cls.id);
-    for (const t of d.tp) {
-      const tid = db.prepare('INSERT INTO tujuan_pembelajaran (period_id, class_id, subject_id, urutan, deskripsi) VALUES (?, ?, ?, ?, ?)')
-        .run(pid, cls.id, subj(t.mapel), t.urutan, t.deskripsi).lastInsertRowid;
-      for (const [i, v] of t.nilai) if (stId[i]) db.prepare('INSERT OR REPLACE INTO nilai_formatif (tp_id, student_id, nilai) VALUES (?, ?, ?)').run(tid, stId[i], v);
-    }
+    const lmId = new Map(); // "kode mapel:urutan LM" → id
     for (const l of d.lm) {
       const lid = db.prepare('INSERT INTO lingkup_materi (period_id, class_id, subject_id, urutan, nama) VALUES (?, ?, ?, ?, ?)')
         .run(pid, cls.id, subj(l.mapel), l.urutan, l.nama).lastInsertRowid;
+      lmId.set(`${l.mapel}:${l.urutan}`, lid);
       for (const [i, v] of l.nilai) if (stId[i]) db.prepare('INSERT OR REPLACE INTO nilai_sumatif (lm_id, student_id, nilai) VALUES (?, ?, ?)').run(lid, stId[i], v);
+    }
+    for (const t of d.tp) {
+      const tid = db.prepare('INSERT INTO tujuan_pembelajaran (period_id, class_id, subject_id, urutan, deskripsi, lm_id) VALUES (?, ?, ?, ?, ?, ?)')
+        .run(pid, cls.id, subj(t.mapel), t.urutan, t.deskripsi, (t.lm && lmId.get(`${t.mapel}:${t.lm}`)) || null).lastInsertRowid;
+      for (const [i, v] of t.nilai) if (stId[i]) db.prepare('INSERT OR REPLACE INTO nilai_formatif (tp_id, student_id, nilai) VALUES (?, ?, ?)').run(tid, stId[i], v);
     }
     for (const a of d.akhir) {
       if (!stId[a.siswa]) continue;

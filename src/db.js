@@ -29,6 +29,10 @@ function addColumns(table, cols) {
 }
 addColumns('students', BUKU_INDUK_FIELDS);
 addColumns('rapor_siswa', ['tinggi', 'berat']);
+// TP boleh dikaitkan ke satu lingkup materi (LM 1 = Bab 1 berisi beberapa TP)
+if (!db.prepare('PRAGMA table_info(tujuan_pembelajaran)').all().some((c) => c.name === 'lm_id')) {
+  db.exec('ALTER TABLE tujuan_pembelajaran ADD COLUMN lm_id INTEGER REFERENCES lingkup_materi(id) ON DELETE SET NULL');
+}
 
 const DEFAULT_SETTINGS = {
   kementerian: 'KEMENTERIAN PENDIDIKAN DASAR DAN MENENGAH',

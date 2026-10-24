@@ -53,6 +53,75 @@
   });
   window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 
+  // ===== Editor lingkup materi berisi TP =====
+  var tpEd = document.querySelector('[data-tp-editor]');
+  if (tpEd) {
+    var tpTpl = document.querySelector('template[data-tp-template]').innerHTML;
+    var lmTpl = document.querySelector('template[data-lm-template]').innerHTML;
+    var noneBlock = tpEd.querySelector('.lm-none');
+    var baru = 0;
+    var refresh = function () {
+      var blocks = Array.prototype.slice.call(tpEd.querySelectorAll('.lm-block:not(.lm-none)'));
+      var opsi = blocks.map(function (b, i) {
+        var nama = b.querySelector('.lm-row textarea').value.trim();
+        return { key: b.getAttribute('data-key'), label: 'LM' + (i + 1) + (nama ? ' – ' + nama.slice(0, 24) : '') };
+      });
+      opsi.push({ key: '', label: 'Tanpa LM' });
+      blocks.forEach(function (b, i) { b.querySelector('.lm-idx').textContent = 'LM' + (i + 1); });
+      var n = 0;
+      tpEd.querySelectorAll('.lm-block:not(.lm-none) .tp-row, .lm-none .tp-row').forEach(function (r) {
+        n += 1;
+        r.querySelector('.idx').textContent = 'TP' + n;
+        var key = r.closest('.lm-block').getAttribute('data-key');
+        r.querySelector('input[name=tp_lm]').value = key;
+        var s = r.querySelector('.tp-move');
+        s.innerHTML = opsi.map(function (o) { return '<option value="' + o.key + '"' + (o.key === key ? ' selected' : '') + '></option>'; }).join('');
+        Array.prototype.forEach.call(s.options, function (op, j) { op.textContent = opsi[j].label; });
+      });
+    };
+    // urutan TP di formulir = urutan tampil (LM1, LM2, …, lalu tanpa LM)
+    tpEd.appendChild(noneBlock);
+    tpEd.addEventListener('click', function (e) {
+      var add = e.target.closest('[data-tp-add]');
+      if (add) {
+        var block = add.closest('.lm-block');
+        var wrap = document.createElement('div');
+        wrap.innerHTML = tpTpl.replace(/__KEY__/g, block.getAttribute('data-key'));
+        block.querySelector('.tp-list').appendChild(wrap.firstElementChild);
+        refresh(); dirty = true;
+        block.querySelector('.tp-list .tp-row:last-child textarea').focus();
+      }
+      var rmTp = e.target.closest('[data-tp-remove]');
+      if (rmTp) { rmTp.closest('.tp-row').remove(); refresh(); dirty = true; }
+      var rmLm = e.target.closest('[data-lm-remove]');
+      if (rmLm) {
+        var b = rmLm.closest('.lm-block');
+        b.querySelectorAll('.tp-row').forEach(function (r) { noneBlock.querySelector('.tp-list').appendChild(r); });
+        b.remove(); refresh(); dirty = true;
+      }
+    });
+    document.querySelector('[data-lm-add]').addEventListener('click', function () {
+      baru += 1;
+      var wrap = document.createElement('div');
+      wrap.innerHTML = lmTpl.replace(/__KEY__/g, 'baru' + baru + '_' + Date.now());
+      var block = wrap.firstElementChild;
+      tpEd.insertBefore(block, noneBlock);
+      refresh(); dirty = true;
+      block.querySelector('textarea').focus();
+    });
+    tpEd.addEventListener('change', function (e) {
+      if (!e.target.matches('.tp-move')) return;
+      var row = e.target.closest('.tp-row');
+      var target = e.target.value ? tpEd.querySelector('.lm-block[data-key="' + e.target.value + '"]') : noneBlock;
+      if (target) target.querySelector('.tp-list').appendChild(row);
+      refresh(); dirty = true;
+    });
+    tpEd.addEventListener('input', function (e) { if (e.target.matches('.lm-row textarea')) refresh(); });
+    tpEd.addEventListener('input', function (e) { if (e.target.matches('textarea')) { e.target.style.height = 'auto'; e.target.style.height = (e.target.scrollHeight + 2) + 'px'; } });
+    tpEd.querySelectorAll('textarea').forEach(function (x) { x.style.height = 'auto'; x.style.height = (x.scrollHeight + 2) + 'px'; });
+    refresh();
+  }
+
   // ===== Lembar isian seperti Excel (nilai, siswa, absensi, dll.) =====
   function sel(el) { return el.matches('input:not([type=hidden]):not([type=checkbox]), select, textarea'); }
   function cellsOf(row) { return Array.prototype.slice.call(row.querySelectorAll('input:not([type=hidden]):not([type=checkbox]), select, textarea')).filter(function (x) { return !x.closest('details:not([open])'); }); }
@@ -229,7 +298,7 @@
   var store = null;
   try { store = window.localStorage; store.getItem('x'); } catch (err) { store = null; }
   var KUNCI = 'draf:' + location.pathname + location.search;
-  var draftForms = Array.prototype.slice.call(document.querySelectorAll('form[data-track], #nilai-form'));
+  var draftForms = Array.prototype.slice.call(document.querySelectorAll('form[data-track]:not([data-no-draft]), #nilai-form'));
 
   function ambilIsian(f) {
     var out = {};
