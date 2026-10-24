@@ -12,10 +12,11 @@
 <% daftar.forEach(s => { %>
 <div class="card sekolah-card<%= s.aktif ? '' : ' nonaktif' %>">
   <div class="card-head">
-    <div><h2 style="margin:0"><%= s.nama %> <% if (!s.aktif) { %><span class="badge badge-warning">nonaktif</span><% } %></h2>
+    <div><h2 style="margin:0"><a href="/super/sekolah/<%= s.kode %>" style="color:inherit"><%= s.nama %></a> <% if (!s.aktif) { %><span class="badge badge-warning">nonaktif</span><% } %></h2>
       <small class="muted">Kode <code><%= s.kode %></code><%= s.npsn ? ' · NPSN ' + s.npsn : '' %> · dibuat <%= h.tanggal(String(s.dibuat).slice(0, 10)) %></small></div>
     <div class="btn-group">
-      <form method="post" action="/super/sekolah/<%= s.kode %>/masuk" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-primary" <%= s.aktif ? '' : 'disabled' %>><%- h.icon('home') %> Buka sebagai admin</button></form>
+      <a class="btn btn-sm btn-primary" href="/super/sekolah/<%= s.kode %>">Detail &amp; kode akses</a>
+      <form method="post" action="/super/sekolah/<%= s.kode %>/masuk" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm" <%= s.aktif ? '' : 'disabled' %>><%- h.icon('home') %> Buka sebagai admin</button></form>
       <a class="btn btn-sm" href="/super/sekolah/<%= s.kode %>/cadangan"><%- h.icon('database') %> Cadangan</a>
       <% if (offline.kunci && /^\d{8}$/.test(s.npsn || '')) { %><form method="post" action="/super/offline/kode" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="sekolah" value="<%= s.nama %>"><input type="hidden" name="npsn" value="<%= s.npsn %>"><input type="hidden" name="sekolah_kode" value="<%= s.kode %>"><button class="btn btn-sm" title="Buat kode aktivasi versi offline untuk sekolah ini"><%= s.lisensi.length ? '+ Kode offline' : 'Kode offline' %></button></form><% } %>
       <form method="post" action="/super/sekolah/<%= s.kode %>/aktif" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm" data-confirm="<%= s.aktif ? 'Nonaktifkan sekolah ini? Guru, admin, dan portal orang tua sekolah ini tidak bisa diakses.' : 'Aktifkan kembali sekolah ini?' %>"><%= s.aktif ? 'Nonaktifkan' : 'Aktifkan' %></button></form>

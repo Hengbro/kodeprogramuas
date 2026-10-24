@@ -66,10 +66,10 @@ router.post('/offline/kode', wajibSuper, (req, res) => {
   try {
     const s = req.body.sekolah_kode ? master.cari(req.body.sekolah_kode) : null;
     const l = master.buatLisensiOffline({ npsn: req.body.npsn, sekolah: req.body.sekolah, catatan: req.body.catatan, sekolahKode: s && s.kode });
-    res.render('super/offline-hasil', { title: 'Kode aktivasi offline', l, offline: master.infoOffline() });
+    res.render('super/offline-hasil', { title: 'Kode aktivasi offline', l, offline: master.infoOffline(), kembali: s ? `/super/sekolah/${s.kode}` : '/super#offline' });
   } catch (e) {
     req.flash('error', e.message);
-    res.redirect('/super#offline');
+    res.redirect(kembali(req, '/super#offline'));
   }
 });
 
@@ -119,6 +119,16 @@ router.post('/sekolah', wajibSuper, (req, res) => {
   }
 });
 
+// Halaman detail satu sekolah: akses web, akun admin, kode aktivasi offline & pesan siap kirim
+router.get('/sekolah/:kode', wajibSuper, sekolahDari, (req, res) => {
+  const offline = master.infoOffline();
+  const lisensi = offline.daftar.filter((l) => l.sekolah_kode === req.sek.kode);
+  res.render('super/detail', { title: req.sek.nama, s: req.sek, stat: master.statistik(req.sek), lisensi, offline });
+});
+
+/** Kembali ke halaman asal (detail sekolah) bila dikirim dari sana. */
+const kembali = (req, def = '/super') => (/^\/super(\/|$)/.test(String(req.body.kembali || '')) ? req.body.kembali : def);
+
 router.post('/sekolah/:kode/ubah', wajibSuper, sekolahDari, (req, res) => {
   const nama = String(req.body.nama || '').trim() || req.sek.nama;
   const npsn = String(req.body.npsn || '').trim() || null;
@@ -129,13 +139,13 @@ router.post('/sekolah/:kode/ubah', wajibSuper, sekolahDari, (req, res) => {
   set.run('nama_sekolah', nama);
   set.run('npsn', npsn || '');
   req.flash('success', `Data ${nama} disimpan.`);
-  res.redirect('/super');
+  res.redirect(kembali(req));
 });
 
 router.post('/sekolah/:kode/aktif', wajibSuper, sekolahDari, (req, res) => {
   master.m().prepare('UPDATE sekolah SET aktif = 1 - aktif WHERE id = ?').run(req.sek.id);
   req.flash('success', req.sek.aktif ? `${req.sek.nama} dinonaktifkan: guru & admin sekolah tidak bisa masuk, portal orang tua ditutup.` : `${req.sek.nama} diaktifkan kembali.`);
-  res.redirect('/super');
+  res.redirect(kembali(req));
 });
 
 router.post('/sekolah/:kode/reset', wajibSuper, sekolahDari, (req, res) => {
@@ -144,7 +154,7 @@ router.post('/sekolah/:kode/reset', wajibSuper, sekolahDari, (req, res) => {
   if (!u) { req.flash('error', 'Akun tidak ditemukan.'); return res.redirect('/super'); }
   const password = master.sandiAcak();
   d.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hashPassword(password), u.id);
-  res.render('super/hasil', { title: 'Kata sandi direset', judul: `Kata sandi ${u.username} (${req.sek.nama}) direset`, sekolah: req.sek, username: u.username, password });
+  res.render('super/hasil', { title: 'Kata sandi direset', judul: `Kata sandi ${u.username} (${req.sek.nama}) direset`, sekolah: req.sek, username: u.username, password, l: master.infoOffline().daftar.find((x) => x.sekolah_kode === req.sek.kode) || null, kembali: `/super/sekolah/${req.sek.kode}` });
 });
 
 router.post('/sekolah/:kode/admin', wajibSuper, sekolahDari, (req, res) => {
@@ -154,7 +164,7 @@ router.post('/sekolah/:kode/admin', wajibSuper, sekolahDari, (req, res) => {
   if (d.prepare('SELECT 1 FROM users WHERE username = ?').get(username)) { req.flash('error', `Username ${username} sudah dipakai di sekolah ini.`); return res.redirect('/super'); }
   const password = master.sandiAcak();
   d.prepare("INSERT INTO users (username, password_hash, nama, role) VALUES (?, ?, ?, 'admin')").run(username, hashPassword(password), String(req.body.nama || '').trim() || username);
-  res.render('super/hasil', { title: 'Admin ditambahkan', judul: `Admin ${username} ditambahkan ke ${req.sek.nama}`, sekolah: req.sek, username, password });
+  res.render('super/hasil', { title: 'Admin ditambahkan', judul: `Admin ${username} ditambahkan ke ${req.sek.nama}`, sekolah: req.sek, username, password, kembali: `/super/sekolah/${req.sek.kode}` });
 });
 
 // Membuka aplikasi sekolah sebagai admin sekolah tersebut (untuk membantu/mengecek)
@@ -181,7 +191,7 @@ router.get('/sekolah/:kode/cadangan', wajibSuper, sekolahDari, async (req, res, 
 router.post('/sekolah/:kode/hapus', wajibSuper, sekolahDari, (req, res) => {
   if (String(req.body.konfirmasi || '').trim().toLowerCase() !== req.sek.kode) {
     req.flash('error', `Ketik kode "${req.sek.kode}" untuk menghapus sekolah.`);
-    return res.redirect('/super');
+    return res.redirect(kembali(req));
   }
   master.tutup(req.sek.kode);
   const asal = path.resolve(DATA_DIR, req.sek.file);

@@ -1,0 +1,92 @@
+<%- include('_top') %>
+<div style="max-width:900px;margin:0 auto">
+<div class="breadcrumb"><a href="/super">Daftar sekolah</a> / <%= s.nama %></div>
+<div class="page-head"><div><h1><%= s.nama %> <% if (!s.aktif) { %><span class="badge badge-warning">nonaktif</span><% } %></h1>
+  <p>Kode <code><%= s.kode %></code><%= s.npsn ? ' · NPSN ' + s.npsn : '' %> · dibuat <%= h.tanggal(String(s.dibuat).slice(0, 10)) %><%= s.catatan ? ' · ' + s.catatan : '' %></p></div>
+  <div class="btn-group">
+    <form method="post" action="/super/sekolah/<%= s.kode %>/masuk" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-primary" <%= s.aktif ? '' : 'disabled' %>><%- h.icon('home') %> Buka sebagai admin</button></form>
+    <a class="btn" href="/super/sekolah/<%= s.kode %>/cadangan"><%- h.icon('database') %> Cadangan</a>
+  </div></div>
+
+<div class="card">
+  <div class="card-head"><h2 style="margin:0"><span class="badge badge-primary">Online</span> Akses web</h2></div>
+  <table class="table">
+    <tr><th style="width:190px">Kode sekolah</th><td><code><%= s.kode %></code></td></tr>
+    <tr><th>Alamat masuk</th><td><code><%= baseUrl %>/sekolah/<%= s.kode %>/login</code></td></tr>
+    <tr><th>Portal orang tua</th><td><code><%= baseUrl %>/sekolah/<%= s.kode %>/</code></td></tr>
+    <% if (!stat.error) { %><tr><th>Isi</th><td><%= stat.siswa %> siswa · <%= stat.kelas %> kelas · <%= stat.guru %> guru · <%= (stat.ukuran / 1024 / 1024).toFixed(1) %> MB</td></tr><% } %>
+  </table>
+  <h3>Akun admin sekolah</h3>
+  <p class="muted" style="margin-top:0">Kata sandi tidak bisa dilihat ulang (disimpan terenkripsi). Jika sekolah lupa, klik <b>Reset sandi</b> — sandi baru dan pesan siap kirim akan ditampilkan.</p>
+  <table class="table"><tbody>
+    <% stat.admin.forEach(a => { %><tr><td><b><%= a.username %></b><br><small class="muted"><%= a.nama %></small></td>
+      <td class="actions"><form method="post" action="/super/sekolah/<%= s.kode %>/reset" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="user_id" value="<%= a.id %>"><button class="btn btn-sm" data-confirm="Buat kata sandi baru untuk <%= a.username %>? Sandi lama tidak berlaku lagi.">Reset sandi</button></form></td></tr><% }) %>
+  </tbody></table>
+  <form method="post" action="/super/sekolah/<%= s.kode %>/admin" style="display:flex;gap:.4rem;flex-wrap:wrap">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <input name="username" placeholder="username admin baru" required style="flex:1;min-width:140px" autocapitalize="none">
+    <input name="nama" placeholder="nama (mis. Kepala Sekolah)" style="flex:1;min-width:140px">
+    <button class="btn btn-sm"><%- h.icon('plus') %> Tambah admin</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-head"><h2 style="margin:0"><span class="badge badge-success">Offline</span> Aplikasi Windows &amp; kode aktivasi</h2>
+    <% if (offline.kunci && /^\d{8}$/.test(s.npsn || '')) { %><form method="post" action="/super/offline/kode" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="sekolah" value="<%= s.nama %>"><input type="hidden" name="npsn" value="<%= s.npsn %>"><input type="hidden" name="sekolah_kode" value="<%= s.kode %>"><input type="hidden" name="kembali" value="/super/sekolah/<%= s.kode %>"><button class="btn btn-sm" <%= lisensi.length ? 'data-confirm="Sekolah ini sudah punya kode aktivasi. Buat kode tambahan?"' : '' %>><%- h.icon('plus') %> <%= lisensi.length ? 'Kode tambahan' : 'Buat kode aktivasi' %></button></form><% } %></div>
+  <% if (!lisensi.length) { %>
+    <p class="muted">Sekolah ini belum memakai versi offline.<%= /^\d{8}$/.test(s.npsn || '') ? '' : ' Isi NPSN 8 digit di bagian Data sekolah agar kode aktivasi bisa dibuat.' %></p>
+  <% } %>
+  <% lisensi.forEach((l, i) => { %>
+    <div class="<%= i ? 'box' : '' %>" style="<%= i ? 'margin-top:1rem' : '' %>">
+    <table class="table">
+      <tr><th style="width:190px">NPSN · No. seri</th><td><%= l.npsn %> · <code><%= l.seri %></code> · seumur hidup · dibuat <%= String(l.dibuat).slice(0, 10) %></td></tr>
+      <tr><th>Halaman unduhan</th><td><code><%= baseUrl %>/unduh/offline/<%= l.token %></code><br><small class="muted">Diunduh <%= l.unduhan %>×</small></td></tr>
+    </table>
+    <label><b>Kode aktivasi</b></label>
+    <textarea readonly rows="4" onclick="this.select()" style="font-family:monospace;font-size:.8rem;word-break:break-all"><%= l.kode %></textarea>
+    </div>
+  <% }) %>
+</div>
+
+<div class="card">
+  <h2>Pesan siap kirim ke sekolah</h2>
+  <p class="muted" style="margin-top:0">Untuk mengirim ulang akses bila sekolah kehilangan. Kata sandi tidak dicantumkan — klik <b>Reset sandi</b> di atas bila sekolah juga lupa kata sandi.</p>
+  <% const l = lisensi[0]; %>
+  <textarea readonly rows="<%= l ? 15 : 8 %>" onclick="this.select()" style="font-size:.85rem">Akses E-Rapor SD — <%= s.nama %>
+
+VERSI ONLINE (web)
+Alamat masuk : <%= baseUrl %>/sekolah/<%= s.kode %>/login
+Kode sekolah : <%= s.kode %>
+Username     : <%= stat.admin.map(a => a.username).join(', ') %>
+Portal orang tua: <%= baseUrl %>/sekolah/<%= s.kode %>/
+<% if (l) { %>
+VERSI OFFLINE (Windows, tanpa internet)
+1. Unduh aplikasi (ZIP): <%= baseUrl %>/unduh/offline/<%= l.token %>
+2. Klik kanan ZIP > Extract All, lalu buka Pasang-E-Rapor-SD.exe > Lanjut > Pasang > Selesai
+   (jika gagal: klik Jalankan-Rapor.bat di folder yang sama)
+3. Tempel kode aktivasi berikut, lalu buat akun admin:
+<%= l.kode %>
+<% } %></textarea>
+</div>
+
+<div class="card">
+  <h2>Data sekolah</h2>
+  <form method="post" action="/super/sekolah/<%= s.kode %>/ubah" class="grid grid-3">
+    <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="kembali" value="/super/sekolah/<%= s.kode %>">
+    <div class="field"><label>Nama sekolah (tercetak di rapor)</label><input name="nama" value="<%= s.nama %>" required></div>
+    <div class="field"><label>NPSN</label><input name="npsn" value="<%= s.npsn || '' %>"></div>
+    <div class="field"><label>Catatan (hanya terlihat superadmin)</label><input name="catatan" value="<%= s.catatan || '' %>"></div>
+    <div><button class="btn btn-primary">Simpan</button></div>
+  </form>
+  <hr>
+  <div class="btn-group">
+    <form method="post" action="/super/sekolah/<%= s.kode %>/aktif" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="kembali" value="/super/sekolah/<%= s.kode %>"><button class="btn" data-confirm="<%= s.aktif ? 'Nonaktifkan sekolah ini? Guru, admin, dan portal orang tua tidak bisa diakses.' : 'Aktifkan kembali sekolah ini?' %>"><%= s.aktif ? 'Nonaktifkan sekolah' : 'Aktifkan sekolah' %></button></form>
+    <form method="post" action="/super/sekolah/<%= s.kode %>/hapus" style="display:flex;gap:.4rem;flex-wrap:wrap">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="kembali" value="/super/sekolah/<%= s.kode %>">
+      <input name="konfirmasi" placeholder="ketik <%= s.kode %> untuk menghapus" autocapitalize="none">
+      <button class="btn btn-danger" data-confirm="Hapus <%= s.nama %>? Berkas database dipindah ke folder data/terhapus.">Hapus sekolah</button>
+    </form>
+  </div>
+</div>
+</div>
+<%- include('_bottom') %>

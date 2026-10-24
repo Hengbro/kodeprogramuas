@@ -297,3 +297,28 @@ test('tambah sekolah online + offline sekaligus, atau offline saja', async () =>
   assert.match(r.text, /SD NEGERI 5 MASOHI[\s\S]*badge-success">Offline/);
   assert.match(r.text, /SD TERPENCIL/);
 });
+
+test('halaman detail sekolah menampilkan alamat, akun, dan kode aktivasi untuk akses ulang', async () => {
+  const su = klien();
+  await su('POST', '/super/login', { _csrf: await su.token('/super/login'), username: 'superadmin', password: 'rahasia-super' });
+  let r = await su('GET', '/super');
+  assert.match(r.text, /href="\/super\/sekolah\/60100005"/);
+  r = await su('GET', '/super/sekolah/60100005');
+  assert.strictEqual(r.status, 200);
+  const l = master.m().prepare("SELECT * FROM lisensi_offline WHERE sekolah_kode = '60100005'").get();
+  assert.ok(r.text.includes(l.kode));
+  assert.ok(r.text.includes(`/unduh/offline/${l.token}`));
+  assert.match(r.text, /\/sekolah\/60100005\/login/);
+  assert.match(r.text, /Reset sandi/);
+  // aksi dari halaman detail kembali ke halaman detail
+  const tok = await su.token('/super/sekolah/60100005');
+  r = await su('POST', '/super/sekolah/60100005/ubah', { _csrf: tok, nama: 'SD NEGERI 5 MASOHI', npsn: '60100005', catatan: 'diperbarui', kembali: '/super/sekolah/60100005' });
+  assert.strictEqual(r.location, '/super/sekolah/60100005');
+  r = await su('POST', '/super/sekolah/60100005/ubah', { _csrf: tok, nama: 'SD NEGERI 5 MASOHI', kembali: 'https://jahat.example' });
+  assert.strictEqual(r.location, '/super');
+  r = await su('GET', '/super/sekolah/tidak-ada');
+  assert.strictEqual(r.location, '/super');
+  // halaman lain tidak bisa dibuka tanpa login superadmin
+  r = await klien()('GET', '/super/sekolah/60100005');
+  assert.strictEqual(r.location, '/super/login');
+});

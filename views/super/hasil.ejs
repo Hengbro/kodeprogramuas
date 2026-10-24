@@ -40,6 +40,6 @@ VERSI OFFLINE (Windows, tanpa internet)
 3. Tempel kode aktivasi berikut, lalu buat akun admin:
 <%= l.kode %>
 <% } %></textarea>
-  <div class="form-actions"><a class="btn btn-primary" href="/super">Kembali ke daftar sekolah</a></div>
+  <div class="form-actions"><% if (sekolah) { %><a class="btn" href="/super/sekolah/<%= sekolah.kode %>">Detail sekolah</a><% } %><a class="btn btn-primary" href="/super">Kembali ke daftar sekolah</a></div>
 </div>
 <%- include('_bottom') %>

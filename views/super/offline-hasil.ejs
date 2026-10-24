@@ -21,6 +21,6 @@
 <%= l.kode %>
 
 Lisensi seumur hidup, khusus <%= l.sekolah %> (NPSN <%= l.npsn %>).</textarea>
-  <div class="form-actions"><a class="btn" href="/super/unduh/windows">Unduh ZIP (untuk flashdisk)</a><a class="btn btn-primary" href="/super#offline">Kembali ke panel</a></div>
+  <div class="form-actions"><a class="btn" href="/super/unduh/windows">Unduh ZIP (untuk flashdisk)</a><a class="btn btn-primary" href="<%= locals.kembali || (l.sekolah_kode ? '/super/sekolah/' + l.sekolah_kode : '/super#offline') %>">Kembali</a></div>
 </div>
 <%- include('_bottom') %>
