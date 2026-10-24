@@ -21,7 +21,7 @@ function sekolahTidakAda(res, username) {
 
 router.get('/login', (req, res) => {
   if (res.locals.user) return res.redirect('/app');
-  res.render('login', { title: 'Masuk', error: null, username: '' });
+  res.render('login', { title: 'Masuk', error: req.query.salah ? 'Kode sekolah tidak ditemukan atau sedang dinonaktifkan.' : null, username: '' });
 });
 
 router.post('/login', loginLimiter, (req, res) => {

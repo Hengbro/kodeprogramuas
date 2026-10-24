@@ -37,7 +37,7 @@ app.use((req, res, next) => {
 });
 // Mode banyak sekolah: setiap halaman sekolah beralamat /sekolah/<kode>/... (login, menu aplikasi, portal orang tua).
 // Awalan dilepas sebelum routing, lalu ditambahkan kembali pada tautan HTML dan redirect.
-const BEBAS_AWALAN = /^\/(?:\/|static\/|super(?:[/?#]|$)|sekolah\/|sehat(?:[?#]|$)|pilih-sekolah(?:[?#]|$))/;
+const BEBAS_AWALAN = /^\/(?:\/|static\/|super(?:[/?#]|$)|sekolah\/|sehat(?:[?#]|$)|pilih-sekolah(?:[?#]|$)|anak(?:[?#]|$)|unduh\/)/;
 function pasangAwalan(url, awalan) {
   return typeof url === 'string' && url.startsWith('/') && !BEBAS_AWALAN.test(url) ? awalan + url : url;
 }
@@ -98,9 +98,10 @@ if (MULTI) {
       // tanpa awalan sekolah: hanya halaman umum; selebihnya diarahkan ke alamat sekolah yang benar
       const pilih = String(req.query.sekolah || '').trim().toLowerCase();
       if (req.method === 'GET' && pilih && ['/', '/login', '/pilih-sekolah'].includes(req.path)) {
+        if (!master.cari(pilih)) return res.redirect(req.path === '/login' ? '/login?salah=1' : '/pilih-sekolah?salah=1');
         return res.redirect(`/sekolah/${encodeURIComponent(pilih)}${req.path === '/login' ? '/login' : '/'}`);
       }
-      if (['/', '/login', '/pilih-sekolah', '/logout'].includes(req.path) || req.path.startsWith('/super') || req.path.startsWith('/unduh/')) {
+      if (['/', '/login', '/pilih-sekolah', '/logout', '/anak', '/keluar-portal'].includes(req.path) || req.path.startsWith('/super') || req.path.startsWith('/unduh/')) {
         res.locals.sekolah = null;
         return next();
       }

@@ -120,12 +120,15 @@ test('portal orang tua: NISN + tanggal lahir', async () => {
   assert.strictEqual(r.status, 404);
   r = await req('GET', '/');
   r = await req('POST', '/cek-rapor', { _csrf: csrf(r.text), nisn: st.nisn, tanggal_lahir: st.tanggal_lahir });
-  assert.strictEqual(r.location, '/rapor-saya');
-  r = await req('GET', '/rapor-saya');
+  assert.strictEqual(r.location, `/rapor-saya/${st.id}`);
+  r = await req('GET', `/rapor-saya/${st.id}`);
   assert.match(r.text, new RegExp(st.nama));
-  const period = /href="\/rapor-saya\/(\d+)\/akhir"/.exec(r.text)[1];
-  r = await req('GET', `/rapor-saya/${period}/akhir`);
+  const period = new RegExp(`href="/rapor-saya/${st.id}/(\\d+)/akhir"`).exec(r.text)[1];
+  r = await req('GET', `/rapor-saya/${st.id}/${period}/akhir`);
   assert.match(r.text, /RAPOR DAN PROFIL PESERTA DIDIK/);
+  // anak yang belum diverifikasi tidak bisa dibuka dengan menebak id
+  r = await req('GET', `/rapor-saya/${st.id + 1}`);
+  assert.strictEqual(r.location, '/');
 });
 
 test('guru tidak bisa membuka halaman admin', async () => {

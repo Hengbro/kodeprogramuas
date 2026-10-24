@@ -2,21 +2,25 @@
 <body class="public">
   <nav class="public-nav">
     <span class="brand"><div class="brand-logo">R</div><div><b>E-Rapor SD</b><small>Kurikulum Merdeka</small></div></span>
-    <a class="btn btn-sm" href="/login">Masuk Guru / Admin</a>
   </nav>
   <div class="auth-box">
+    <% if (anak.length) { %>
     <div class="card">
-      <h1>Pilih sekolah</h1>
-      <p class="muted">Pilih sekolah putra/putri Anda untuk melihat rapor, atau masuk sebagai guru/admin sekolah.</p>
+      <h2>Rapor anak saya</h2>
+      <% anak.forEach(a => { %><a class="anak-item" href="<%= urlAnak(a) %>"><b><%= a.nama %></b><small><%= a.sekolah %></small></a><% }) %>
+      <form method="post" action="/keluar-portal" style="margin-top:.6rem"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-ghost">Keluar (lupakan data anak di perangkat ini)</button></form>
+    </div>
+    <% } %>
+    <div class="card">
+      <h1><%= anak.length ? 'Tambah anak dari sekolah lain' : 'Cek rapor anak' %></h1>
+      <p class="muted">Gunakan tautan portal yang dibagikan sekolah, atau masukkan <b>kode sekolah</b> dari wali kelas/operator sekolah.</p>
       <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
-      <% if (!daftar.length) { %><p class="muted">Belum ada sekolah yang terdaftar.</p><% } else { %>
       <form method="get" action="/">
-        <div class="field"><label for="sekolah">Sekolah</label>
-          <select id="sekolah" name="sekolah" required><option value="">— pilih sekolah —</option><% daftar.forEach(s => { %><option value="<%= s.kode %>"><%= s.nama %></option><% }) %></select></div>
+        <div class="field"><label for="sekolah">Kode sekolah</label><input id="sekolah" name="sekolah" required autocapitalize="none" autocomplete="off"></div>
         <button class="btn btn-primary" style="width:100%">Lanjut</button>
       </form>
-      <% } %>
     </div>
+    <p class="muted" style="text-align:center;font-size:.85rem"><a href="/login">Masuk guru / admin sekolah</a></p>
   </div>
 </body>
 </html>

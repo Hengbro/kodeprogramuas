@@ -3,8 +3,7 @@
 <div class="public">
   <nav class="public-nav">
     <a href="/" class="brand" style="text-decoration:none"><%- include('partials/brand-mark') %><div><b>E-Rapor SD</b><small><%= settings.nama_sekolah %></small></div></a>
-    <div class="btn-group"><% if (multi) { %><a class="btn btn-sm btn-ghost" href="/pilih-sekolah">Ganti sekolah</a><% } %>
-    <a class="btn btn-sm" href="<%= user ? '/app' : '/login' %>"><%= user ? 'Buka Aplikasi' : 'Masuk Guru / Admin' %></a></div>
+    <% if (user) { %><a class="btn btn-sm" href="/app">Buka Aplikasi</a><% } else if (anak.length) { %><a class="btn btn-sm" href="/anak">Rapor anak saya (<%= anak.length %>)</a><% } %>
   </nav>
   <section class="hero">
     <div>
@@ -23,7 +22,7 @@
       <% if (!portal) { %>
         <p class="muted">Portal rapor untuk orang tua sedang ditutup oleh sekolah.</p>
       <% } else { %>
-        <p class="muted">Untuk orang tua/wali. Masukkan NISN atau NIS dan tanggal lahir peserta didik.</p>
+        <p class="muted">Untuk orang tua/wali. Masukkan NISN atau NIS dan tanggal lahir peserta didik.<% if (anak.length) { %> Anak yang sudah dicek: <% anak.forEach((a, i) => { %><%= i ? ', ' : '' %><a href="<%= urlAnak(a) %>"><%= a.nama %></a><% }) %>.<% } %></p>
         <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
         <form method="post" action="/cek-rapor">
           <input type="hidden" name="_csrf" value="<%= csrf %>">
@@ -42,7 +41,7 @@
       <% } %>
     </div>
   </section>
-  <footer class="footer"><%= settings.nama_sekolah %><%= settings.alamat ? ' · ' + settings.alamat : '' %> — E-Rapor SD Kurikulum Merdeka</footer>
+  <footer class="footer"><%= settings.nama_sekolah %><%= settings.alamat ? ' · ' + settings.alamat : '' %> — E-Rapor SD Kurikulum Merdeka<% if (!user) { %> · <a href="/login">Masuk guru/admin</a><% } %></footer>
 </div>
 </body>
 </html>

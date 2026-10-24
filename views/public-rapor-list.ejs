@@ -3,30 +3,38 @@
 <div class="public">
   <nav class="public-nav">
     <a href="/" class="brand" style="text-decoration:none"><%- include('partials/brand-mark') %><div><b>E-Rapor SD</b><small><%= settings.nama_sekolah %></small></div></a>
-    <form method="post" action="/keluar-portal"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm">Keluar</button></form>
+    <div class="btn-group">
+      <% if (anak.length > 1) { %><a class="btn btn-sm btn-ghost" href="/anak">Semua anak (<%= anak.length %>)</a><% } %>
+      <form method="post" action="/keluar-portal" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm">Keluar</button></form>
+    </div>
   </nav>
   <div class="content" style="max-width:760px;margin:0 auto">
+    <% if (anak.length > 1) { %><div class="chips" style="margin-bottom:.75rem"><% anak.forEach(x => { %><a class="chip <%= x.s === aktif.s && x.id === aktif.id ? 'active' : '' %>" href="<%= urlAnak(x) %>"><%= x.nama.split(' ')[0] %><%= x.s !== aktif.s ? ' · ' + x.sekolah : '' %></a><% }) %></div><% } %>
     <div class="card">
       <h1><%= student.nama %></h1>
       <p class="muted">NISN <%= student.nisn || '-' %> · NIS <%= student.nis || '-' %></p>
       <% if (!periods.length) { %>
         <div class="empty">Belum ada rapor yang dipublikasikan oleh sekolah.</div>
       <% } else { %>
-      <table class="table">
+      <div class="table-wrap"><table class="table">
         <thead><tr><th>Tahun Pelajaran</th><th>Semester</th><th class="actions">Rapor</th></tr></thead>
         <tbody>
         <% periods.forEach(p => { %>
           <tr>
             <td><%= p.tahun_pelajaran %></td><td><%= h.semesterLabel(p.semester) %></td>
-            <td class="actions">
-              <a class="btn btn-sm btn-primary" href="/rapor-saya/<%= p.id %>/akhir">Rapor</a>
-              <% if (hasProject.has(p.id)) { %><a class="btn btn-sm" href="/rapor-saya/<%= p.id %>/projek">Rapor Projek</a><% } %>
-            </td>
+            <td class="actions"><div class="btn-group" style="justify-content:flex-end">
+              <a class="btn btn-sm btn-primary" href="/rapor-saya/<%= student.id %>/<%= p.id %>/akhir">Rapor</a>
+              <% if (hasProject.has(p.id)) { %><a class="btn btn-sm" href="/rapor-saya/<%= student.id %>/<%= p.id %>/projek">Rapor Projek</a><% } %>
+            </div></td>
           </tr>
         <% }) %>
         </tbody>
-      </table>
+      </table></div>
       <% } %>
+    </div>
+    <div class="btn-group" style="justify-content:center">
+      <a class="btn btn-sm" href="/">+ Cek anak lain di sekolah ini</a>
+      <% if (multi) { %><a class="btn btn-sm" href="/pilih-sekolah">+ Anak di sekolah lain</a><% } %>
     </div>
   </div>
 </div>

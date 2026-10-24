@@ -1,0 +1,19 @@
+<%- include('partials/head') %>
+<body class="public">
+  <nav class="public-nav">
+    <span class="brand"><div class="brand-logo">R</div><div><b>E-Rapor SD</b><small>Portal orang tua</small></div></span>
+    <form method="post" action="/keluar-portal"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm">Keluar</button></form>
+  </nav>
+  <div class="auth-box">
+    <div class="card">
+      <h1>Rapor anak saya</h1>
+      <p class="muted">Anak yang sudah Anda cek di perangkat ini. Pilih untuk melihat rapornya.</p>
+      <% anak.forEach(a => { %><a class="anak-item" href="<%= urlAnak(a) %>"><b><%= a.nama %></b><small><%= a.sekolah %></small></a><% }) %>
+      <div class="btn-group" style="margin-top:.8rem">
+        <a class="btn btn-sm" href="<%= anak[0].s ? '/sekolah/' + anak[0].s + '/' : '/' %>">+ Anak lain di sekolah yang sama</a>
+        <% if (multi) { %><a class="btn btn-sm" href="/pilih-sekolah">+ Anak di sekolah lain</a><% } %>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

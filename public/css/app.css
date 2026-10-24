@@ -262,3 +262,6 @@ h1 svg, h2 svg, h3 svg { width: 1em; height: 1em; vertical-align: -.12em; }
 .sandi-wrap { display: flex; gap: .35rem; align-items: center; }
 .sandi-wrap input { flex: 1; min-width: 0; font-family: inherit; }
 .sandi-wrap .sandi-btn { flex: none; white-space: nowrap; }
+.anak-item { display: flex; flex-direction: column; padding: .6rem .8rem; border: 1px solid var(--border); border-radius: 10px; margin-bottom: .45rem; color: var(--text); }
+.anak-item:hover { border-color: var(--primary); background: var(--primary-50); text-decoration: none; }
+.anak-item small { color: var(--muted); }

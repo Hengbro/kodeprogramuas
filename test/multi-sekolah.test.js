@@ -137,13 +137,19 @@ test('admin sekolah hanya melihat dan mengubah data sekolahnya sendiri', async (
 test('halaman depan meminta pilih sekolah; portal orang tua & login beralamat kode sekolah', async () => {
   const tamu = klien();
   let r = await tamu('GET', '/');
-  assert.match(r.text, /Pilih sekolah/);
-  assert.match(r.text, /SD INPRES 2 TUAL/);
+  // daftar sekolah pelanggan tidak ditampilkan ke umum; orang tua memakai tautan/kode sekolah
+  assert.match(r.text, /Kode sekolah/);
+  assert.doesNotMatch(r.text, /SD INPRES 2 TUAL/);
+  r = await tamu('GET', '/?sekolah=tidak-ada');
+  assert.strictEqual(r.location, '/pilih-sekolah?salah=1');
   r = await tamu('GET', '/?sekolah=sd-tual');
   assert.strictEqual(r.location, '/sekolah/sd-tual/');
   r = await tamu('GET', '/sekolah/sd-tual/');
   assert.match(r.text, /Rapor digital SD INPRES 2 TUAL/);
   assert.match(r.text, /action="\/sekolah\/sd-tual\/cek-rapor"/);
+  // portal orang tua tidak menonjolkan pindah sekolah / tombol aplikasi
+  assert.doesNotMatch(r.text, /Ganti sekolah/);
+  assert.doesNotMatch(r.text, /class="btn[^"]*"[^>]*>Masuk Guru/);
   r = await tamu('GET', '/login?sekolah=sd-tual');
   assert.strictEqual(r.location, '/sekolah/sd-tual/login');
   r = await tamu('GET', '/login');
@@ -220,4 +226,42 @@ test('superadmin membuat kode aktivasi offline dan tautan unduhan untuk sekolah'
   assert.strictEqual(r.location, '/super/login');
   r = await su('GET', '/super/unduh/windows');
   assert.strictEqual(r.text, 'ZIPDUMMY');
+});
+
+test('orang tua memantau dua anak di sekolah berbeda dari satu perangkat', async () => {
+  // anak 1 di sekolah lama, anak 2 di sekolah A (rapor dipublikasikan & portal dibuka)
+  const siapkan = (s, nama, nisn) => {
+    const d = master.dbSekolah(s);
+    d.prepare("INSERT INTO settings (key, value) VALUES ('public_portal', '1') ON CONFLICT(key) DO UPDATE SET value = '1'").run();
+    const kelas = d.prepare('SELECT id FROM classes LIMIT 1').get() || { id: d.prepare("INSERT INTO classes (nama, tingkat, fase) VALUES ('X', 1, 'A')").run().lastInsertRowid };
+    const id = d.prepare('INSERT INTO students (nama, nisn, tanggal_lahir, class_id) VALUES (?, ?, ?, ?)').run(nama, nisn, '2016-02-03', kelas.id).lastInsertRowid;
+    return id;
+  };
+  const satu = siapkan(master.cari('11112222'), 'Budi Kakak', '9000000001');
+  const dua = siapkan(master.cari(A.kode), 'Cici Adik', '9000000002');
+  const ortu = klien();
+  let r = await ortu('GET', '/sekolah/11112222/');
+  let tok = /name="_csrf" value="([^"]+)"/.exec(r.text)[1];
+  r = await ortu('POST', '/sekolah/11112222/cek-rapor', { _csrf: tok, nisn: '9000000001', tanggal_lahir: '2016-02-03' });
+  assert.strictEqual(r.location, `/sekolah/11112222/rapor-saya/${satu}`);
+  r = await ortu('POST', `/sekolah/${A.kode}/cek-rapor`, { _csrf: tok, nisn: '9000000002', tanggal_lahir: '2016-02-03' });
+  assert.strictEqual(r.location, `/sekolah/${A.kode}/rapor-saya/${dua}`);
+  r = await ortu('GET', '/anak');
+  assert.match(r.text, /Budi Kakak/);
+  assert.match(r.text, /Cici Adik/);
+  assert.match(r.text, new RegExp(`/sekolah/11112222/rapor-saya/${satu}`));
+  r = await ortu('GET', `/sekolah/${A.kode}/rapor-saya/${dua}`);
+  assert.match(r.text, /Cici Adik/);
+  assert.match(r.text, /Semua anak \(2\)/);
+  // siswa yang belum diverifikasi orang tua tidak bisa dibuka dengan menebak id / memakai alamat sekolah lain
+  r = await ortu('GET', `/sekolah/${A.kode}/rapor-saya/${dua + 100}`);
+  assert.strictEqual(r.location, `/sekolah/${A.kode}/`);
+  r = await ortu('GET', `/sekolah/11112222/rapor-saya/${dua + 5}`);
+  assert.strictEqual(r.location, '/sekolah/11112222/');
+  r = await ortu('GET', `/sekolah/${A.kode}/rapor-saya/${dua + 101}`);
+  assert.strictEqual(r.location, `/sekolah/${A.kode}/`);
+  // keluar → semua anak dilupakan
+  r = await ortu('POST', '/keluar-portal', { _csrf: tok });
+  r = await ortu('GET', '/anak');
+  assert.strictEqual(r.location, '/');
 });
