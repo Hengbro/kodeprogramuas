@@ -65,3 +65,5 @@ function icon(name, cls = '') {
 }
 
 module.exports.icon = icon;
+/** Escape HTML untuk potongan markup yang disusun di dalam template literal. */
+module.exports.esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

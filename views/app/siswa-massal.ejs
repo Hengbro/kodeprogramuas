@@ -1,0 +1,47 @@
+<%- include('../partials/top') %>
+<%
+  const LABEL = { nis: 'NIS', nisn: 'NISN', nama: 'Nama lengkap *', panggilan: 'Panggilan', tempat_lahir: 'Tempat lahir', tanggal_lahir: 'Tanggal lahir',
+    jenis_kelamin: 'L/P', agama: 'Agama', pendidikan_sebelumnya: 'Pendidikan sebelumnya', alamat: 'Alamat siswa', ayah_nama: 'Nama ayah', ibu_nama: 'Nama ibu',
+    ayah_pekerjaan: 'Pekerjaan ayah', ibu_pekerjaan: 'Pekerjaan ibu', ortu_jalan: 'Alamat ortu: jalan', ortu_desa: 'Desa/kelurahan', ortu_kecamatan: 'Kecamatan',
+    ortu_kabupaten: 'Kabupaten/kota', ortu_provinsi: 'Provinsi', wali_nama: 'Nama wali', wali_pekerjaan: 'Pekerjaan wali', wali_alamat: 'Alamat wali' };
+  const tgl = (v) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : (v || ''); };
+  const sel = (a, b) => (a === b ? 'selected' : '');
+  const sel2 = (f, i, v) => {
+    if (f === 'jenis_kelamin') return `<select name="${f}__${i}"><option value=""></option><option value="L" ${sel(v, 'L')}>L</option><option value="P" ${sel(v, 'P')}>P</option></select>`;
+    if (f === 'agama') return `<select name="${f}__${i}"><option value=""></option>${AGAMA.map((a) => `<option ${sel(v, a)}>${a}</option>`).join('')}</select>`;
+    return null;
+  };
+  const esc = h.esc;
+  const sel3 = (f, i, v) => sel2(f, i, v) || `<input name="${f}__${i}" value="${esc(f === 'tanggal_lahir' ? tgl(v) : v)}"${f === 'tanggal_lahir' ? ' placeholder="hh/bb/tttt"' : ''} autocomplete="off">`;
+  const kolom = ['nama', ...FIELDS.filter((f) => f !== 'nama')];
+  const baris = (i, st, no) => `<tr><td class="no-col calc">${no}${st && st.id ? `<input type="hidden" name="id__${i}" value="${st.id}">` : ''}</td>${kolom.map((f) => `<td class="text-cell${f === 'nama' ? ' sticky-col' : ''}"${f === 'nama' ? ' style="left:38px"' : ''}>${sel3(f, i, st ? st[f] : '')}</td>`).join('')}</tr>`;
+%>
+<div class="page-head"><div><div class="breadcrumb"><a href="/app/siswa">Data Siswa</a></div><h1>Input banyak siswa</h1>
+  <p>Isi atau ubah data banyak siswa sekaligus seperti di Excel, lalu klik <b>Simpan semua</b> sekali saja. Bisa <b>tempel (paste)</b> blok data dari Excel/Google Sheets — baris baru ditambah otomatis.</p></div>
+  <div class="btn-group"><a class="btn" href="/app/siswa/impor?kelas=<%= cls.id %>"><%- h.icon('upload') %> Impor CSV</a></div></div>
+<div class="card" style="padding:.9rem 1.1rem"><div class="chips">
+  <% classes.forEach(c => { %><a class="chip <%= c.id === cls.id ? 'active' : '' %>" href="/app/siswa/massal?kelas=<%= c.id %>"><%= c.nama %> (<%= c.jumlah_siswa %>)</a><% }) %>
+</div></div>
+<form method="post" data-track>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <input type="hidden" name="class_id" value="<%= cls.id %>">
+  <input type="hidden" name="n" value="<%= students.length + kosong %>" data-row-count>
+  <div class="sheet-wrap">
+  <table class="sheet" data-rows>
+    <thead><tr><th class="no-col">No</th><% kolom.forEach(f => { %><th class="<%= f === 'nama' ? 'sticky-col' : '' %>" <%- f === 'nama' ? 'style="left:38px"' : '' %>><%= LABEL[f] || f %></th><% }) %></tr></thead>
+    <tbody>
+      <% students.forEach((st, i) => { %><%- baris(i, st, i + 1) %><% }) %>
+      <% for (let i = students.length; i < students.length + kosong; i++) { %><%- baris(i, null, i + 1) %><% } %>
+    </tbody>
+  </table>
+  <template data-row-template><%- baris('__I__', null, '__NO__') %></template>
+  </div>
+  <div class="sticky-actions" style="margin-top:.75rem;border-radius:10px;border:1px solid var(--border)">
+    <span class="muted"><%= students.length %> siswa terdaftar di kelas <%= cls.nama %>. Baris tanpa nama dilewati. Tanggal lahir boleh <code>17/07/2015</code> atau <code>2015-07-17</code>. Data Buku Induk lengkap diisi per siswa.</span>
+    <div class="btn-group">
+      <button type="button" class="btn" data-add-rows="10"><%- h.icon('plus') %> Tambah 10 baris</button>
+      <button class="btn btn-primary"><%- h.icon('check') %> Simpan semua</button>
+    </div>
+  </div>
+</form>
+<%- include('../partials/bottom') %>

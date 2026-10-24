@@ -35,7 +35,10 @@ Di dalam aplikasi ada menu **Panduan dari Excel** yang memetakan setiap sheet Ex
 - **Portal orang tua**: orang tua melihat rapor dengan NISN/NIS + tanggal lahir, setelah sekolah menekan **Publikasikan**.
 - Jumlah TP, lingkup materi, dan siswa tidak dibatasi.
 - Deskripsi capaian bisa ditulis manual per siswa jika perlu.
-- Bisa tempel nilai langsung dari Excel ke lembar nilai.
+- Bisa tempel (paste) blok data langsung dari Excel ke semua lembar isian.
+- **Input massal**: banyak siswa sekaligus (Data Siswa → Input banyak siswa), nilai SAS semua mapel dalam satu lembar,
+  serta tambah banyak kelas dan banyak akun guru sekaligus. Lembar nilai per mapel, ketidakhadiran, ekskul, catatan,
+  kenaikan, dan penilaian P5 juga sudah berbentuk satu lembar untuk seluruh siswa.
 - Cadangan database bisa diunduh dengan satu klik (menu admin).
 
 ## Rumus nilai (sama dengan Excel)

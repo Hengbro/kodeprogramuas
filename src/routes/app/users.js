@@ -13,20 +13,26 @@ router.get('/pengguna', requireAdmin, (req, res) => {
 });
 
 router.post('/pengguna', requireAdmin, (req, res) => {
-  const username = str(req.body.username);
-  const nama = str(req.body.nama);
-  const password = String(req.body.password || '');
-  if (!username || !nama || password.length < 6) {
-    req.flash('error', 'Nama, username, dan kata sandi (min. 6 karakter) wajib diisi.');
-    return res.redirect('/app/pengguna');
+  // satu atau banyak baris: nama__0, nip__0, username__0, password__0, role__0, ...
+  const n = req.body.n ? Math.min(200, Number(req.body.n) || 0) : 1;
+  const ambil = (k, i) => (req.body.n ? req.body[`${k}__${i}`] : req.body[k]);
+  const ins = db.prepare('INSERT INTO users (username, password_hash, nama, nip, role) VALUES (?, ?, ?, ?, ?)');
+  const ada = db.prepare('SELECT 1 FROM users WHERE username = ?');
+  const masuk = []; const gagal = [];
+  for (let i = 0; i < n; i += 1) {
+    const username = str(ambil('username', i));
+    const nama = str(ambil('nama', i));
+    const password = String(ambil('password', i) || '');
+    if (!username && !nama && !password) continue;
+    const label = username || nama;
+    if (!username || !nama || password.length < 6) { gagal.push(`${label} (nama, username, dan kata sandi min. 6 karakter wajib)`); continue; }
+    if (ada.get(username)) { gagal.push(`${username} (username sudah dipakai)`); continue; }
+    ins.run(username, hashPassword(password), nama, str(ambil('nip', i)), ambil('role', i) === 'admin' ? 'admin' : 'guru');
+    masuk.push(username);
   }
-  try {
-    db.prepare('INSERT INTO users (username, password_hash, nama, nip, role) VALUES (?, ?, ?, ?, ?)')
-      .run(username, hashPassword(password), nama, str(req.body.nip), req.body.role === 'admin' ? 'admin' : 'guru');
-    req.flash('success', `Pengguna ${username} ditambahkan.`);
-  } catch {
-    req.flash('error', 'Username sudah dipakai.');
-  }
+  if (gagal.length) req.flash('error', `${masuk.length ? `Ditambahkan: ${masuk.join(', ')}. ` : ''}Tidak disimpan: ${gagal.join('; ')}.`);
+  else if (masuk.length) req.flash('success', `Pengguna ditambahkan: ${masuk.join(', ')}.`);
+  else req.flash('error', 'Nama, username, dan kata sandi (min. 6 karakter) wajib diisi.');
   res.redirect('/app/pengguna');
 });
 

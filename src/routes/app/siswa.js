@@ -91,6 +91,45 @@ router.post('/siswa/baru', (req, res) => {
   res.redirect(req.body.lagi ? `/app/siswa/baru?kelas=${classId || ''}` : `/app/siswa/${id}`);
 });
 
+// ===== Input / ubah banyak siswa sekaligus (lembar seperti Excel) =====
+const MASSAL_KOSONG = 10;
+
+function kelasMassal(req, res) {
+  const classes = allowedClasses(res.locals.user);
+  const id = Number(req.query.kelas || req.body?.class_id) || (classes[0] && classes[0].id);
+  return { classes, cls: classes.find((c) => c.id === id) || null };
+}
+
+router.get('/siswa/massal', (req, res) => {
+  const { classes, cls } = kelasMassal(req, res);
+  if (!cls) { req.flash('error', 'Buat kelas terlebih dahulu.'); return res.redirect('/app/siswa'); }
+  const students = db.prepare("SELECT * FROM students WHERE class_id = ? AND status = 'aktif' ORDER BY nama COLLATE NOCASE").all(cls.id);
+  res.render('app/siswa-massal', { title: 'Input Banyak Siswa', classes, cls, students, FIELDS, AGAMA, kosong: MASSAL_KOSONG });
+});
+
+router.post('/siswa/massal', (req, res) => {
+  const { cls } = kelasMassal(req, res);
+  if (!cls || String(cls.id) !== String(req.body.class_id)) return res.redirect('/app/siswa');
+  const b = req.body;
+  const n = Math.min(2000, Number(b.n) || 0);
+  const ins = db.prepare(`INSERT INTO students (${FIELDS.join(',')}, class_id) VALUES (${FIELDS.map(() => '?').join(',')}, ?)`);
+  const upd = db.prepare(`UPDATE students SET ${FIELDS.map((f) => `${f} = ?`).join(', ')} WHERE id = ? AND class_id = ?`);
+  let baru = 0; let ubah = 0;
+  db.transaction(() => {
+    for (let i = 0; i < n; i += 1) {
+      const row = {};
+      for (const f of FIELDS) row[f] = b[`${f}__${i}`];
+      const data = studentFromBody(row);
+      const id = Number(b[`id__${i}`]) || null;
+      if (!data.nama) continue; // baris kosong dilewati; siswa lama tidak terhapus karena nama dikosongkan
+      if (id) ubah += upd.run(...FIELDS.map((f) => data[f]), id, cls.id).changes;
+      else { ins.run(...FIELDS.map((f) => data[f]), cls.id); baru += 1; }
+    }
+  })();
+  req.flash('success', `${baru} siswa baru ditambahkan, ${ubah} siswa diperbarui di kelas ${cls.nama}.`);
+  res.redirect(`/app/siswa/massal?kelas=${cls.id}`);
+});
+
 router.get('/siswa/impor', (req, res) => {
   const classes = allowedClasses(res.locals.user);
   res.render('app/siswa-impor', { title: 'Impor Siswa', classes, FIELDS, EXTRA: BUKU_INDUK_FIELDS, kelas: req.query.kelas || '' });

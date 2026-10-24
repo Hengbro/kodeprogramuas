@@ -8,6 +8,7 @@
       <% subjects.forEach(s => { %><option value="<%= s.id %>" <%= s.id === subject.id ? 'selected' : '' %>><%= s.nama %></option><% }) %>
     </select>
     <a class="btn" href="/app/kelas/<%= cls.id %>/tp/<%= subject.id %>"><%- h.icon('clipboard') %> Ubah TP</a>
+    <a class="btn" href="/app/kelas/<%= cls.id %>/sas<%= period.is_active ? '' : '?period=' + period.id %>"><%- h.icon('users') %> SAS semua mapel</a>
   </div>
 </div>
 

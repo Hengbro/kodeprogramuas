@@ -3,6 +3,7 @@
   <% const base = '/app/kelas/' + cls.id; const t = (href, label) => { %><a href="<%= base + href %>" class="<%= path === '/kelas/' + cls.id + href || (href && path.startsWith('/kelas/' + cls.id + href + '/')) ? 'active' : '' %>"><%= label %></a><% } %>
   <% t('', 'Ringkasan') %>
   <% t('/mapel', 'Mapel & KKTP') %>
+  <% t('/sas', 'Nilai SAS Semua Mapel') %>
   <% t('/absensi', 'Ketidakhadiran') %>
   <% t('/ekskul', 'Ekstrakurikuler') %>
   <% t('/catatan', 'Catatan') %>

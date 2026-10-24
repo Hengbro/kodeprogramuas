@@ -16,6 +16,51 @@ function studentsFor(period, cls, subject) {
   return subject.kelompok === 'agama' ? list.filter((s) => s.agama === subject.agama) : list;
 }
 
+// ===== Nilai Sumatif Akhir Semester semua mapel dalam satu lembar =====
+function sasSheet(req, res) {
+  const period = workingPeriod(req, res);
+  const subjects = db.prepare(`SELECT s.* FROM subjects s JOIN class_subjects cs ON cs.subject_id = s.id AND cs.class_id = ?
+    WHERE cs.aktif = 1 ORDER BY s.urutan, s.id`).all(req.cls.id);
+  const agama = subjects.filter((s) => s.kelompok === 'agama');
+  // mapel agama digabung menjadi satu kolom: tiap siswa mengikuti mapel agamanya sendiri
+  const kolom = [];
+  if (agama.length) kolom.push({ key: 'agama', nama: 'Pendidikan Agama', singkat: 'Agama' });
+  for (const s of subjects) if (s.kelompok !== 'agama') kolom.push({ key: String(s.id), nama: s.nama, singkat: s.singkat || s.nama, subject: s });
+  const students = studentsOfClass(period.id, req.cls.id);
+  const subjectOf = (k, st) => (k.key === 'agama' ? agama.find((a) => a.agama === st.agama) : k.subject);
+  return { period, kolom, students, subjectOf };
+}
+
+router.get('/:classId/sas', loadClass, (req, res) => {
+  const { period, kolom, students, subjectOf } = sasSheet(req, res);
+  const akhir = new Map(db.prepare('SELECT * FROM nilai_akhir WHERE period_id = ?').all(period.id).map((r) => [`${r.subject_id}:${r.student_id}`, r]));
+  const rows = students.map((st) => ({ st, cells: kolom.map((k) => { const s = subjectOf(k, st); return s ? { s, a: akhir.get(`${s.id}:${st.id}`) || {} } : null; }) }));
+  res.render('app/nilai-sas', { title: 'Nilai SAS semua mapel', period, kolom, rows });
+});
+
+router.post('/:classId/sas', loadClass, (req, res) => {
+  const { period, kolom, students, subjectOf } = sasSheet(req, res);
+  const b = req.body;
+  const ada = db.prepare('SELECT 1 FROM nilai_akhir WHERE period_id = ? AND subject_id = ? AND student_id = ?');
+  const up = db.prepare(`INSERT INTO nilai_akhir (period_id, subject_id, student_id, sas_nontes, sas_tes) VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT DO UPDATE SET sas_nontes = excluded.sas_nontes, sas_tes = excluded.sas_tes`);
+  db.transaction(() => {
+    for (const st of students) {
+      for (const k of kolom) {
+        const s = subjectOf(k, st);
+        if (!s) continue;
+        const nt = num(b[`nt_${k.key}_${st.id}`]);
+        const ts = num(b[`t_${k.key}_${st.id}`]);
+        if (nt == null && ts == null && !ada.get(period.id, s.id, st.id)) continue;
+        up.run(period.id, s.id, st.id, nt, ts);
+      }
+      touchRaporSiswa(period.id, st.id, req.cls.id);
+    }
+  })();
+  req.flash('success', 'Nilai sumatif akhir semester semua mapel tersimpan.');
+  res.redirect(`/app/kelas/${req.cls.id}/sas${req.query.period ? `?period=${req.query.period}` : ''}`);
+});
+
 router.get('/:classId/nilai/:subjectId', loadClass, (req, res) => {
   const period = workingPeriod(req, res);
   const subject = subjectFor(req);

@@ -4,7 +4,7 @@
   <div><h1>Kelas <%= cls.nama %> <span class="badge badge-primary">Fase <%= cls.fase %></span></h1>
   <p>Guru kelas: <b><%= cls.guru_nama || 'belum ditetapkan' %></b> · <%= students.length %> siswa · <%= h.periodLabel(period) %></p></div>
   <div class="btn-group">
-    <a class="btn" href="/app/siswa/baru?kelas=<%= cls.id %>"><%- h.icon('plus') %> Siswa</a>
+    <a class="btn" href="/app/siswa/massal?kelas=<%= cls.id %>"><%- h.icon('plus') %> Siswa</a>
     <a class="btn btn-primary" href="/app/kelas/<%= cls.id %>/cetak"><%- h.icon('print') %> Cetak rapor</a>
   </div>
 </div>

@@ -25,13 +25,20 @@
 <form method="post" class="card">
   <input type="hidden" name="_csrf" value="<%= csrf %>">
   <h2>Tambah pengguna</h2>
-  <div class="grid grid-3">
-    <div class="field"><label>Nama lengkap (dengan gelar)</label><input name="nama" required></div>
-    <div class="field"><label>NIP</label><input name="nip"></div>
-    <div class="field"><label>Peran</label><select name="role"><option value="guru">Guru / Guru kelas</option><option value="admin">Admin</option></select></div>
-    <div class="field"><label>Username</label><input name="username" required autocomplete="off"></div>
-    <div class="field"><label>Kata sandi (min. 6)</label><input type="password" name="password" minlength="6" required autocomplete="new-password"></div>
-    <div class="field"><label>&nbsp;</label><button class="btn btn-primary"><%- h.icon('plus') %> Tambah pengguna</button></div>
+  <p class="muted">Bisa menambah banyak guru sekaligus (bisa tempel dari Excel). Baris yang kosong dilewati. Kata sandi minimal 6 karakter.</p>
+  <% const barisUser = (i) => `<tr><td class="text-cell"><input name="nama__${i}" placeholder="Nama lengkap dengan gelar" autocomplete="off"></td>
+    <td class="text-cell"><input name="nip__${i}" autocomplete="off"></td>
+    <td class="text-cell"><input name="username__${i}" autocomplete="off"></td>
+    <td class="text-cell"><input name="password__${i}" autocomplete="new-password" placeholder="min. 6 karakter"></td>
+    <td class="text-cell"><select name="role__${i}"><option value="guru">Guru</option><option value="admin">Admin</option></select></td></tr>`; %>
+  <input type="hidden" name="n" value="3" data-row-count>
+  <div class="sheet-wrap" style="max-height:none">
+  <table class="sheet" data-rows>
+    <thead><tr><th>Nama lengkap</th><th>NIP</th><th>Username</th><th>Kata sandi</th><th>Peran</th></tr></thead>
+    <tbody><% for (let i = 0; i < 3; i++) { %><%- barisUser(i) %><% } %></tbody>
+  </table>
+  <template data-row-template><%- barisUser('__I__') %></template>
   </div>
+  <div class="form-actions"><button type="button" class="btn" data-add-rows="3"><%- h.icon('plus') %> Tambah baris</button><button class="btn btn-primary"><%- h.icon('check') %> Simpan pengguna</button></div>
 </form>
 <%- include('../partials/bottom') %>

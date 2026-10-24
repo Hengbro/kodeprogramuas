@@ -15,12 +15,19 @@
 <form method="post" action="/app/kelas" class="card" style="margin-top:1.25rem">
   <input type="hidden" name="_csrf" value="<%= csrf %>">
   <h2>Tambah kelas</h2>
-  <div class="grid grid-4" style="align-items:end">
-    <div class="field"><label>Nama kelas</label><input name="nama" placeholder="IV A" required></div>
-    <div class="field"><label>Tingkat</label><select name="tingkat"><% for (let i = 1; i <= 6; i++) { %><option value="<%= i %>"><%= h.TERBILANG_KELAS[i] %></option><% } %></select></div>
-    <div class="field"><label>Guru kelas</label><select name="guru_id"><option value="">— pilih —</option><% gurus.forEach(g => { %><option value="<%= g.id %>"><%= g.nama %></option><% }) %></select></div>
-    <div class="field"><button class="btn btn-primary"><%- h.icon('plus') %> Tambah kelas</button></div>
+  <p class="muted">Bisa menambah beberapa kelas sekaligus. Baris tanpa nama kelas dilewati.</p>
+  <% const barisKelas = (i) => `<tr><td class="text-cell"><input name="nama__${i}" placeholder="mis. IV A" autocomplete="off"></td>
+    <td class="text-cell"><select name="tingkat__${i}">${[1, 2, 3, 4, 5, 6].map((k) => `<option value="${k}">${h.TERBILANG_KELAS[k]}</option>`).join('')}</select></td>
+    <td class="text-cell"><select name="guru_id__${i}"><option value="">— pilih —</option>${gurus.map((g) => `<option value="${g.id}">${h.esc(g.nama)}</option>`).join('')}</select></td></tr>`; %>
+  <input type="hidden" name="n" value="3" data-row-count>
+  <div class="sheet-wrap" style="max-height:none">
+  <table class="sheet" data-rows>
+    <thead><tr><th>Nama kelas</th><th>Tingkat</th><th>Guru kelas</th></tr></thead>
+    <tbody><% for (let i = 0; i < 3; i++) { %><%- barisKelas(i) %><% } %></tbody>
+  </table>
+  <template data-row-template><%- barisKelas('__I__') %></template>
   </div>
+  <div class="form-actions"><button type="button" class="btn" data-add-rows="3"><%- h.icon('plus') %> Tambah baris</button><button class="btn btn-primary"><%- h.icon('check') %> Simpan kelas</button></div>
 </form>
 <% } %>
 <%- include('../partials/bottom') %>

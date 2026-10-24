@@ -16,14 +16,24 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', requireAdmin, (req, res) => {
-  const nama = str(req.body.nama);
-  const tingkat = Math.min(6, Math.max(1, Number(req.body.tingkat) || 1));
-  if (!nama) { req.flash('error', 'Nama kelas wajib diisi.'); return res.redirect('/app/kelas'); }
-  const id = db.prepare('INSERT INTO classes (nama, tingkat, fase, guru_id) VALUES (?, ?, ?, ?)')
-    .run(nama, tingkat, FASE_OF[tingkat], Number(req.body.guru_id) || null).lastInsertRowid;
-  ensureClassSubjects({ id, tingkat });
-  req.flash('success', `Kelas ${nama} dibuat.`);
-  res.redirect(`/app/kelas/${id}`);
+  // satu atau banyak baris: nama__0, tingkat__0, guru_id__0, ... (bentuk lama nama/tingkat/guru_id tetap diterima)
+  const n = req.body.n ? Math.min(200, Number(req.body.n) || 0) : 1;
+  const ambil = (k, i) => (req.body.n ? req.body[`${k}__${i}`] : req.body[k]);
+  const ins = db.prepare('INSERT INTO classes (nama, tingkat, fase, guru_id) VALUES (?, ?, ?, ?)');
+  const dibuat = [];
+  db.transaction(() => {
+    for (let i = 0; i < n; i += 1) {
+      const nama = str(ambil('nama', i));
+      if (!nama) continue;
+      const tingkat = Math.min(6, Math.max(1, Number(ambil('tingkat', i)) || 1));
+      const id = ins.run(nama, tingkat, FASE_OF[tingkat], Number(ambil('guru_id', i)) || null).lastInsertRowid;
+      ensureClassSubjects({ id, tingkat });
+      dibuat.push({ id, nama });
+    }
+  })();
+  if (!dibuat.length) { req.flash('error', 'Nama kelas wajib diisi.'); return res.redirect('/app/kelas'); }
+  req.flash('success', `Kelas ${dibuat.map((k) => k.nama).join(', ')} dibuat.`);
+  res.redirect(dibuat.length === 1 ? `/app/kelas/${dibuat[0].id}` : '/app/kelas');
 });
 
 router.post('/:classId/ubah', requireAdmin, loadClass, (req, res) => {

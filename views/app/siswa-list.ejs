@@ -2,6 +2,7 @@
 <div class="page-head"><div><h1>Data Siswa</h1><p>Identitas peserta didik untuk halaman identitas rapor dan buku induk.</p></div>
   <div class="btn-group">
     <a class="btn" href="/app/siswa/impor<%= kelas && kelas !== 'none' ? '?kelas=' + kelas : '' %>"><%- h.icon('upload') %> Impor CSV</a>
+    <a class="btn" href="/app/siswa/massal<%= kelas && kelas !== 'none' ? '?kelas=' + kelas : '' %>"><%- h.icon('users') %> Input banyak siswa</a>
     <a class="btn btn-primary" href="/app/siswa/baru<%= kelas && kelas !== 'none' ? '?kelas=' + kelas : '' %>"><%- h.icon('plus') %> Tambah siswa</a>
   </div></div>
 <div class="card" style="padding:.9rem 1.1rem">

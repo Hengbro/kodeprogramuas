@@ -1,0 +1,36 @@
+<%- include('../partials/top') %>
+<%- include('_kelas-tabs') %>
+<div class="page-head"><div><h1>Nilai SAS semua mapel</h1>
+  <p>Isi nilai Sumatif Akhir Semester (non-tes &amp; tes) untuk <b>semua mata pelajaran dan semua siswa</b> dalam satu lembar, lalu simpan sekali. <%= h.periodLabel(period) %>.
+  Kolom Agama otomatis mengikuti agama masing-masing siswa. Nilai formatif per TP dan sumatif lingkup materi tetap diisi di lembar per mapel.</p></div></div>
+<% if (!rows.length) { %>
+  <div class="card empty"><%- h.icon('users') %><p>Belum ada siswa di kelas ini.</p></div>
+<% } else { %>
+<form method="post" data-track>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="sheet-wrap">
+  <table class="sheet">
+    <thead>
+      <tr><th rowspan="2" class="no-col">No</th><th rowspan="2" class="sticky-col" style="left:38px">Nama siswa</th>
+        <% kolom.forEach((k, i) => { %><th colspan="2" class="<%= i % 2 ? 'group-s' : 'group-f' %>" title="<%= k.nama %>"><%= k.singkat %></th><% }) %></tr>
+      <tr><% kolom.forEach((k, i) => { %><th class="<%= i % 2 ? 'group-s' : 'group-f' %>">Non-tes</th><th class="<%= i % 2 ? 'group-s' : 'group-f' %>">Tes</th><% }) %></tr>
+    </thead>
+    <tbody>
+    <% rows.forEach((r, ri) => { %>
+      <tr><td class="no-col calc"><%= ri + 1 %></td><td class="sticky-col" style="left:38px"><b><%= r.st.nama %></b></td>
+      <% r.cells.forEach((c, i) => { const k = kolom[i]; const g = i % 2 ? 'group-s' : 'group-f'; %>
+        <% if (!c) { %><td class="<%= g %> calc" title="Tidak mengikuti mapel ini">–</td><td class="<%= g %> calc">–</td>
+        <% } else { %><td class="<%= g %>"><input name="nt_<%= k.key %>_<%= r.st.id %>" value="<%= c.a.sas_nontes ?? '' %>" inputmode="decimal" autocomplete="off" title="<%= c.s.nama %> – non-tes"></td>
+        <td class="<%= g %>"><input name="t_<%= k.key %>_<%= r.st.id %>" value="<%= c.a.sas_tes ?? '' %>" inputmode="decimal" autocomplete="off" title="<%= c.s.nama %> – tes"></td><% } %>
+      <% }) %></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+  <div class="sticky-actions" style="margin-top:.75rem;border-radius:10px;border:1px solid var(--border)">
+    <span class="muted">Navigasi seperti Excel: <code>Enter</code>/<code>↓</code> ke bawah, <code>←</code><code>→</code> antar kolom. Bisa tempel (paste) blok nilai dari Excel.</span>
+    <button class="btn btn-primary"><%- h.icon('check') %> Simpan semua nilai</button>
+  </div>
+</form>
+<% } %>
+<%- include('../partials/bottom') %>

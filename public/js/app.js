@@ -53,55 +53,96 @@
   });
   window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 
-  // ===== Lembar nilai (spreadsheet) =====
-  var sheet = document.querySelector('table.sheet');
-  if (sheet) {
-    var inputs = function (row) { return Array.prototype.slice.call(row.querySelectorAll('input:not([type=hidden]), select.level')); };
+  // ===== Lembar isian seperti Excel (nilai, siswa, absensi, dll.) =====
+  function sel(el) { return el.matches('input:not([type=hidden]):not([type=checkbox]), select, textarea'); }
+  function cellsOf(row) { return Array.prototype.slice.call(row.querySelectorAll('input:not([type=hidden]):not([type=checkbox]), select, textarea')).filter(function (x) { return !x.closest('details:not([open])'); }); }
+
+  // Tambah baris kosong (lembar dengan <template data-row-template>)
+  function addRows(table, count) {
+    var tpl = table.parentNode.querySelector('template[data-row-template]');
+    var counter = table.closest('form').querySelector('[data-row-count]');
+    if (!tpl || !counter) return;
+    var tbody = table.tBodies[0];
+    for (var k = 0; k < count; k++) {
+      var i = Number(counter.value);
+      var wrap = document.createElement('tbody');
+      wrap.innerHTML = tpl.innerHTML.replace(/__I__/g, String(i)).replace(/__NO__/g, String(tbody.rows.length + 1));
+      tbody.appendChild(wrap.firstElementChild);
+      counter.value = i + 1;
+    }
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-add-rows]');
+    if (!b) return;
+    var table = b.closest('form').querySelector('table[data-rows]');
+    var before = table.tBodies[0].rows.length;
+    addRows(table, Number(b.getAttribute('data-add-rows')) || 1);
+    var first = table.tBodies[0].rows[before] && cellsOf(table.tBodies[0].rows[before])[0];
+    if (first) first.focus();
+  });
+
+  function setCell(el, v) {
+    if (el.tagName === 'SELECT') {
+      var low = v.toLowerCase();
+      var opt = Array.prototype.filter.call(el.options, function (o) { return o.value.toLowerCase() === low || o.text.trim().toLowerCase() === low; })[0] ||
+        Array.prototype.filter.call(el.options, function (o) { return low && (o.value.toLowerCase().indexOf(low) === 0 || o.text.trim().toLowerCase().indexOf(low) === 0); })[0];
+      if (opt) el.value = opt.value;
+    } else {
+      el.value = el.matches('input[data-kind], input[inputmode=decimal], input[inputmode=numeric]') ? v.replace(',', '.') : v;
+    }
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  document.querySelectorAll('table.sheet').forEach(function (sheet) {
     sheet.addEventListener('keydown', function (e) {
       var el = e.target;
-      if (!el.matches('input, select.level')) return;
+      if (!sel(el) || el.tagName === 'TEXTAREA') return;
       var td = el.closest('td'); var tr = el.closest('tr');
       var col = Array.prototype.indexOf.call(tr.children, td);
       var move = null;
+      var caretEnd = el.tagName === 'SELECT' || el.selectionStart == null || el.selectionStart === el.value.length;
+      var caretStart = el.tagName === 'SELECT' || el.selectionStart == null || el.selectionStart === 0;
       if (e.key === 'Enter' || e.key === 'ArrowDown') move = [1, 0];
       else if (e.key === 'ArrowUp') move = [-1, 0];
-      else if (e.key === 'ArrowRight' && (el.tagName === 'SELECT' || el.selectionStart === el.value.length)) move = [0, 1];
-      else if (e.key === 'ArrowLeft' && (el.tagName === 'SELECT' || el.selectionStart === 0)) move = [0, -1];
+      else if (e.key === 'ArrowRight' && caretEnd) move = [0, 1];
+      else if (e.key === 'ArrowLeft' && caretStart) move = [0, -1];
       if (!move) return;
       if (el.tagName === 'SELECT' && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) return; // biarkan pilihan select
       e.preventDefault();
       if (move[0]) {
         var target = tr;
         do { target = move[0] > 0 ? target.nextElementSibling : target.previousElementSibling; } while (target && !target.children[col]);
-        var nextEl = target && target.children[col] && target.children[col].querySelector('input, select');
+        if (!target && move[0] > 0 && sheet.hasAttribute('data-rows')) { addRows(sheet, 1); target = tr.nextElementSibling; }
+        var nextEl = target && target.children[col] && target.children[col].querySelector('input:not([type=hidden]), select, textarea');
         if (nextEl) { nextEl.focus(); if (nextEl.select) nextEl.select(); }
       } else {
-        var list = inputs(tr); var i = list.indexOf(el) + move[1];
+        var list = cellsOf(tr); var i = list.indexOf(el) + move[1];
         if (list[i]) { list[i].focus(); if (list[i].select) list[i].select(); }
       }
     });
 
-    // Tempel blok nilai dari Excel / Google Sheets
+    // Tempel blok data dari Excel / Google Sheets (baris & kolom)
     sheet.addEventListener('paste', function (e) {
       var el = e.target;
-      if (!el.matches('input[data-kind]')) return;
+      if (!sel(el) || el.tagName === 'TEXTAREA') return;
       var text = (e.clipboardData || window.clipboardData).getData('text');
-      if (!/[\t\n]/.test(text.trim())) return;
+      if (!/[\t\n]/.test(text.replace(/\r?\n$/, ''))) return;
       e.preventDefault();
       var lines = text.replace(/\r/g, '').replace(/\n$/, '').split('\n');
       var tr = el.closest('tr');
-      var startCol = inputs(tr).indexOf(el);
+      var startCol = cellsOf(tr).indexOf(el);
       lines.forEach(function (line) {
+        if (!tr && sheet.hasAttribute('data-rows')) { addRows(sheet, 1); tr = sheet.tBodies[0].lastElementChild; }
         if (!tr) return;
-        var cells = line.split('\t');
-        var list = inputs(tr);
-        cells.forEach(function (v, j) { var t = list[startCol + j]; if (t && t.matches('input[data-kind]')) t.value = v.trim().replace(',', '.'); });
-        recalc(tr);
+        var list = cellsOf(tr);
+        line.split('\t').forEach(function (v, j) { var t = list[startCol + j]; if (t) setCell(t, v.trim()); });
+        if (typeof recalc === 'function') recalc(tr);
         tr = tr.nextElementSibling;
       });
       dirty = true;
+      if (typeof simpanDraf === 'function') simpanDraf(false);
     });
-  }
+  });
 
   // Perhitungan langsung (mengikuti rumus server)
   var cfgEl = document.getElementById('calc-settings');
@@ -209,7 +250,7 @@
   }
   function simpanDraf(terkirim) {
     if (!store || !draftForms.length) return;
-    try { store.setItem(KUNCI, JSON.stringify({ t: Date.now(), terkirim: !!terkirim, isi: draftForms.map(ambilIsian) })); } catch (err) { /* penyimpanan penuh */ }
+    try { store.setItem(KUNCI, JSON.stringify({ t: Date.now(), terkirim: !!terkirim, isi: draftForms.map(ambilIsian), baris: draftForms.map(function (f) { var c = f.querySelector('[data-row-count]'); return c ? Number(c.value) : 0; }) })); } catch (err) { /* penyimpanan penuh */ }
   }
 
   if (store) {
@@ -236,7 +277,12 @@
         var b = e.target.closest('[data-draf]');
         if (!b) return;
         if (b.getAttribute('data-draf') === 'pulihkan') {
-          draftForms.forEach(function (f, i) { if (draf.isi[i]) pasangIsian(f, draf.isi[i]); });
+          draftForms.forEach(function (f, i) {
+            var c = f.querySelector('[data-row-count]');
+            var tbl = f.querySelector('table[data-rows]');
+            if (c && tbl && draf.baris && draf.baris[i] > Number(c.value)) addRows(tbl, draf.baris[i] - Number(c.value));
+            if (draf.isi[i]) pasangIsian(f, draf.isi[i]);
+          });
           dirty = true;
           bar.className = 'alert alert-success';
           bar.textContent = 'Isian dipulihkan. Periksa lalu klik Simpan.';
