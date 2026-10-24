@@ -5,18 +5,18 @@
   <table class="table">
     <tr><th style="width:180px">Sekolah</th><td><b><%= sekolah.nama %></b></td></tr>
     <tr><th>Kode sekolah</th><td><code><%= sekolah.kode %></code></td></tr>
-    <tr><th>Alamat masuk</th><td><code><%= baseUrl %>/login?sekolah=<%= sekolah.kode %></code></td></tr>
-    <tr><th>Portal orang tua</th><td><code><%= baseUrl %>/?sekolah=<%= sekolah.kode %></code></td></tr>
+    <tr><th>Alamat masuk</th><td><code><%= baseUrl %>/sekolah/<%= sekolah.kode %>/login</code></td></tr>
+    <tr><th>Portal orang tua</th><td><code><%= baseUrl %>/sekolah/<%= sekolah.kode %>/</code></td></tr>
     <tr><th>Username</th><td><code><%= username %></code></td></tr>
     <tr><th>Kata sandi</th><td><code><%= password %></code></td></tr>
   </table>
   <p class="muted">Kirim alamat masuk, kode sekolah, username, dan kata sandi ini ke admin/kepala sekolah. Minta mereka mengganti kata sandi di menu Akun setelah masuk.</p>
   <textarea readonly rows="7" style="font-family:monospace;font-size:.85rem" onclick="this.select()">Akses E-Rapor <%= sekolah.nama %>
-Alamat   : <%= baseUrl %>/login?sekolah=<%= sekolah.kode %>
+Alamat   : <%= baseUrl %>/sekolah/<%= sekolah.kode %>/login
 Kode     : <%= sekolah.kode %>
 Username : <%= username %>
 Sandi    : <%= password %>
-Portal orang tua: <%= baseUrl %>/?sekolah=<%= sekolah.kode %></textarea>
+Portal orang tua: <%= baseUrl %>/sekolah/<%= sekolah.kode %>/</textarea>
   <div class="form-actions"><a class="btn btn-primary" href="/super">Kembali ke daftar sekolah</a></div>
 </div>
 <%- include('_bottom') %>

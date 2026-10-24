@@ -35,6 +35,36 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'same-origin');
   next();
 });
+// Mode banyak sekolah: setiap halaman sekolah beralamat /sekolah/<kode>/... (login, menu aplikasi, portal orang tua).
+// Awalan dilepas sebelum routing, lalu ditambahkan kembali pada tautan HTML dan redirect.
+const BEBAS_AWALAN = /^\/(?:\/|static\/|super(?:[/?#]|$)|sekolah\/|sehat(?:[?#]|$)|pilih-sekolah(?:[?#]|$))/;
+function pasangAwalan(url, awalan) {
+  return typeof url === 'string' && url.startsWith('/') && !BEBAS_AWALAN.test(url) ? awalan + url : url;
+}
+if (MULTI) {
+  app.use((req, res, next) => {
+    const m = /^\/sekolah\/([A-Za-z0-9-]+)(\/.*)?$/.exec(req.path);
+    if (!m) return next();
+    if (!m[2]) return res.redirect(301, `/sekolah/${m[1]}/${req.url.slice(req.path.length)}`);
+    const awalan = `/sekolah/${m[1].toLowerCase()}`;
+    req.kodeUrl = m[1].toLowerCase();
+    req.url = req.url.slice(`/sekolah/${m[1]}`.length);
+    res.locals.awalan = awalan;
+    const redirect = res.redirect.bind(res);
+    res.redirect = (a, b) => (typeof a === 'number' ? redirect(a, pasangAwalan(b, awalan)) : redirect(pasangAwalan(a, awalan)));
+    const send = res.send.bind(res);
+    res.send = (body) => {
+      const ct = String(res.get('Content-Type') || '');
+      if (typeof body === 'string' && (ct.includes('html') || (!ct && body.trimStart().startsWith('<')))) {
+        body = body
+          .replace(/(\s(?:href|action|src|formaction)=["'])(\/[^"']*)/g, (_, a, u) => a + pasangAwalan(u, awalan))
+          .replace(/(location\.href\s*=\s*')(\/[^']*)/g, (_, a, u) => a + pasangAwalan(u, awalan));
+      }
+      return send(body);
+    };
+    next();
+  });
+}
 app.use('/static', express.static(path.join(__dirname, 'public'), { maxAge: isProd ? '7d' : 0 }));
 app.get('/sehat', (req, res) => res.set('Cache-Control', 'no-store').json({ ok: true }));
 app.use(express.urlencoded({ extended: true, limit: '50mb', parameterLimit: 50000 }));
@@ -62,19 +92,32 @@ if (MULTI) {
       const lama = master.pengaturan('sekolah_lama');
       if (lama) req.session.sekolah = lama; else { delete req.session.userId; delete req.session.publicStudentId; }
     }
-    let kode = req.session.sekolah || null;
-    let lain = false;
-    const dariForm = req.method === 'POST' && ['/login', '/cek-rapor', '/lanjutkan'].includes(req.path) && req.body && req.body.sekolah;
-    const dariUrl = req.method === 'GET' && (['/', '/login'].includes(req.path) || req.path.startsWith('/logo/')) && (req.query.sekolah || req.query.s);
-    const pilih = String(dariForm || dariUrl || '').trim().toLowerCase();
-    if (pilih && pilih !== kode) { kode = pilih; lain = true; }
-    const s = kode ? master.cari(kode) : null;
-    res.locals.sekolah = s && s.aktif ? s : null;
-    res.locals.konteksLain = lain;
-    res.locals.kodeDiminta = pilih || req.session.sekolah || req.session.terakhir || '';
     res.locals.dariSuper = !!(req.session.superId && req.session.dariSuper);
-    if (!res.locals.sekolah) return next();
-    return konteks.run({ db: master.dbSekolah(res.locals.sekolah), sekolah: res.locals.sekolah }, next);
+    res.locals.kodeDiminta = req.kodeUrl || req.session.sekolah || req.session.terakhir || '';
+    if (!req.kodeUrl) {
+      // tanpa awalan sekolah: hanya halaman umum; selebihnya diarahkan ke alamat sekolah yang benar
+      const pilih = String(req.query.sekolah || '').trim().toLowerCase();
+      if (req.method === 'GET' && pilih && ['/', '/login', '/pilih-sekolah'].includes(req.path)) {
+        return res.redirect(`/sekolah/${encodeURIComponent(pilih)}${req.path === '/login' ? '/login' : '/'}`);
+      }
+      if (['/', '/login', '/pilih-sekolah', '/logout'].includes(req.path) || req.path.startsWith('/super')) {
+        res.locals.sekolah = null;
+        return next();
+      }
+      if (req.session.sekolah) return res.redirect(307, `/sekolah/${req.session.sekolah}${req.url}`);
+      return res.redirect('/');
+    }
+    const s = master.cari(req.kodeUrl);
+    if (!s || !s.aktif) {
+      res.locals.sekolah = null;
+      res.locals.settings = { nama_sekolah: 'Kurikulum Merdeka', logo: {} };
+      res.locals.user = null;
+      res.locals.h = helpers;
+      return res.status(404).render('error', { title: 'Sekolah tidak ditemukan', message: `Kode sekolah "${req.kodeUrl}" tidak ditemukan atau sedang dinonaktifkan. Periksa alamat yang diberikan penyedia aplikasi.` });
+    }
+    res.locals.sekolah = s;
+    res.locals.konteksLain = s.kode !== req.session.sekolah;
+    return konteks.run({ db: master.dbSekolah(s), sekolah: s }, next);
   });
 }
 app.use('/', require('./src/routes/logo'));

@@ -36,8 +36,10 @@ function klien() {
 }
 async function masuk(sekolah, username, password) {
   const req = klien();
-  const r = await req('POST', '/login', { _csrf: await req.token(`/login?sekolah=${sekolah}`), sekolah, username, password });
-  return { req, r };
+  const tok = await req('GET', `/sekolah/${sekolah}/login`);
+  const m = /name="_csrf" value="([^"]+)"/.exec(tok.text);
+  const r = await req('POST', `/sekolah/${sekolah}/login`, { _csrf: m ? m[1] : 'x', username, password });
+  return { req, r, s: (url) => `/sekolah/${sekolah}${url}` };
 }
 const ambil = (html, label) => { const m = new RegExp(`${label}\\s*:\\s*([^\\n<]+)`).exec(html); return m && m[1].trim(); };
 
@@ -55,7 +57,7 @@ test('superadmin membuat dua sekolah; data lama menjadi sekolah pertama', async 
   const tok = await su.token('/super');
   r = await su('POST', '/super/sekolah', { _csrf: tok, nama: 'SD NEGERI 1 AMBON', npsn: '60100001', admin_username: 'kepsek', admin_password: 'sandi-ambon' });
   assert.strictEqual(r.status, 200);
-  assert.match(r.text, /login\?sekolah=60100001/);
+  assert.match(r.text, /\/sekolah\/60100001\/login/);
   r = await su('POST', '/super/sekolah', { _csrf: tok, nama: 'SD INPRES 2 TUAL', kode: 'sd-tual' });
   B = { kode: 'sd-tual', user: ambil(r.text, 'Username'), pass: ambil(r.text, 'Sandi') };
   assert.strictEqual(B.user, 'admin');
@@ -71,51 +73,74 @@ test('superadmin membuat dua sekolah; data lama menjadi sekolah pertama', async 
 
 test('admin sekolah hanya melihat dan mengubah data sekolahnya sendiri', async () => {
   const a = await masuk(A.kode, A.user, A.pass);
-  assert.strictEqual(a.r.location, '/app');
+  assert.strictEqual(a.r.location, `/sekolah/${A.kode}/app`);
   const b = await masuk(B.kode, B.user, B.pass);
-  assert.strictEqual(b.r.location, '/app');
+  assert.strictEqual(b.r.location, `/sekolah/${B.kode}/app`);
   // akun sekolah A tidak berlaku di sekolah B
   const salah = await masuk(B.kode, A.user, A.pass);
   assert.strictEqual(salah.r.status, 401);
   const tidakAda = await masuk('tidak-ada', 'admin', 'admin123');
   assert.strictEqual(tidakAda.r.status, 404);
 
-  let tok = await a.req.token('/app/kelas');
-  await a.req('POST', '/app/kelas', { _csrf: tok, nama: 'KELAS AMBON', tingkat: '4' });
-  tok = await a.req.token('/app/sekolah');
-  await a.req('POST', '/app/sekolah', { _csrf: tok, nama_sekolah: 'SD NEGERI 1 AMBON', kepsek_nama: 'Ibu Ambon' });
-  let r = await a.req('GET', '/app/kelas');
+  let tok = await a.req.token(a.s('/app/kelas'));
+  await a.req('POST', a.s('/app/kelas'), { _csrf: tok, nama: 'KELAS AMBON', tingkat: '4' });
+  tok = await a.req.token(a.s('/app/sekolah'));
+  await a.req('POST', a.s('/app/sekolah'), { _csrf: tok, nama_sekolah: 'SD NEGERI 1 AMBON', kepsek_nama: 'Ibu Ambon' });
+  let r = await a.req('GET', a.s('/app/kelas'));
   assert.match(r.text, /KELAS AMBON/);
   assert.doesNotMatch(r.text, /KELAS LAMA/);
-  r = await b.req('GET', '/app/kelas');
+  // semua tautan di halaman sekolah berawalan kode sekolah
+  assert.match(r.text, new RegExp(`href="/sekolah/${A.kode}/app/siswa"`));
+  assert.doesNotMatch(r.text, /href="\/app\//);
+  assert.match(r.text, /href="\/static\/css\/app.css/);
+  // admin A membuka alamat sekolah B → diminta masuk ke sekolah B, bukan melihat data B
+  r = await a.req('GET', `/sekolah/${B.kode}/app/kelas`);
+  assert.strictEqual(r.location, `/sekolah/${B.kode}/login`);
+  // alamat tanpa kode sekolah diarahkan ke alamat sekolahnya
+  r = await a.req('GET', '/app/kelas');
+  assert.strictEqual(r.location, `/sekolah/${A.kode}/app/kelas`);
+  r = await b.req('GET', b.s('/app/kelas'));
   assert.doesNotMatch(r.text, /KELAS AMBON/);
-  r = await b.req('GET', '/app/sekolah');
+  r = await b.req('GET', b.s('/app/sekolah'));
   assert.match(r.text, /SD INPRES 2 TUAL/);
   // nama sekolah & NPSN diatur superadmin, admin sekolah tidak bisa mengubahnya
-  tok = await b.req.token('/app/sekolah');
-  await b.req('POST', '/app/sekolah', { _csrf: tok, nama_sekolah: 'DIGANTI ADMIN', npsn: '999' });
+  tok = await b.req.token(b.s('/app/sekolah'));
+  await b.req('POST', b.s('/app/sekolah'), { _csrf: tok, nama_sekolah: 'DIGANTI ADMIN', npsn: '999' });
   assert.strictEqual(master.dbSekolah(master.cari(B.kode)).prepare("SELECT value FROM settings WHERE key = 'nama_sekolah'").get().value, 'SD INPRES 2 TUAL');
-  r = await b.req('GET', '/app/sekolah');
+  r = await b.req('GET', b.s('/app/sekolah'));
   assert.doesNotMatch(r.text, /Ibu Ambon/);
   // admin sekolah tidak bisa membuka panel superadmin
   r = await a.req('GET', '/super');
   assert.strictEqual(r.location, '/super/login');
   // sekolah lama tetap utuh dan bisa dimasuki dengan akun lamanya
   const lama = await masuk('11112222', 'admin', 'admin123');
-  r = await lama.req('GET', '/app/kelas');
+  r = await lama.req('GET', lama.s('/app/kelas'));
   assert.match(r.text, /KELAS LAMA/);
+  // keluar → kembali ke halaman masuk sekolah yang sama
+  tok = await lama.req.token(lama.s('/app'));
+  r = await lama.req('POST', lama.s('/logout'), { _csrf: tok });
+  assert.strictEqual(r.location, '/sekolah/11112222/login');
 });
 
-test('halaman depan meminta pilih sekolah; portal & logo mengikuti sekolah', async () => {
+test('halaman depan meminta pilih sekolah; portal orang tua & login beralamat kode sekolah', async () => {
   const tamu = klien();
   let r = await tamu('GET', '/');
   assert.match(r.text, /Pilih sekolah/);
   assert.match(r.text, /SD INPRES 2 TUAL/);
   r = await tamu('GET', '/?sekolah=sd-tual');
+  assert.strictEqual(r.location, '/sekolah/sd-tual/');
+  r = await tamu('GET', '/sekolah/sd-tual/');
   assert.match(r.text, /Rapor digital SD INPRES 2 TUAL/);
-  assert.match(r.text, /name="sekolah" value="sd-tual"/);
+  assert.match(r.text, /action="\/sekolah\/sd-tual\/cek-rapor"/);
   r = await tamu('GET', '/login?sekolah=sd-tual');
-  assert.match(r.text, /value="sd-tual"/);
+  assert.strictEqual(r.location, '/sekolah/sd-tual/login');
+  r = await tamu('GET', '/login');
+  assert.match(r.text, /kode sekolah/i);
+  assert.doesNotMatch(r.text, /name="password"/);
+  r = await tamu('GET', '/app');
+  assert.strictEqual(r.location, '/');
+  r = await tamu('GET', '/sekolah/tidak-ada/');
+  assert.strictEqual(r.status, 404);
 });
 
 test('superadmin: buka sekolah sebagai admin, nonaktifkan, reset sandi', async () => {
@@ -123,12 +148,12 @@ test('superadmin: buka sekolah sebagai admin, nonaktifkan, reset sandi', async (
   await su('POST', '/super/login', { _csrf: await su.token('/super/login'), username: 'superadmin', password: 'rahasia-super' });
   let tok = await su.token('/super');
   let r = await su('POST', `/super/sekolah/${A.kode}/masuk`, { _csrf: tok });
-  assert.strictEqual(r.location, '/app');
-  r = await su('GET', '/app/kelas');
+  assert.strictEqual(r.location, `/sekolah/${A.kode}/app`);
+  r = await su('GET', `/sekolah/${A.kode}/app/kelas`);
   assert.match(r.text, /KELAS AMBON/);
   assert.match(r.text, /Mode superadmin/);
-  tok = await su.token('/app');
-  r = await su('POST', '/logout', { _csrf: tok });
+  tok = await su.token(`/sekolah/${A.kode}/app`);
+  r = await su('POST', `/sekolah/${A.kode}/logout`, { _csrf: tok });
   assert.strictEqual(r.location, '/super');
   r = await su('GET', '/super');
   assert.strictEqual(r.status, 200);
@@ -144,7 +169,7 @@ test('superadmin: buka sekolah sebagai admin, nonaktifkan, reset sandi', async (
   r = await su('POST', `/super/sekolah/${B.kode}/reset`, { _csrf: tok, user_id: String(id) });
   const baru = ambil(r.text, 'Sandi');
   assert.strictEqual((await masuk(B.kode, B.user, B.pass)).r.status, 401);
-  assert.strictEqual((await masuk(B.kode, B.user, baru)).r.location, '/app');
+  assert.strictEqual((await masuk(B.kode, B.user, baru)).r.location, `/sekolah/${B.kode}/app`);
 
   r = await su('POST', `/super/sekolah/${B.kode}/hapus`, { _csrf: tok, konfirmasi: 'salah' });
   assert.ok(master.cari(B.kode));

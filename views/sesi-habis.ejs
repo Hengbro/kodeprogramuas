@@ -9,7 +9,6 @@
         <input type="hidden" name="_csrf" value="<%= csrf %>">
         <input type="hidden" name="_tujuan" value="<%= tujuan %>">
         <input type="hidden" name="_data" value="<%= data %>">
-        <% if (multi) { %><div class="field"><label for="sekolah">Kode sekolah</label><input id="sekolah" name="sekolah" value="<%= sekolah ? sekolah.kode : kodeDiminta %>" autocapitalize="none" required></div><% } %>
         <div class="field"><label for="username">Nama pengguna</label><input id="username" name="username" value="<%= username %>" autocomplete="username" required autofocus></div>
         <div class="field"><label for="password">Kata sandi</label><input id="password" type="password" name="password" autocomplete="current-password" required></div>
         <button class="btn btn-primary" style="width:100%">Masuk &amp; simpan</button>

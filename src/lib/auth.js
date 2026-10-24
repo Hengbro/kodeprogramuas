@@ -5,9 +5,9 @@ function requireLogin(req, res, next) {
     // sesi habis saat menyimpan: jangan buang isian, minta login lalu kirim ulang
     if (req.method === 'POST') {
       const { _csrf, ...data } = req.body || {};
-      return res.status(401).render('sesi-habis', { title: 'Sesi berakhir', tujuan: req.originalUrl, data: JSON.stringify(data), error: null, username: '' });
+      return res.status(401).render('sesi-habis', { title: 'Sesi berakhir', tujuan: req.baseUrl + req.url, data: JSON.stringify(data), error: null, username: '' });
     }
-    req.session.returnTo = req.originalUrl;
+    req.session.returnTo = req.baseUrl + req.url;
     return res.redirect('/login');
   }
   next();

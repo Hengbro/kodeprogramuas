@@ -22,7 +22,7 @@
   </div>
   <% if (s.stat.error) { %><div class="alert alert-error">Database tidak bisa dibuka: <%= s.stat.error %></div><% } else { %>
   <p class="muted" style="margin:.2rem 0 .6rem"><%= s.stat.siswa %> siswa · <%= s.stat.kelas %> kelas · <%= s.stat.guru %> guru · <%= (s.stat.ukuran / 1024 / 1024).toFixed(1) %> MB
-    · Masuk: <code><%= baseUrl %>/login?sekolah=<%= s.kode %></code></p>
+    · Masuk: <code><%= baseUrl %>/sekolah/<%= s.kode %>/login</code> · Portal: <code><%= baseUrl %>/sekolah/<%= s.kode %>/</code></p>
   <% } %>
   <details>
     <summary>Kelola: akun admin, ubah data, hapus</summary>

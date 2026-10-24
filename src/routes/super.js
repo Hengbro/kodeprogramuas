@@ -119,7 +119,7 @@ router.post('/sekolah/:kode/masuk', wajibSuper, sekolahDari, (req, res) => {
   req.session.sekolah = req.sek.kode;
   req.session.userId = admin.id;
   req.session.dariSuper = true;
-  res.redirect('/app');
+  res.redirect(`/sekolah/${req.sek.kode}/app`);
 });
 
 router.get('/sekolah/:kode/cadangan', wajibSuper, sekolahDari, async (req, res, next) => {

@@ -76,7 +76,8 @@ router.post('/logout', (req, res) => {
   }
   const terakhir = req.session.sekolah;
   req.session = terakhir ? { terakhir } : null;
-  res.redirect(terakhir ? `/login?sekolah=${encodeURIComponent(terakhir)}` : '/login');
+  // mode banyak sekolah: redirect '/login' otomatis berawalan /sekolah/<kode>
+  res.redirect('/login');
 });
 
 router.pakaiSekolah = pakaiSekolah;
