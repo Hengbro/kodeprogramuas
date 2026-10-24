@@ -7,6 +7,12 @@
     if (el && !window.confirm(el.getAttribute('data-confirm'))) e.preventDefault();
   });
 
+  // Tab / mapel yang aktif selalu terlihat walau barisnya perlu digeser (layar HP)
+  document.querySelectorAll('.tabs a.active, .mapel-chips .chip.active').forEach(function (a) {
+    var bar = a.parentNode;
+    if (bar.scrollWidth > bar.clientWidth) bar.scrollLeft = a.offsetLeft - bar.offsetLeft - 16;
+  });
+
   // Tutup sidebar saat klik di luar (mobile)
   document.addEventListener('click', function (e) {
     var sb = document.getElementById('sidebar');

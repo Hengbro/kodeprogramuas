@@ -154,3 +154,21 @@ test('admin menambah banyak kelas dan banyak guru sekaligus', async () => {
   const g = await masuk('gurudua', 'rahasia2');
   assert.ok(g.token);
 });
+
+test('menu yang sedang dibuka ditandai (sidebar, tab kelas, dan mapel)', async () => {
+  const { req } = await masuk('guru4a', 'guru123');
+  const aktif = (html, sel) => [...html.matchAll(new RegExp(`<a href="([^"]+)" class="${sel}"`, 'g'))].map((m) => m[1]);
+  let r = await req('GET', `/app/kelas/${kelas}/nilai`);
+  assert.strictEqual(r.status, 302);
+  r = await req('GET', r.location);
+  assert.deepStrictEqual(aktif(r.text, 'active'), ['/app/kelas', `/app/kelas/${kelas}/nilai`]);
+  assert.match(r.text, /class="chip active"/);
+  r = await req('GET', `/app/kelas/${kelas}/sas`);
+  assert.deepStrictEqual(aktif(r.text, 'active'), ['/app/kelas', `/app/kelas/${kelas}/sas`]);
+  r = await req('GET', `/app/kelas/${kelas}`);
+  assert.deepStrictEqual(aktif(r.text, 'active'), ['/app/kelas', `/app/kelas/${kelas}`]);
+  r = await req('GET', '/app');
+  assert.deepStrictEqual(aktif(r.text, 'active'), ['/app']);
+  r = await req('GET', '/app/siswa');
+  assert.deepStrictEqual(aktif(r.text, 'active'), ['/app/siswa']);
+});

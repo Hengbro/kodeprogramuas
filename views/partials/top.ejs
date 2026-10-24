@@ -7,7 +7,7 @@
       <div><b>E-Rapor SD</b><small><%= settings.nama_sekolah %></small></div>
     </a>
     <nav class="nav">
-      <a href="/app" class="<%= path === '/app' || path === '/' ? 'active' : '' %>"><%- h.icon('home') %> Dasbor</a>
+      <a href="/app" class="<%= path === '/' ? 'active' : '' %>"><%- h.icon('home') %> Dasbor</a>
       <div class="nav-label">Pembelajaran</div>
       <a href="/app/kelas" class="<%= path.startsWith('/kelas') ? 'active' : '' %>"><%- h.icon('class') %> Kelas &amp; Penilaian</a>
       <a href="/app/siswa" class="<%= path.startsWith('/siswa') ? 'active' : '' %>"><%- h.icon('users') %> Data Siswa</a>

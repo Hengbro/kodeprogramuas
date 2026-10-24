@@ -1,8 +1,17 @@
 <div class="breadcrumb"><a href="/app/kelas">Kelas</a> / <a href="/app/kelas/<%= cls.id %>"><%= cls.nama %></a></div>
 <div class="tabs no-print">
-  <% const base = '/app/kelas/' + cls.id; const t = (href, label) => { %><a href="<%= base + href %>" class="<%= path === '/kelas/' + cls.id + href || (href && path.startsWith('/kelas/' + cls.id + href + '/')) ? 'active' : '' %>"><%= label %></a><% } %>
+  <%
+    const base = '/app/kelas/' + cls.id;
+    const kini = path.replace(/\/+$/, '');
+    // tab aktif: halaman itu sendiri atau sub-halamannya; lembar nilai & TP per mapel masuk tab "Nilai TP per Mapel"
+    const aktif = (href, juga = []) => kini === '/kelas/' + cls.id + href
+      || (href && kini.startsWith('/kelas/' + cls.id + href + '/'))
+      || juga.some((x) => kini.startsWith('/kelas/' + cls.id + x + '/'));
+    const t = (href, label, juga) => { %><a href="<%= base + href %>" class="<%= aktif(href, juga) ? 'active' : '' %>"<%- aktif(href, juga) ? ' aria-current="page"' : '' %>><%= label %></a><% }
+  %>
   <% t('', 'Ringkasan') %>
   <% t('/mapel', 'Mapel & KKTP') %>
+  <% t('/nilai', 'Nilai TP per Mapel', ['/tp']) %>
   <% t('/sas', 'Nilai SAS Semua Mapel') %>
   <% t('/absensi', 'Ketidakhadiran') %>
   <% t('/ekskul', 'Ekstrakurikuler') %>

@@ -105,7 +105,7 @@ router.get('/:classId/tp/:subjectId', loadClass, (req, res) => {
   const subject = subjectFor(req, res);
   if (!subject) return res.redirect(`/app/kelas/${req.cls.id}`);
   const data = loadSubjectData(period.id, req.cls.id, subject.id);
-  const subjects = db.prepare(`SELECT s.id, s.nama, s.kelompok FROM subjects s JOIN class_subjects cs ON cs.subject_id = s.id
+  const subjects = db.prepare(`SELECT s.id, s.nama, s.singkat, s.kelompok FROM subjects s JOIN class_subjects cs ON cs.subject_id = s.id
     AND cs.class_id = ? WHERE cs.aktif = 1 ORDER BY s.urutan, s.id`).all(req.cls.id);
   res.render('app/tp', { title: `TP ${subject.nama}`, period, subject, subjects, ...data, contoh: contohFor(subject) });
 });

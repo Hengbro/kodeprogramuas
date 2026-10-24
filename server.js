@@ -59,7 +59,8 @@ app.use((req, res, next) => {
   if (req.session.userId && !res.locals.user) req.session = null;
   res.locals.flash = req.session && req.session.flash;
   if (req.session) delete req.session.flash;
-  res.locals.path = req.path;
+  // path relatif terhadap /app (mis. /kelas/1/nilai/3) untuk menandai menu yang sedang dibuka
+  res.locals.path = req.path.replace(/^\/app(?=\/|$)/, '') || '/';
   res.locals.h = helpers;
   req.flash = (type, message) => { req.session.flash = { type, message }; };
   next();

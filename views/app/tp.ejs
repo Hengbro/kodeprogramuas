@@ -1,5 +1,6 @@
 <%- include('../partials/top') %>
 <%- include('_kelas-tabs') %>
+<div class="mapel-chips no-print"><% subjects.forEach(s => { %><a class="chip <%= s.id === subject.id ? 'active' : '' %>" href="/app/kelas/<%= cls.id %>/tp/<%= s.id %><%= period.is_active ? '' : '?period=' + period.id %>" title="<%= s.nama %>"<%- s.id === subject.id ? ' aria-current="page"' : '' %>><%= s.singkat || s.nama %></a><% }) %></div>
 <div class="page-head">
   <div><h1><%= subject.nama %></h1><p>Lingkup materi &amp; tujuan pembelajaran Kelas <%= cls.nama %> · <%= h.periodLabel(period) %></p></div>
   <div class="btn-group">

@@ -16,6 +16,14 @@ function studentsFor(period, cls, subject) {
   return subject.kelompok === 'agama' ? list.filter((s) => s.agama === subject.agama) : list;
 }
 
+// Tab "Nilai TP per Mapel": buka lembar nilai mapel pertama yang aktif (pindah mapel lewat pilihan di halaman nilai)
+router.get('/:classId/nilai', loadClass, (req, res) => {
+  const s = db.prepare(`SELECT s.id FROM subjects s JOIN class_subjects cs ON cs.subject_id = s.id AND cs.class_id = ?
+    WHERE cs.aktif = 1 ORDER BY s.urutan, s.id LIMIT 1`).get(req.cls.id);
+  const q = req.query.period ? `?period=${encodeURIComponent(req.query.period)}` : '';
+  res.redirect(s ? `/app/kelas/${req.cls.id}/nilai/${s.id}${q}` : `/app/kelas/${req.cls.id}/mapel`);
+});
+
 // ===== Nilai Sumatif Akhir Semester semua mapel dalam satu lembar =====
 function sasSheet(req, res) {
   const period = workingPeriod(req, res);
