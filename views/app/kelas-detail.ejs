@@ -17,10 +17,9 @@
     <tbody>
     <% subjects.forEach(s => {
       const target = s.kelompok === 'agama' ? (agamaCount[s.agama] || 0) : students.length;
-      if (s.kelompok === 'agama' && !target) return;
       const pct = target ? Math.round(s.jml_dinilai / target * 100) : 0; %>
-      <tr>
-        <td><b><%= s.nama %></b><% if (s.kelompok === 'agama') { %> <span class="badge"><%= target %> siswa</span><% } %></td>
+      <tr<%- s.kelompok === 'agama' && !target ? ' class="muted"' : '' %>>
+        <td><b><%= s.nama %></b><% if (s.kelompok === 'agama') { %> <span class="badge"><%= target %> siswa</span><% if (!target) { %><br><small>Muncul di lembar nilai setelah ada siswa beragama <%= s.agama %> di kelas ini.</small><% } %><% } %></td>
         <td class="num"><%= s.kktp %></td>
         <td class="num"><%= s.jml_lm %></td>
         <td class="num"><%= s.jml_tp || '—' %></td>
@@ -39,7 +38,7 @@
 <div class="grid grid-2">
   <div class="card">
     <div class="card-head"><h2>Siswa</h2><a class="btn btn-sm" href="/app/siswa?kelas=<%= cls.id %>">Kelola</a></div>
-    <% if (!students.length) { %><div class="empty">Belum ada siswa. <a href="/app/siswa/impor?kelas=<%= cls.id %>">Impor dari CSV/Excel</a></div><% } else { %>
+    <% if (!students.length) { %><div class="empty">Belum ada siswa. <a href="/app/siswa/massal?kelas=<%= cls.id %>">Input banyak siswa</a> atau <a href="/app/siswa/impor?kelas=<%= cls.id %>">impor dari CSV/Excel</a></div><% } else { %>
     <table class="table"><tbody>
       <% students.forEach((s, i) => { %><tr><td class="num" style="width:40px"><%= i + 1 %></td><td><a href="/app/siswa/<%= s.id %>"><%= s.nama %></a></td><td><%= s.jenis_kelamin || '' %></td><td><span class="badge"><%= s.agama || '—' %></span></td></tr><% }) %>
     </tbody></table>
