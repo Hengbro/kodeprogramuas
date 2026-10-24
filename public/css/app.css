@@ -259,3 +259,6 @@ h1 svg, h2 svg, h3 svg { width: 1em; height: 1em; vertical-align: -.12em; }
 .sekolah-card.nonaktif { opacity: .75; border-style: dashed; }
 .sekolah-card details > summary { cursor: pointer; color: var(--primary); font-weight: 600; }
 .super-banner { background: #fef3c7; color: #78350f; border-bottom: 1px solid #fcd34d; padding: .45rem 1rem; font-size: .85rem; display: flex; gap: .75rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.sandi-wrap { display: flex; gap: .35rem; align-items: center; }
+.sandi-wrap input { flex: 1; min-width: 0; font-family: inherit; }
+.sandi-wrap .sandi-btn { flex: none; white-space: nowrap; }

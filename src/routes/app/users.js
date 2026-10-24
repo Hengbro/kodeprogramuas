@@ -3,6 +3,7 @@ const { db } = require('../../db');
 const { requireAdmin } = require('../../lib/auth');
 const { hashPassword, verifyPassword } = require('../../lib/password');
 const { str } = require('./_util');
+const { sandiAcak } = require('../../lib/sandi-acak');
 
 const router = express.Router();
 
@@ -22,17 +23,21 @@ router.post('/pengguna', requireAdmin, (req, res) => {
   for (let i = 0; i < n; i += 1) {
     const username = str(ambil('username', i));
     const nama = str(ambil('nama', i));
-    const password = String(ambil('password', i) || '');
+    let password = String(ambil('password', i) || '');
     if (!username && !nama && !password) continue;
     const label = username || nama;
+    // sandi dikosongkan → dibuat acak dan ditampilkan sekali
+    const acak = !password;
+    if (acak) password = sandiAcak();
     if (!username || !nama || password.length < 6) { gagal.push(`${label} (nama, username, dan kata sandi min. 6 karakter wajib)`); continue; }
     if (ada.get(username)) { gagal.push(`${username} (username sudah dipakai)`); continue; }
     ins.run(username, hashPassword(password), nama, str(ambil('nip', i)), ambil('role', i) === 'admin' ? 'admin' : 'guru');
-    masuk.push(username);
+    masuk.push(acak ? `${username} (sandi: ${password})` : username);
   }
-  if (gagal.length) req.flash('error', `${masuk.length ? `Ditambahkan: ${masuk.join(', ')}. ` : ''}Tidak disimpan: ${gagal.join('; ')}.`);
-  else if (masuk.length) req.flash('success', `Pengguna ditambahkan: ${masuk.join(', ')}.`);
-  else req.flash('error', 'Nama, username, dan kata sandi (min. 6 karakter) wajib diisi.');
+  const catat = masuk.some((x) => x.includes('(sandi:')) ? ' Catat kata sandi yang dibuat otomatis sekarang — hanya ditampilkan sekali.' : '';
+  if (gagal.length) req.flash('error', `${masuk.length ? `Ditambahkan: ${masuk.join(', ')}.${catat} ` : ''}Tidak disimpan: ${gagal.join('; ')}.`);
+  else if (masuk.length) req.flash('success', `Pengguna ditambahkan: ${masuk.join(', ')}.${catat}`);
+  else req.flash('error', 'Nama dan username wajib diisi.');
   res.redirect('/app/pengguna');
 });
 
@@ -42,6 +47,12 @@ router.post('/pengguna/:id', requireAdmin, (req, res) => {
   if (req.body.action === 'delete') {
     if (u.id === res.locals.user.id) req.flash('error', 'Tidak dapat menghapus akun sendiri.');
     else { db.prepare('DELETE FROM users WHERE id = ?').run(u.id); req.flash('success', 'Pengguna dihapus.'); }
+    return res.redirect('/app/pengguna');
+  }
+  if (req.body.action === 'sandi_acak') {
+    const sandi = sandiAcak();
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hashPassword(sandi), u.id);
+    req.flash('success', `Kata sandi baru untuk ${u.username}: ${sandi} — catat sekarang, hanya ditampilkan sekali.`);
     return res.redirect('/app/pengguna');
   }
   const role = u.id === res.locals.user.id ? u.role : (req.body.role === 'admin' ? 'admin' : 'guru');

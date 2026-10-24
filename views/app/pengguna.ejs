@@ -11,10 +11,11 @@
           <td><code><%= u.username %></code></td>
           <td><input form="u<%= u.id %>" name="nip" value="<%= u.nip || '' %>"></td>
           <td><select form="u<%= u.id %>" name="role" <%= u.id === user.id ? 'disabled' : '' %>><option value="guru" <%= u.role === 'guru' ? 'selected' : '' %>>Guru</option><option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Admin</option></select></td>
-          <td><input form="u<%= u.id %>" type="password" name="password" placeholder="(tidak diubah)" autocomplete="new-password"></td>
+          <td><div class="sandi-wrap"><input form="u<%= u.id %>" type="password" name="password" placeholder="(tidak diubah)" autocomplete="new-password"><button type="button" class="btn btn-sm sandi-btn" data-sandi-acak title="Buat kata sandi acak yang kuat (otomatis disalin)">Acak</button></div></td>
           <td class="actions"><form method="post" action="/app/pengguna/<%= u.id %>" id="u<%= u.id %>" class="inline-form">
             <input type="hidden" name="_csrf" value="<%= csrf %>">
             <button class="btn btn-sm">Simpan</button>
+            <button class="btn btn-sm" name="action" value="sandi_acak" data-confirm="Buat kata sandi acak baru untuk <%= u.username %>? Kata sandi lama tidak berlaku lagi." title="Reset ke kata sandi acak">Reset sandi</button>
             <% if (u.id !== user.id) { %><button class="btn btn-sm btn-danger" name="action" value="delete" data-confirm="Hapus pengguna <%= u.nama %>?"><%- h.icon('trash') %></button><% } %></form></td>
       </tr>
     <% }) %>
@@ -25,11 +26,11 @@
 <form method="post" class="card">
   <input type="hidden" name="_csrf" value="<%= csrf %>">
   <h2>Tambah pengguna</h2>
-  <p class="muted">Bisa menambah banyak guru sekaligus (bisa tempel dari Excel). Baris yang kosong dilewati. Kata sandi minimal 6 karakter.</p>
+  <p class="muted">Bisa menambah banyak guru sekaligus (bisa tempel dari Excel). Baris yang kosong dilewati. Kata sandi minimal 6 karakter; kosongkan atau klik <b>Acak</b> agar dibuat kata sandi acak yang kuat.</p>
   <% const barisUser = (i) => `<tr><td class="text-cell"><input name="nama__${i}" placeholder="Nama lengkap dengan gelar" autocomplete="off"></td>
     <td class="text-cell"><input name="nip__${i}" autocomplete="off"></td>
     <td class="text-cell"><input name="username__${i}" autocomplete="off"></td>
-    <td class="text-cell"><input name="password__${i}" autocomplete="new-password" placeholder="min. 6 karakter"></td>
+    <td class="text-cell"><div class="sandi-wrap"><input name="password__${i}" autocomplete="new-password" placeholder="kosong = dibuat acak"><button type="button" class="btn btn-sm sandi-btn" data-sandi-acak title="Buat kata sandi acak yang kuat (otomatis disalin)">Acak</button></div></td>
     <td class="text-cell"><select name="role__${i}"><option value="guru">Guru</option><option value="admin">Admin</option></select></td></tr>`; %>
   <input type="hidden" name="n" value="3" data-row-count>
   <div class="sheet-wrap" style="max-height:none">

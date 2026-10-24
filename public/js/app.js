@@ -13,6 +13,33 @@
     if (bar.scrollWidth > bar.clientWidth) bar.scrollLeft = a.offsetLeft - bar.offsetLeft - 16;
   });
 
+  // Tombol "Acak": isi kata sandi acak yang kuat, tampilkan, dan salin ke clipboard
+  var HURUF = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  function sandiAcak(n) {
+    var buf = new Uint32Array(n || 12);
+    for (;;) {
+      window.crypto.getRandomValues(buf);
+      var s = Array.prototype.map.call(buf, function (x) { return HURUF[x % HURUF.length]; }).join('');
+      if (/[A-Z]/.test(s) && /[a-z]/.test(s) && /[2-9]/.test(s)) return s;
+    }
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-sandi-acak]');
+    if (!b) return;
+    var sel = b.getAttribute('data-sandi-acak');
+    var inputs = sel ? Array.prototype.slice.call(document.querySelectorAll(sel)) : [b.parentNode.querySelector('input')];
+    var s = sandiAcak(12);
+    inputs.forEach(function (inp) {
+      inp.type = 'text';
+      inp.value = s;
+      inp.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    inputs[0].focus(); inputs[0].select();
+    var tandai = function (teks) { b.textContent = teks; setTimeout(function () { b.textContent = 'Acak'; }, 2000); };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(s).then(function () { tandai('Disalin ✓'); }, function () { tandai('Catat!'); });
+    else tandai('Catat!');
+  });
+
   // Tutup sidebar saat klik di luar (mobile)
   document.addEventListener('click', function (e) {
     var sb = document.getElementById('sidebar');

@@ -172,3 +172,24 @@ test('menu yang sedang dibuka ditandai (sidebar, tab kelas, dan mapel)', async (
   r = await req('GET', '/app/siswa');
   assert.deepStrictEqual(aktif(r.text, 'active'), ['/app/siswa']);
 });
+
+test('kata sandi acak: kosong saat tambah guru dan reset sandi oleh admin', async () => {
+  const { sandiAcak } = require('../src/lib/sandi-acak');
+  const contoh = new Set(Array.from({ length: 50 }, () => sandiAcak()));
+  assert.strictEqual(contoh.size, 50);
+  for (const s of contoh) assert.match(s, /^(?=.*[A-Z])(?=.*[a-z])(?=.*[2-9])[A-HJ-NP-Za-km-z2-9]{12}$/);
+
+  const { req, token } = await masuk('admin', 'admin123');
+  let r = await req('POST', '/app/pengguna', { _csrf: token, n: '1', nama__0: 'Guru Acak', username__0: 'guruacak', password__0: '' });
+  r = await req('GET', '/app/pengguna');
+  const sandi = /guruacak \(sandi: ([A-Za-z0-9]{12})\)/.exec(r.text)[1];
+  assert.ok((await masuk('guruacak', sandi)).token);
+
+  const id = db.prepare("SELECT id FROM users WHERE username = 'guruacak'").get().id;
+  await req('POST', `/app/pengguna/${id}`, { _csrf: token, action: 'sandi_acak' });
+  r = await req('GET', '/app/pengguna');
+  const baru = /Kata sandi baru untuk guruacak: ([A-Za-z0-9]{12})/.exec(r.text)[1];
+  assert.notStrictEqual(baru, sandi);
+  assert.ok((await masuk('guruacak', baru)).token);
+  assert.match(r.text, /data-sandi-acak/);
+});

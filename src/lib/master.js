@@ -38,9 +38,7 @@ function slug(s) {
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
 }
 
-function sandiAcak() {
-  return crypto.randomBytes(9).toString('base64url').replace(/[-_]/g, 'x').slice(0, 10);
-}
+const { sandiAcak } = require('./sandi-acak');
 
 function pengaturan(key, buat) {
   const row = m().prepare('SELECT value FROM pengaturan WHERE key = ?').get(key);

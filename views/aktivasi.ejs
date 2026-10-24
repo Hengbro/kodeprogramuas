@@ -33,7 +33,7 @@
           <div class="field"><label for="nip">NIP (opsional)</label><input id="nip" name="nip"></div>
           <div class="field"><label for="username">Nama pengguna untuk login</label><input id="username" name="username" autocomplete="username" required></div>
           <div class="form-grid">
-            <div class="field"><label for="password">Kata sandi (min. 8)</label><input id="password" type="password" name="password" minlength="8" autocomplete="new-password" required></div>
+            <div class="field"><label for="password">Kata sandi (min. 8)</label><div class="sandi-wrap"><input id="password" type="password" name="password" minlength="8" autocomplete="new-password" required><button type="button" class="btn btn-sm sandi-btn" data-sandi-acak="#password,#password2" title="Buat kata sandi acak yang kuat (otomatis disalin)">Acak</button></div></div>
             <div class="field"><label for="password2">Ulangi kata sandi</label><input id="password2" type="password" name="password2" minlength="8" autocomplete="new-password" required></div>
           </div>
           <button class="btn btn-primary" style="width:100%">Aktifkan &amp; masuk</button>
@@ -41,5 +41,6 @@
       <% } %>
     </div>
   </div>
+  <script src="/static/js/app.js"></script>
 </body>
 </html>

@@ -70,7 +70,7 @@
     <div class="field"><label>Kode sekolah (untuk masuk)</label><input name="kode" placeholder="otomatis dari NPSN/nama" autocapitalize="none"></div>
     <div class="field"><label>Username admin</label><input name="admin_username" value="admin" autocapitalize="none"></div>
     <div class="field"><label>Nama admin</label><input name="admin_nama" placeholder="mis. Kepala Sekolah"></div>
-    <div class="field"><label>Kata sandi admin</label><input name="admin_password" placeholder="kosongkan = acak" autocomplete="new-password"></div>
+    <div class="field"><label>Kata sandi admin</label><div class="sandi-wrap"><input name="admin_password" placeholder="kosongkan = acak" autocomplete="new-password"><button type="button" class="btn btn-sm sandi-btn" data-sandi-acak title="Buat kata sandi acak yang kuat (otomatis disalin)">Acak</button></div></div>
   </div>
   <div class="form-actions"><button class="btn btn-primary"><%- h.icon('plus') %> Buat sekolah</button></div>
 </form>
