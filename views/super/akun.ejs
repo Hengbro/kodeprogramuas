@@ -1,0 +1,9 @@
+<%- include('_top') %>
+<form method="post" class="card" style="max-width:480px;margin:0 auto">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h1>Ganti kata sandi superadmin</h1>
+  <div class="field"><label>Kata sandi lama</label><input type="password" name="old_password" required autocomplete="current-password"></div>
+  <div class="field"><label>Kata sandi baru (min. 8 karakter)</label><input type="password" name="new_password" minlength="8" required autocomplete="new-password"></div>
+  <div class="form-actions"><a class="btn" href="/super">Batal</a><button class="btn btn-primary">Simpan</button></div>
+</form>
+<%- include('_bottom') %>

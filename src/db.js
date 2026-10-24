@@ -1,19 +1,16 @@
 const fs = require('fs');
 const path = require('path');
+const { AsyncLocalStorage } = require('async_hooks');
 const Database = require('better-sqlite3');
 const { hashPassword } = require('./lib/password');
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
 const DB_PATH = process.env.DB_PATH || path.join(DATA_DIR, 'rapor.sqlite');
-
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-
-const db = new Database(DB_PATH);
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-db.pragma('busy_timeout = 5000');
-
-db.exec(fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8'));
+// Mode banyak sekolah (versi online untuk penyedia): tiap sekolah punya file database sendiri,
+// dipilih per permintaan lewat `konteks`. Mode biasa (versi offline/satu sekolah): satu file DB_PATH.
+const MULTI = process.env.MULTI_SEKOLAH === '1';
+const konteks = new AsyncLocalStorage();
+const SCHEMA = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
 
 // Kolom tambahan (Buku Induk, keadaan jasmani) — ditambahkan otomatis pada database lama.
 const BUKU_INDUK_FIELDS = ['kewarganegaraan', 'anak_ke', 'saudara_kandung', 'saudara_tiri', 'saudara_angkat', 'bahasa', 'telp',
@@ -23,15 +20,18 @@ const BUKU_INDUK_FIELDS = ['kewarganegaraan', 'anak_ke', 'saudara_kandung', 'sau
   'wali_agama', 'wali_pendidikan', 'wali_hubungan', 'beasiswa', 'keluar_tanggal', 'keluar_kelas', 'keluar_alasan', 'keluar_tujuan',
   'keluar_kecamatan', 'keluar_kabupaten', 'keluar_provinsi', 'lulus_tahun', 'no_ijazah', 'lanjut_ke'];
 
-function addColumns(table, cols) {
-  const have = new Set(db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name));
-  for (const c of cols) if (!have.has(c)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${c} TEXT`);
+function addColumns(d, table, cols) {
+  const have = new Set(d.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name));
+  for (const c of cols) if (!have.has(c)) d.exec(`ALTER TABLE ${table} ADD COLUMN ${c} TEXT`);
 }
-addColumns('students', BUKU_INDUK_FIELDS);
-addColumns('rapor_siswa', ['tinggi', 'berat']);
-// TP boleh dikaitkan ke satu lingkup materi (LM 1 = Bab 1 berisi beberapa TP)
-if (!db.prepare('PRAGMA table_info(tujuan_pembelajaran)').all().some((c) => c.name === 'lm_id')) {
-  db.exec('ALTER TABLE tujuan_pembelajaran ADD COLUMN lm_id INTEGER REFERENCES lingkup_materi(id) ON DELETE SET NULL');
+
+function migrasi(d) {
+  addColumns(d, 'students', BUKU_INDUK_FIELDS);
+  addColumns(d, 'rapor_siswa', ['tinggi', 'berat']);
+  // TP boleh dikaitkan ke satu lingkup materi (LM 1 = Bab 1 berisi beberapa TP)
+  if (!d.prepare('PRAGMA table_info(tujuan_pembelajaran)').all().some((c) => c.name === 'lm_id')) {
+    d.exec('ALTER TABLE tujuan_pembelajaran ADD COLUMN lm_id INTEGER REFERENCES lingkup_materi(id) ON DELETE SET NULL');
+  }
 }
 
 const DEFAULT_SETTINGS = {
@@ -120,34 +120,34 @@ const BANK_KALIMAT = {
   ],
 };
 
-function seedBase() {
-  const insSetting = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
+function seedBase(d) {
+  const insSetting = d.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
   for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) insSetting.run(k, v);
 
-  const insSubject = db.prepare(
+  const insSubject = d.prepare(
     'INSERT OR IGNORE INTO subjects (kode, nama, singkat, kelompok, agama, urutan) VALUES (?, ?, ?, ?, ?, ?)'
   );
   for (const s of SUBJECTS) insSubject.run(...s);
   // samakan nama mapel bawaan lama dengan istilah di aplikasi Excel
-  db.prepare("UPDATE subjects SET nama = 'Pendidikan Pancasila dan Kewarganegaraan', singkat = 'PPKn' WHERE kode = 'PPKN' AND nama = 'Pendidikan Pancasila'").run();
-  db.prepare("UPDATE subjects SET nama = 'Pendidikan Jasmani, Olahraga dan Kesehatan' WHERE kode = 'PJOK' AND nama = 'Pendidikan Jasmani, Olahraga, dan Kesehatan'").run();
+  d.prepare("UPDATE subjects SET nama = 'Pendidikan Pancasila dan Kewarganegaraan', singkat = 'PPKn' WHERE kode = 'PPKN' AND nama = 'Pendidikan Pancasila'").run();
+  d.prepare("UPDATE subjects SET nama = 'Pendidikan Jasmani, Olahraga dan Kesehatan' WHERE kode = 'PJOK' AND nama = 'Pendidikan Jasmani, Olahraga, dan Kesehatan'").run();
 
-  if (!db.prepare('SELECT 1 FROM users LIMIT 1').get()) {
+  if (!d.prepare('SELECT 1 FROM users LIMIT 1').get()) {
     const password = process.env.ADMIN_PASSWORD || 'admin123';
-    db.prepare("INSERT INTO users (username, password_hash, nama, role) VALUES ('admin', ?, 'Administrator', 'admin')")
+    d.prepare("INSERT INTO users (username, password_hash, nama, role) VALUES ('admin', ?, 'Administrator', 'admin')")
       .run(hashPassword(password));
   }
 
-  if (!db.prepare('SELECT 1 FROM bank_kalimat LIMIT 1').get()) {
-    const ins = db.prepare('INSERT INTO bank_kalimat (jenis, teks) VALUES (?, ?)');
+  if (!d.prepare('SELECT 1 FROM bank_kalimat LIMIT 1').get()) {
+    const ins = d.prepare('INSERT INTO bank_kalimat (jenis, teks) VALUES (?, ?)');
     for (const [jenis, list] of Object.entries(BANK_KALIMAT)) for (const t of list) ins.run(jenis, t);
   }
 
-  if (!db.prepare('SELECT 1 FROM p5_dimensi LIMIT 1').get()) {
+  if (!d.prepare('SELECT 1 FROM p5_dimensi LIMIT 1').get()) {
     const dims = require('../db/seed/p5_dimensi.json');
-    const insD = db.prepare('INSERT INTO p5_dimensi (urutan, nama) VALUES (?, ?)');
-    const insE = db.prepare('INSERT INTO p5_elemen (dimensi_id, nama) VALUES (?, ?)');
-    const insS = db.prepare('INSERT INTO p5_subelemen (elemen_id, nama, fase_a, fase_b, fase_c) VALUES (?, ?, ?, ?, ?)');
+    const insD = d.prepare('INSERT INTO p5_dimensi (urutan, nama) VALUES (?, ?)');
+    const insE = d.prepare('INSERT INTO p5_elemen (dimensi_id, nama) VALUES (?, ?)');
+    const insS = d.prepare('INSERT INTO p5_subelemen (elemen_id, nama, fase_a, fase_b, fase_c) VALUES (?, ?, ?, ?, ?)');
     dims.forEach((d, i) => {
       const did = insD.run(i + 1, d.nama).lastInsertRowid;
       for (const e of d.elemen) {
@@ -157,14 +157,44 @@ function seedBase() {
     });
   }
 
-  if (!db.prepare('SELECT 1 FROM periods LIMIT 1').get()) {
+  if (!d.prepare('SELECT 1 FROM periods LIMIT 1').get()) {
     const now = new Date();
     const y = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
     const sem = now.getMonth() >= 6 ? 1 : 2;
-    db.prepare('INSERT INTO periods (tahun_pelajaran, semester, is_active) VALUES (?, ?, 1)').run(`${y}/${y + 1}`, sem);
+    d.prepare('INSERT INTO periods (tahun_pelajaran, semester, is_active) VALUES (?, ?, 1)').run(`${y}/${y + 1}`, sem);
   }
 }
 
-db.transaction(seedBase)();
+/** Membuka (dan bila perlu menyiapkan) satu database sekolah. */
+function bukaDb(file) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const d = new Database(file);
+  d.pragma('journal_mode = WAL');
+  d.pragma('foreign_keys = ON');
+  d.pragma('busy_timeout = 5000');
+  d.exec(SCHEMA);
+  migrasi(d);
+  d.transaction(() => seedBase(d))();
+  return d;
+}
 
-module.exports = { db, DB_PATH, BUKU_INDUK_FIELDS };
+let bawaan = null;
+/** Database untuk permintaan saat ini: milik sekolah yang aktif (mode banyak sekolah) atau DB_PATH. */
+function dbAktif() {
+  const s = konteks.getStore();
+  if (s && s.db) return s.db;
+  if (MULTI) throw new Error('Sekolah belum dipilih.');
+  if (!bawaan) bawaan = bukaDb(DB_PATH);
+  return bawaan;
+}
+
+// `db` dipakai di seluruh aplikasi seperti objek better-sqlite3 biasa, tetapi diarahkan ke database sekolah aktif.
+const db = new Proxy({}, {
+  get(_, k) {
+    const d = dbAktif();
+    const v = d[k];
+    return typeof v === 'function' ? v.bind(d) : v;
+  },
+});
+
+module.exports = { db, DB_PATH, DATA_DIR, BUKU_INDUK_FIELDS, MULTI, konteks, bukaDb };

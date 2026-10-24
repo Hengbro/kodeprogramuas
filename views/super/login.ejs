@@ -1,0 +1,18 @@
+<%- include('../partials/head') %>
+<body class="public">
+  <div class="auth-box">
+    <div class="card">
+      <h1>Superadmin</h1>
+      <p class="muted">Khusus penyedia aplikasi untuk mengelola semua sekolah.</p>
+      <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+      <%- include('../partials/flash') %>
+      <form method="post" action="/super/login">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <div class="field"><label for="username">Nama pengguna</label><input id="username" name="username" value="<%= username %>" autocomplete="username" autocapitalize="none" required autofocus></div>
+        <div class="field"><label for="password">Kata sandi</label><input id="password" type="password" name="password" autocomplete="current-password" required></div>
+        <button class="btn btn-primary" style="width:100%">Masuk</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

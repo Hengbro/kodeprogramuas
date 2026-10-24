@@ -106,6 +106,23 @@ bisa menambah, mengubah, dan menghapus siswa serta nilai di kelas yang ia ampu.
 
 `Jalankan-Rapor-Jaringan.bat` membuka akses dari HP/laptop lain di WiFi yang sama.
 
+## Satu web untuk banyak sekolah (superadmin)
+
+Untuk penyedia yang melayani banyak sekolah dari satu alamat web, jalankan dengan `MULTI_SEKOLAH=1`:
+
+- **Superadmin** (penyedia) masuk di `/super/login`. Akun dibuat otomatis saat pertama jalan
+  (sandi dari `SUPERADMIN_PASSWORD`, atau acak dan dicatat di `data/superadmin-awal.txt`).
+- Panel superadmin: tambah sekolah (langsung dapat database & akun admin sekolah), ubah nama/NPSN,
+  aktifkan/nonaktifkan, tambah admin, reset kata sandi, buka sekolah sebagai admin, unduh cadangan,
+  hapus sekolah (berkas dipindah ke `data/terhapus/`).
+- Setiap sekolah punya file database sendiri (`data/sekolah/<kode>.sqlite`); daftar sekolah di `data/master.sqlite`.
+  Data, akun, logo, dan pengaturan antar-sekolah tidak tercampur.
+- Guru/admin masuk dengan **kode sekolah** + username + sandi; tautan langsung `/login?sekolah=<kode>`.
+  Portal orang tua: `/?sekolah=<kode>` atau pilih sekolah di halaman depan.
+- Admin sekolah (kepala sekolah/operator) tidak bisa mengubah nama sekolah & NPSN; itu diatur superadmin.
+- Database satu sekolah yang sudah ada (`data/rapor.sqlite`) otomatis menjadi sekolah pertama.
+- Diuji di `test/multi-sekolah.test.js`. Tanpa `MULTI_SEKOLAH=1` (mis. versi Windows) aplikasi tetap satu sekolah.
+
 ## Supaya bisa diakses publik
 
 ### Opsi 1 — VPS dengan Docker (disarankan)
@@ -129,7 +146,8 @@ rapor.sekolahku.sch.id {
 Jalankan `npm start` di komputer sekolah, lalu publikasikan dengan `cloudflared tunnel --url http://localhost:3000` atau ngrok.
 
 ## Variabel lingkungan
-Lihat `.env.example`: `PORT`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `DATA_DIR`, `DB_PATH`, `COOKIE_SECURE`, `TRUST_PROXY`.
+Lihat `.env.example`: `PORT`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `DATA_DIR`, `DB_PATH`, `COOKIE_SECURE`, `TRUST_PROXY`,
+serta `MULTI_SEKOLAH`, `SUPERADMIN_USER`, `SUPERADMIN_PASSWORD` untuk mode banyak sekolah.
 
 ## Struktur
 ```

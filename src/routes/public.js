@@ -10,7 +10,15 @@ function portalEnabled(res) {
   return res.locals.settings.public_portal === '1';
 }
 
+function daftarSekolah() {
+  return require('../lib/master').daftar().filter((s) => s.aktif).map((s) => ({ kode: s.kode, nama: s.nama }));
+}
+
 router.get('/', (req, res) => {
+  // mode banyak sekolah tanpa sekolah terpilih: orang tua memilih sekolah dulu
+  if (res.locals.multi && !res.locals.sekolah) {
+    return res.render('pilih-sekolah', { title: 'Pilih Sekolah', daftar: daftarSekolah(), error: req.query.sekolah ? 'Sekolah tidak ditemukan.' : null });
+  }
   const stats = {
     siswa: db.prepare("SELECT COUNT(*) n FROM students WHERE status = 'aktif'").get().n,
     kelas: db.prepare('SELECT COUNT(*) n FROM classes').get().n,
@@ -19,7 +27,13 @@ router.get('/', (req, res) => {
   res.render('home', { title: 'Beranda', stats, error: null, portal: portalEnabled(res) });
 });
 
+router.get('/pilih-sekolah', (req, res) => {
+  if (!res.locals.multi) return res.redirect('/');
+  res.render('pilih-sekolah', { title: 'Pilih Sekolah', daftar: daftarSekolah(), error: null });
+});
+
 router.post('/cek-rapor', cekLimiter, (req, res) => {
+  if (res.locals.multi && !res.locals.sekolah) return res.redirect('/');
   if (!portalEnabled(res)) return res.redirect('/');
   const nisn = String(req.body.nisn || '').trim();
   const tgl = String(req.body.tanggal_lahir || '').trim();
@@ -32,11 +46,13 @@ router.post('/cek-rapor', cekLimiter, (req, res) => {
       error: 'Data tidak ditemukan. Periksa kembali NISN/NIS dan tanggal lahir.',
     });
   }
+  require('./auth').pakaiSekolah(req, res);
   req.session.publicStudentId = st.id;
   res.redirect('/rapor-saya');
 });
 
 router.get('/rapor-saya', (req, res) => {
+  if (res.locals.multi && !res.locals.sekolah) return res.redirect('/');
   const id = req.session.publicStudentId;
   if (!id || !portalEnabled(res)) return res.redirect('/');
   const student = db.prepare('SELECT id, nama, nisn, nis FROM students WHERE id = ?').get(id);
@@ -50,6 +66,7 @@ router.get('/rapor-saya', (req, res) => {
 });
 
 router.get('/rapor-saya/:periodId/:jenis', (req, res) => {
+  if (res.locals.multi && !res.locals.sekolah) return res.redirect('/');
   const id = req.session.publicStudentId;
   if (!id || !portalEnabled(res)) return res.redirect('/');
   const period = db.prepare(`SELECT p.* FROM periods p WHERE p.id = ? AND p.is_published = 1

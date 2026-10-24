@@ -1,0 +1,22 @@
+<%- include('partials/head') %>
+<body class="public">
+  <nav class="public-nav">
+    <span class="brand"><div class="brand-logo">R</div><div><b>E-Rapor SD</b><small>Kurikulum Merdeka</small></div></span>
+    <a class="btn btn-sm" href="/login">Masuk Guru / Admin</a>
+  </nav>
+  <div class="auth-box">
+    <div class="card">
+      <h1>Pilih sekolah</h1>
+      <p class="muted">Pilih sekolah putra/putri Anda untuk melihat rapor, atau masuk sebagai guru/admin sekolah.</p>
+      <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+      <% if (!daftar.length) { %><p class="muted">Belum ada sekolah yang terdaftar.</p><% } else { %>
+      <form method="get" action="/">
+        <div class="field"><label for="sekolah">Sekolah</label>
+          <select id="sekolah" name="sekolah" required><option value="">— pilih sekolah —</option><% daftar.forEach(s => { %><option value="<%= s.kode %>"><%= s.nama %></option><% }) %></select></div>
+        <button class="btn btn-primary" style="width:100%">Lanjut</button>
+      </form>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

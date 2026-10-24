@@ -1,4 +1,4 @@
-const { db } = require('../db');
+const { db, konteks } = require('../db');
 const { lisensiAktif } = require('./lisensi');
 const { hitungMapel, deskripsiMapel, ranking, avg, predikatFor, P5_LEVEL } = require('./calc');
 
@@ -7,8 +7,11 @@ function getSettings() {
   const s = Object.fromEntries(rows.map((r) => [r.key, r.value]));
   // logo disimpan sebagai data URI; di sini cukup penanda versinya (untuk URL /logo/...)
   s.logo = {};
+  // mode banyak sekolah: kode sekolah ikut di URL logo agar gambar tidak tertukar antar-sekolah
+  const st = konteks.getStore();
+  const akhiran = st && st.sekolah ? `&s=${encodeURIComponent(st.sekolah.kode)}` : '';
   for (const r of db.prepare("SELECT key, length(value) AS n, substr(value, -16) AS t FROM settings WHERE key IN ('logo_sekolah', 'logo_pemda') AND value != ''").all()) {
-    s.logo[r.key.slice(5)] = `${r.n.toString(36)}${Buffer.from(r.t).toString('hex').slice(0, 8)}`;
+    s.logo[r.key.slice(5)] = `${r.n.toString(36)}${Buffer.from(r.t).toString('hex').slice(0, 8)}${akhiran}`;
   }
   s.juara = Math.max(1, Math.min(200, Number(s.juara_jumlah) || 3));
   s.rankingBatas = Math.max(1, Math.min(200, Number(s.ranking_batas) || 10));

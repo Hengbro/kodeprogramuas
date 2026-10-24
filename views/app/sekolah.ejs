@@ -8,9 +8,9 @@
 <% } %>
 <form method="post" class="card" data-track>
   <input type="hidden" name="_csrf" value="<%= csrf %>">
-  <% const terkunci = settings.lisensi ? ['nama_sekolah', 'npsn'] : [];
+  <% const terkunci = settings.lisensi || multi ? ['nama_sekolah', 'npsn'] : [];
      const f = (name, label, hint) => { const kunci = terkunci.includes(name); %>
-    <div class="field"><label for="<%= name %>"><%= label %><%= kunci ? ' 🔒' : '' %></label><input id="<%= name %>" name="<%= name %>" value="<%= settings[name] || '' %>" <%= kunci ? 'readonly' : '' %>><% if (kunci) { %><div class="hint">Terkunci sesuai lisensi aplikasi.</div><% } else if (hint) { %><div class="hint"><%= hint %></div><% } %></div>
+    <div class="field"><label for="<%= name %>"><%= label %><%= kunci ? ' 🔒' : '' %></label><input id="<%= name %>" name="<%= name %>" value="<%= settings[name] || '' %>" <%= kunci ? 'readonly' : '' %>><% if (kunci) { %><div class="hint"><%= multi ? 'Diatur oleh penyedia aplikasi (superadmin).' : 'Terkunci sesuai lisensi aplikasi.' %></div><% } else if (hint) { %><div class="hint"><%= hint %></div><% } %></div>
   <% } %>
   <fieldset><legend>Identitas</legend>
     <div class="form-grid">

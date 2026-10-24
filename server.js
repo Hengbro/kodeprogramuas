@@ -2,18 +2,21 @@ const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
 const cookieSession = require('cookie-session');
-const { db } = require('./src/db');
+const { db, MULTI, konteks } = require('./src/db');
 const { getSettings, getActivePeriod } = require('./src/lib/rapor');
 const helpers = require('./src/lib/view-helpers');
 const lisensi = require('./src/lib/lisensi');
 
-require('./src/lib/paket-otomatis').pasangJikaAda();
+const master = MULTI ? require('./src/lib/master') : null;
+if (MULTI) master.siapkan();
+else require('./src/lib/paket-otomatis').pasangJikaAda();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const isProd = process.env.NODE_ENV === 'production';
 
 let secret = process.env.SESSION_SECRET;
+if (!secret && MULTI) secret = master.pengaturan('session_secret', () => crypto.randomBytes(32).toString('hex'));
 if (!secret) {
   // simpan secret acak di database agar sesi tetap valid setelah restart
   const row = db.prepare("SELECT value FROM settings WHERE key = '_session_secret'").get();
@@ -33,7 +36,6 @@ app.use((req, res, next) => {
   next();
 });
 app.use('/static', express.static(path.join(__dirname, 'public'), { maxAge: isProd ? '7d' : 0 }));
-app.use('/', require('./src/routes/logo'));
 app.get('/sehat', (req, res) => res.set('Cache-Control', 'no-store').json({ ok: true }));
 app.use(express.urlencoded({ extended: true, limit: '50mb', parameterLimit: 50000 }));
 app.use(cookieSession({
@@ -50,13 +52,47 @@ app.use((req, res, next) => {
   next();
 });
 
+// Mode banyak sekolah: pilih database sekolah untuk permintaan ini.
+// Sekolah diambil dari sesi; formulir masuk/cek rapor dan halaman depan boleh menyebut sekolah lain
+// (konteksLain = tidak memakai akun/siswa yang tersimpan di sesi).
+if (MULTI) {
+  app.use((req, res, next) => {
+    // sesi dari masa satu sekolah (sebelum mode banyak sekolah) milik sekolah pertama
+    if (!req.session.sekolah && (req.session.userId || req.session.publicStudentId)) {
+      const lama = master.pengaturan('sekolah_lama');
+      if (lama) req.session.sekolah = lama; else { delete req.session.userId; delete req.session.publicStudentId; }
+    }
+    let kode = req.session.sekolah || null;
+    let lain = false;
+    const dariForm = req.method === 'POST' && ['/login', '/cek-rapor', '/lanjutkan'].includes(req.path) && req.body && req.body.sekolah;
+    const dariUrl = req.method === 'GET' && (['/', '/login'].includes(req.path) || req.path.startsWith('/logo/')) && (req.query.sekolah || req.query.s);
+    const pilih = String(dariForm || dariUrl || '').trim().toLowerCase();
+    if (pilih && pilih !== kode) { kode = pilih; lain = true; }
+    const s = kode ? master.cari(kode) : null;
+    res.locals.sekolah = s && s.aktif ? s : null;
+    res.locals.konteksLain = lain;
+    res.locals.kodeDiminta = pilih || req.session.sekolah || req.session.terakhir || '';
+    res.locals.dariSuper = !!(req.session.superId && req.session.dariSuper);
+    if (!res.locals.sekolah) return next();
+    return konteks.run({ db: master.dbSekolah(res.locals.sekolah), sekolah: res.locals.sekolah }, next);
+  });
+}
+app.use('/', require('./src/routes/logo'));
+
 app.use((req, res, next) => {
-  res.locals.settings = getSettings();
-  res.locals.activePeriod = getActivePeriod();
-  res.locals.user = req.session.userId
+  const adaSekolah = !MULTI || res.locals.sekolah;
+  res.locals.multi = MULTI;
+  if (res.locals.sekolah === undefined) res.locals.sekolah = null;
+  if (res.locals.kodeDiminta === undefined) res.locals.kodeDiminta = '';
+  if (res.locals.dariSuper === undefined) res.locals.dariSuper = false;
+  res.locals.settings = adaSekolah ? getSettings() : { nama_sekolah: 'Kurikulum Merdeka', logo: {} };
+  res.locals.activePeriod = adaSekolah ? getActivePeriod() : null;
+  // akun di sesi hanya berlaku pada database sekolah tempat ia masuk
+  const akunBerlaku = adaSekolah && !(MULTI && (res.locals.konteksLain || res.locals.sekolah.kode !== req.session.sekolah));
+  res.locals.user = req.session.userId && akunBerlaku
     ? db.prepare('SELECT id, username, nama, nip, role FROM users WHERE id = ?').get(req.session.userId)
     : null;
-  if (req.session.userId && !res.locals.user) req.session = null;
+  if (req.session.userId && akunBerlaku && !res.locals.user) { delete req.session.userId; }
   res.locals.flash = req.session && req.session.flash;
   if (req.session) delete req.session.flash;
   // path relatif terhadap /app (mis. /kelas/1/nilai/3) untuk menandai menu yang sedang dibuka
@@ -92,6 +128,7 @@ app.use((req, res, next) => {
   if (!lisensi.wajib() || res.locals.settings.lisensi || req.path.startsWith('/aktivasi')) return next();
   return res.redirect('/aktivasi');
 });
+if (MULTI) app.use('/super', require('./src/routes/super'));
 app.use('/', require('./src/routes/aktivasi'));
 app.use('/', require('./src/routes/public'));
 app.use('/', require('./src/routes/auth'));

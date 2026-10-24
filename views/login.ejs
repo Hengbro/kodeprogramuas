@@ -6,17 +6,18 @@
   <div class="auth-box">
     <div class="card">
       <h1>Masuk</h1>
-      <p class="muted">Khusus guru dan administrator sekolah.</p>
+      <p class="muted">Khusus guru dan administrator sekolah.<% if (multi && sekolah) { %><br><b><%= sekolah.nama %></b><% } %></p>
       <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
       <%- include('partials/flash') %>
       <form method="post" action="/login">
         <input type="hidden" name="_csrf" value="<%= csrf %>">
-        <div class="field"><label for="username">Nama pengguna</label><input id="username" name="username" value="<%= username %>" autocomplete="username" required autofocus></div>
+        <% if (multi) { %><div class="field"><label for="sekolah">Kode sekolah</label><input id="sekolah" name="sekolah" value="<%= sekolah ? sekolah.kode : kodeDiminta %>" autocomplete="organization" autocapitalize="none" required placeholder="diberikan oleh penyedia aplikasi"></div><% } %>
+        <div class="field"><label for="username">Nama pengguna</label><input id="username" name="username" value="<%= username %>" autocomplete="username" required <%= multi && !sekolah ? '' : 'autofocus' %>></div>
         <div class="field"><label for="password">Kata sandi</label><input id="password" type="password" name="password" autocomplete="current-password" required></div>
         <button class="btn btn-primary" style="width:100%">Masuk</button>
       </form>
     </div>
-    <p class="muted" style="text-align:center"><a href="/">← Kembali ke portal</a></p>
+    <p class="muted" style="text-align:center"><a href="/<%= multi && sekolah ? "?sekolah=" + sekolah.kode : "" %>">← Kembali ke portal</a></p>
   </div>
 </body>
 </html>

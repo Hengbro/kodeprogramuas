@@ -3,7 +3,8 @@
 <div class="public">
   <nav class="public-nav">
     <a href="/" class="brand" style="text-decoration:none"><%- include('partials/brand-mark') %><div><b>E-Rapor SD</b><small><%= settings.nama_sekolah %></small></div></a>
-    <a class="btn btn-sm" href="<%= user ? '/app' : '/login' %>"><%= user ? 'Buka Aplikasi' : 'Masuk Guru / Admin' %></a>
+    <div class="btn-group"><% if (multi) { %><a class="btn btn-sm btn-ghost" href="/pilih-sekolah">Ganti sekolah</a><% } %>
+    <a class="btn btn-sm" href="<%= user ? '/app' : '/login' + (multi ? '?sekolah=' + sekolah.kode : '') %>"><%= user ? 'Buka Aplikasi' : 'Masuk Guru / Admin' %></a></div>
   </nav>
   <section class="hero">
     <div>
@@ -26,6 +27,7 @@
         <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
         <form method="post" action="/cek-rapor">
           <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <% if (multi) { %><input type="hidden" name="sekolah" value="<%= sekolah.kode %>"><% } %>
           <div class="field"><label for="nisn">NISN / NIS</label><input id="nisn" name="nisn" inputmode="numeric" required></div>
           <div class="field"><label for="tgl">Tanggal lahir</label><input id="tgl" type="date" name="tanggal_lahir" required></div>
           <button class="btn btn-primary" style="width:100%">Lihat Rapor</button>

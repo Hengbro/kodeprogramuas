@@ -253,3 +253,9 @@ h1 svg, h2 svg, h3 svg { width: 1em; height: 1em; vertical-align: -.12em; }
 .nav a.active { background: var(--primary); color: #fff; box-shadow: inset 3px 0 0 #93c5fd; font-weight: 600; }
 .mapel-chips { display: flex; flex-wrap: wrap; gap: .35rem; margin: -.5rem 0 1rem; }
 .mapel-chips .chip { font-size: .8rem; }
+
+/* Panel superadmin */
+.super-main { max-width: 1100px; margin: 0 auto; padding: 1.25rem 16px 3rem; }
+.sekolah-card.nonaktif { opacity: .75; border-style: dashed; }
+.sekolah-card details > summary { cursor: pointer; color: var(--primary); font-weight: 600; }
+.super-banner { background: #fef3c7; color: #78350f; border-bottom: 1px solid #fcd34d; padding: .45rem 1rem; font-size: .85rem; display: flex; gap: .75rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }

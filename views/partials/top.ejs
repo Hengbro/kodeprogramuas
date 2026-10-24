@@ -35,6 +35,8 @@
     </nav>
   </aside>
   <div class="main">
+    <% if (dariSuper) { %><div class="super-banner no-print"><span>Mode superadmin: Anda sedang membuka <b><%= settings.nama_sekolah %></b> sebagai admin sekolah.</span>
+      <form method="post" action="/logout" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm">← Kembali ke panel superadmin</button></form></div><% } %>
     <header class="topbar no-print">
       <button class="menu-btn" type="button" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Menu"><%- h.icon('menu') %></button>
       <span class="badge badge-primary" title="Periode aktif"><%- h.icon('calendar') %> <%= h.periodLabel(activePeriod) %></span>

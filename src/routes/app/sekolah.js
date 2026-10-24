@@ -8,7 +8,8 @@ const router = express.Router();
 const PROFIL_FIELDS = ['kementerian', 'korwil', 'status_sekolah', 'pemda', 'instansi', 'nama_sekolah', 'nss', 'npsn', 'alamat', 'desa', 'kecamatan', 'kabupaten',
   'provinsi', 'kode_pos', 'telp', 'faks', 'website', 'email', 'kepsek_nama', 'kepsek_nip'];
 
-const setSetting = db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value');
+// disiapkan per pemanggilan karena database bisa berbeda per sekolah
+const setSetting = { run: (k, v) => db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(k, v) };
 
 router.get('/sekolah', requireAdmin, (req, res) => {
   res.render('app/sekolah', { title: 'Profil Sekolah' });
@@ -20,7 +21,7 @@ const LOGO_MAX = Math.ceil((1024 * 1024 * 4) / 3) + 40; // ±1 MB berkas asli
 router.post('/sekolah', requireAdmin, (req, res) => {
   let pesanLogo = null;
   db.transaction(() => {
-    const terkunci = res.locals.settings.lisensi ? ['nama_sekolah', 'npsn'] : [];
+    const terkunci = res.locals.settings.lisensi || res.locals.multi ? ['nama_sekolah', 'npsn'] : [];
     for (const f of PROFIL_FIELDS) if (!terkunci.includes(f)) setSetting.run(f, String(req.body[f] || '').trim());
     for (const jenis of ['sekolah', 'pemda']) {
       if (req.body[`hapus_logo_${jenis}`]) setSetting.run(`logo_${jenis}`, '');
