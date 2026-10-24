@@ -154,12 +154,15 @@ const ROOT = path.join(__dirname, '..', '..');
 const KUNCI_PRIVAT = process.env.LISENSI_PRIVAT || path.join(ROOT, 'kunci-penjual', 'kunci-rahasia.pem');
 const ZIP_WINDOWS = process.env.ZIP_WINDOWS || path.join(ROOT, 'dist', 'E-Rapor-SD-Windows.zip');
 const PANDUAN_PDF = path.join(ROOT, 'docs', 'Panduan-Instalasi-E-Rapor-SD.pdf');
+const SETUP_WINDOWS = process.env.SETUP_WINDOWS || path.join(ROOT, 'dist', 'Pasang-E-Rapor-SD.exe');
 
 function infoOffline() {
   const zip = fs.existsSync(ZIP_WINDOWS) ? fs.statSync(ZIP_WINDOWS) : null;
+  const setup = fs.existsSync(SETUP_WINDOWS) ? fs.statSync(SETUP_WINDOWS) : null;
   return {
     kunci: fs.existsSync(KUNCI_PRIVAT),
     zip: zip ? { ukuran: zip.size, tanggal: zip.mtime } : null,
+    setup: setup ? { ukuran: setup.size, tanggal: setup.mtime } : null,
     panduan: fs.existsSync(PANDUAN_PDF),
     daftar: m().prepare('SELECT * FROM lisensi_offline ORDER BY id DESC').all(),
   };
@@ -191,4 +194,4 @@ function buatLisensiOffline({ npsn, sekolah, catatan, sekolahKode }) {
   return m().prepare('SELECT * FROM lisensi_offline WHERE token = ?').get(token);
 }
 
-module.exports = { m, daftar, cari, dbSekolah, buatSekolah, siapkan, statistik, pengaturan, sandiAcak, slug, tutup, KODE_RE, MASTER_PATH, infoOffline, buatLisensiOffline, cekLisensiOffline, ZIP_WINDOWS, PANDUAN_PDF };
+module.exports = { m, daftar, cari, dbSekolah, buatSekolah, siapkan, statistik, pengaturan, sandiAcak, slug, tutup, KODE_RE, MASTER_PATH, infoOffline, buatLisensiOffline, cekLisensiOffline, ZIP_WINDOWS, SETUP_WINDOWS, PANDUAN_PDF };

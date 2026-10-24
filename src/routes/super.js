@@ -84,6 +84,11 @@ router.get('/unduh/windows', wajibSuper, (req, res) => {
   res.download(master.ZIP_WINDOWS, 'E-Rapor-SD-Windows.zip');
 });
 
+router.get('/unduh/setup', wajibSuper, (req, res) => {
+  if (!fs.existsSync(master.SETUP_WINDOWS)) { req.flash('error', 'Pemasang .exe belum dibuat di server (jalankan scripts/build-windows.sh dengan NSIS terpasang).'); return res.redirect('/super#offline'); }
+  res.download(master.SETUP_WINDOWS, 'Pasang-E-Rapor-SD.exe');
+});
+
 router.get('/unduh/panduan', wajibSuper, (req, res) => {
   if (!fs.existsSync(master.PANDUAN_PDF)) return res.redirect('/super#offline');
   res.download(master.PANDUAN_PDF, 'Panduan-Instalasi-E-Rapor-SD.pdf');

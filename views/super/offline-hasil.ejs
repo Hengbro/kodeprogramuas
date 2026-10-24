@@ -14,12 +14,12 @@
 
 1. Buka tautan ini dan unduh aplikasinya:
 <%= baseUrl %>/unduh/offline/<%= l.token %>
-2. Ekstrak ZIP, lalu klik dua kali Jalankan-Rapor.bat
-3. Tempel Kode Aktivasi berikut, lalu buat akun admin sekolah:
+2. Buka file Pasang-E-Rapor-SD.exe, klik Lanjut sampai selesai (ikon E-Rapor SD muncul di desktop)
+3. Saat E-Rapor SD terbuka, tempel Kode Aktivasi berikut, lalu buat akun admin sekolah:
 
 <%= l.kode %>
 
 Lisensi seumur hidup, khusus <%= l.sekolah %> (NPSN <%= l.npsn %>).</textarea>
-  <div class="form-actions"><a class="btn" href="/super/unduh/windows">Unduh ZIP (untuk dikirim sendiri / flashdisk)</a><a class="btn btn-primary" href="/super#offline">Kembali ke panel</a></div>
+  <div class="form-actions"><% if (offline.setup) { %><a class="btn" href="/super/unduh/setup">Unduh pemasang .exe (untuk flashdisk)</a><% } %><a class="btn" href="/super/unduh/windows">Unduh ZIP</a><a class="btn btn-primary" href="/super#offline">Kembali ke panel</a></div>
 </div>
 <%- include('_bottom') %>

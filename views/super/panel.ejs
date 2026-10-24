@@ -68,6 +68,7 @@
 <div class="card" id="offline">
   <div class="card-head"><h2 style="margin:0">Sekolah versi offline (Windows)</h2>
     <div class="btn-group">
+      <% if (offline.setup) { %><a class="btn btn-sm btn-primary" href="/super/unduh/setup"><%- h.icon('download') %> Pemasang .exe (<%= (offline.setup.ukuran / 1024 / 1024).toFixed(0) %> MB)</a><% } %>
       <% if (offline.zip) { %><a class="btn btn-sm" href="/super/unduh/windows"><%- h.icon('download') %> ZIP Windows (<%= (offline.zip.ukuran / 1024 / 1024).toFixed(0) %> MB)</a><% } %>
       <% if (offline.panduan) { %><a class="btn btn-sm" href="/super/unduh/panduan"><%- h.icon('file') %> Panduan PDF</a><% } %>
     </div></div>

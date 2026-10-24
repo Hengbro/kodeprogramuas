@@ -37,10 +37,19 @@ tar -xzf "$CACHE/$TGZ" -C "$STAGE/app/node_modules/better-sqlite3"
 test -f "$STAGE/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node"
 rm -rf "$STAGE/app/node_modules/better-sqlite3/deps" "$STAGE/app/node_modules/better-sqlite3/src"
 
-echo "5/5 Berkas peluncur & ZIP"
-cp "$ROOT/windows/"Jalankan-*.bat "$ROOT/windows/BACA-SAYA.txt" "$STAGE/"
+echo "5/5 Berkas peluncur, ZIP & pemasang"
+cp "$ROOT/windows/"Jalankan-*.bat "$ROOT/windows/BACA-SAYA.txt" "$ROOT/windows/e-rapor.ico" "$STAGE/"
 [ -f "$ROOT/docs/Panduan-Instalasi-E-Rapor-SD.pdf" ] && cp "$ROOT/docs/Panduan-Instalasi-E-Rapor-SD.pdf" "$STAGE/"
 # baris CRLF agar Notepad & cmd.exe membaca dengan benar
 for f in "$STAGE"/*.bat "$STAGE"/BACA-SAYA.txt; do sed -i 's/\r\{0,1\}$/\r/' "$f"; done
 (cd "$OUT" && rm -f "$NAME.zip" && zip -qr "$NAME.zip" "$NAME")
 echo "Selesai: $OUT/$NAME.zip ($(du -h "$OUT/$NAME.zip" | cut -f1))"
+
+# Pemasang (Setup .exe) untuk pengguna awam: next-next-selesai, ikon di desktop
+if command -v makensis >/dev/null; then
+  VERSI="$(node -p "require('$ROOT/package.json').version")"
+  makensis -V2 -DSRC="$STAGE" -DOUT="$OUT/Pasang-E-Rapor-SD.exe" -DVERSI="$VERSI" "$ROOT/windows/pemasang.nsi"
+  echo "Selesai: $OUT/Pasang-E-Rapor-SD.exe ($(du -h "$OUT/Pasang-E-Rapor-SD.exe" | cut -f1))"
+else
+  echo "makensis (NSIS) tidak ada: pemasang .exe tidak dibuat (apt install nsis)."
+fi

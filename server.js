@@ -179,11 +179,13 @@ if (MULTI) {
     const l = master.m().prepare('SELECT * FROM lisensi_offline WHERE token = ?').get(req.params.token);
     if (!l) return res.status(404).render('error', { title: 'Tautan tidak berlaku', message: 'Tautan unduhan tidak ditemukan. Minta tautan baru kepada penyedia aplikasi.' });
     if (req.query.berkas === 'panduan' && require('fs').existsSync(master.PANDUAN_PDF)) return res.download(master.PANDUAN_PDF, 'Panduan-Instalasi-E-Rapor-SD.pdf');
-    if (req.query.berkas === 'zip' && require('fs').existsSync(master.ZIP_WINDOWS)) {
+    const berkas = { setup: [master.SETUP_WINDOWS, 'Pasang-E-Rapor-SD.exe'], zip: [master.ZIP_WINDOWS, 'E-Rapor-SD-Windows.zip'] }[req.query.berkas];
+    if (berkas && require('fs').existsSync(berkas[0])) {
       master.m().prepare('UPDATE lisensi_offline SET unduhan = unduhan + 1 WHERE id = ?').run(l.id);
-      return res.download(master.ZIP_WINDOWS, 'E-Rapor-SD-Windows.zip');
+      return res.download(berkas[0], berkas[1]);
     }
-    res.render('unduh-offline', { title: 'Unduh E-Rapor SD (offline)', l, adaPanduan: require('fs').existsSync(master.PANDUAN_PDF) });
+    const ada = (f) => require('fs').existsSync(f);
+    res.render('unduh-offline', { title: 'Unduh E-Rapor SD (offline)', l, adaPanduan: ada(master.PANDUAN_PDF), adaSetup: ada(master.SETUP_WINDOWS), adaZip: ada(master.ZIP_WINDOWS) });
   });
 }
 app.use('/', require('./src/routes/aktivasi'));
@@ -201,7 +203,11 @@ app.use((err, req, res, next) => {
 if (require.main === module) {
   // HOST=127.0.0.1 → hanya komputer ini; kosong/0.0.0.0 → bisa dibuka perangkat lain di jaringan yang sama
   const HOST = process.env.HOST || '0.0.0.0';
-  app.listen(PORT, HOST, () => {
+  const bukaBrowser = (url) => {
+    const cmd = process.platform === 'win32' ? `start "" "${url}"` : process.platform === 'darwin' ? `open "${url}"` : `xdg-open "${url}"`;
+    require('child_process').exec(cmd, () => {});
+  };
+  const server = app.listen(PORT, HOST, () => {
     const lokal = `http://localhost:${PORT}`;
     console.log('');
     console.log('  E-Rapor SD sudah berjalan.');
@@ -216,10 +222,17 @@ if (require.main === module) {
     }
     console.log('  Jangan tutup jendela ini selama aplikasi dipakai.');
     console.log('');
-    if (process.env.OPEN_BROWSER === '1') {
-      const cmd = process.platform === 'win32' ? `start "" "${lokal}"` : process.platform === 'darwin' ? `open "${lokal}"` : `xdg-open "${lokal}"`;
-      require('child_process').exec(cmd, () => {});
+    if (process.env.OPEN_BROWSER === '1') bukaBrowser(lokal);
+  });
+  server.on('error', (e) => {
+    // ikon diklik lagi padahal aplikasi sudah menyala: cukup buka browsernya
+    if (e.code === 'EADDRINUSE' && process.env.OPEN_BROWSER === '1') {
+      console.log('  E-Rapor SD sudah menyala. Membuka browser ...');
+      bukaBrowser(`http://localhost:${PORT}`);
+      setTimeout(() => process.exit(0), 1500);
+      return;
     }
+    throw e;
   });
 }
 
