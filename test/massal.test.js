@@ -193,3 +193,22 @@ test('kata sandi acak: kosong saat tambah guru dan reset sandi oleh admin', asyn
   assert.ok((await masuk('guruacak', baru)).token);
   assert.match(r.text, /data-sandi-acak/);
 });
+
+test('piagam: tombol cetak membuka piagam (bukan rapor) dan isinya bisa diatur admin', async () => {
+  const { req, token } = await masuk('admin', 'admin123');
+  let r = await req('GET', `/app/kelas/${kelas}/cetak`);
+  // formulir piagam tidak boleh berada di dalam formulir rapor (formulir bersarang membuat tombol membuka rapor akhir)
+  const awal = r.text.indexOf('<form class="card" method="get"') + 5;
+  const luar = r.text.slice(awal, r.text.indexOf('</form>', awal));
+  assert.doesNotMatch(luar, /<form/);
+  assert.match(r.text, /<form id="form-piagam" method="get" action="\/app\/kelas\/\d+\/cetak-semua\/piagam"/);
+  await req('POST', '/app/pengaturan', { _csrf: token, bobot_f: '1', bobot_s: '2', bobot_as: '2', juara_jumlah: '3',
+    piagam_judul: 'PIAGAM PRESTASI', piagam_kalimat: 'atas prestasi {nama} di kelas {kelas} ({tahun})', piagam_ttd_kanan: 'Wali Kelas', piagam_warna: 'emas' });
+  r = await req('GET', `/app/kelas/${kelas}/cetak-semua/piagam?top=3`);
+  assert.match(r.text, /PIAGAM PRESTASI/);
+  assert.match(r.text, /Wali Kelas/);
+  assert.match(r.text, /warna-emas/);
+  assert.match(r.text, /atas prestasi .+ di kelas IV A \(\d{4}\/\d{4}\)/);
+  assert.match(r.text, /contenteditable="true"/);
+  assert.doesNotMatch(r.text, /RAPOR DAN PROFIL PESERTA DIDIK/);
+});

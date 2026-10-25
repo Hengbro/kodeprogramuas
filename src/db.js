@@ -73,6 +73,14 @@ const DEFAULT_SETTINGS = {
   juara_jumlah: '3',
   ttd_ortu: 'Orang Tua/Wali',
   public_portal: '1',
+  // isi piagam penghargaan (bisa diubah admin di Pengaturan Nilai)
+  piagam_judul: 'PIAGAM PENGHARGAAN',
+  piagam_pengantar: 'Diberikan kepada:',
+  piagam_sebagai: 'Sebagai',
+  piagam_kalimat: 'pada Kelas {kelas} Semester {semester} Tahun Pelajaran {tahun} dengan rata-rata nilai {rata}.',
+  piagam_ttd_kiri: 'Kepala Sekolah',
+  piagam_ttd_kanan: 'Guru Kelas',
+  piagam_warna: 'biru',
 };
 
 const SUBJECTS = [

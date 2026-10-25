@@ -59,7 +59,8 @@ router.post('/pengaturan', requireAdmin, (req, res) => {
   predikat.sort((x, y) => y.min - x.min);
   db.transaction(() => {
     for (const k of ['bobot_f', 'bobot_s', 'bobot_as']) setSetting.run(k, String(Math.max(0, Number(b[k]) || 0)));
-    setSetting.run('predikat', JSON.stringify(predikat));
+    // predikat tidak boleh kosong (deskripsi rapor memakainya); bila tidak dikirim, pakai yang lama
+    if (predikat.length) setSetting.run('predikat', JSON.stringify(predikat));
     setSetting.run('desk_mode', b.desk_mode === 'sederhana' ? 'sederhana' : 'predikat');
     setSetting.run('desk_nama', b.desk_nama ? '1' : '0');
     setSetting.run('kalimat_tinggi', String(b.kalimat_tinggi || '').trim());
@@ -68,6 +69,12 @@ router.post('/pengaturan', requireAdmin, (req, res) => {
     setSetting.run('ranking_batas', String(Math.max(1, Math.min(200, parseInt(b.ranking_batas, 10) || 10))));
     setSetting.run('juara_jumlah', String(Math.max(1, Math.min(200, parseInt(b.juara_jumlah, 10) || 3))));
     setSetting.run('ttd_ortu', String(b.ttd_ortu || 'Orang Tua/Wali').trim());
+    // isi piagam; kosong = kembali ke teks bawaan
+    const PIAGAM_BAWAAN = { piagam_judul: 'PIAGAM PENGHARGAAN', piagam_pengantar: 'Diberikan kepada:', piagam_sebagai: 'Sebagai',
+      piagam_kalimat: 'pada Kelas {kelas} Semester {semester} Tahun Pelajaran {tahun} dengan rata-rata nilai {rata}.',
+      piagam_ttd_kiri: 'Kepala Sekolah', piagam_ttd_kanan: 'Guru Kelas' };
+    for (const [k, v] of Object.entries(PIAGAM_BAWAAN)) if (k in b) setSetting.run(k, String(b[k] || '').trim().slice(0, 300) || v);
+    if ('piagam_warna' in b) setSetting.run('piagam_warna', ['biru', 'hijau', 'emas', 'merah', 'hitam'].includes(b.piagam_warna) ? b.piagam_warna : 'biru');
     setSetting.run('public_portal', b.public_portal ? '1' : '0');
   })();
   req.flash('success', 'Pengaturan penilaian disimpan.');

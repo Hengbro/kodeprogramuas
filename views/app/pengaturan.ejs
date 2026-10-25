@@ -60,6 +60,20 @@
       <select name="ttd_ortu"><% ['Orang Tua/Wali', 'Ayah', 'Ibu', 'Wali'].forEach(o => { %><option <%= settings.ttd_ortu === o ? 'selected' : '' %>><%= o %></option><% }) %></select></div>
     <div class="field"><label>&nbsp;</label><label class="checkbox"><input type="checkbox" name="public_portal" value="1" <%= settings.public_portal === '1' ? 'checked' : '' %>> Aktifkan portal cek rapor orang tua</label></div>
   </div>
+  <h3 id="piagam" style="margin-top:1.2rem">Isi piagam penghargaan</h3>
+  <p class="muted" style="margin-top:0">Teks yang tercetak di piagam juara. Pada kalimat bisa dipakai: <code>{kelas}</code> <code>{semester}</code> <code>{tahun}</code> <code>{rata}</code> <code>{peringkat}</code> <code>{nama}</code>. Kosongkan untuk kembali ke teks bawaan.</p>
+  <div class="grid grid-3">
+    <div class="field"><label>Judul</label><input name="piagam_judul" value="<%= settings.piagam_judul %>"></div>
+    <div class="field"><label>Kalimat pengantar</label><input name="piagam_pengantar" value="<%= settings.piagam_pengantar %>"></div>
+    <div class="field"><label>Sebelum peringkat</label><input name="piagam_sebagai" value="<%= settings.piagam_sebagai %>"></div>
+  </div>
+  <div class="field"><label>Kalimat penjelasan</label><textarea name="piagam_kalimat" rows="2"><%= settings.piagam_kalimat %></textarea></div>
+  <div class="grid grid-3">
+    <div class="field"><label>Tanda tangan kiri</label><input name="piagam_ttd_kiri" value="<%= settings.piagam_ttd_kiri %>"></div>
+    <div class="field"><label>Tanda tangan kanan</label><input name="piagam_ttd_kanan" value="<%= settings.piagam_ttd_kanan %>"></div>
+    <div class="field"><label>Warna bingkai</label><select name="piagam_warna"><% [['biru','Biru'],['hijau','Hijau'],['emas','Emas'],['merah','Merah'],['hitam','Hitam']].forEach(([v,l]) => { %><option value="<%= v %>" <%= settings.piagam_warna === v ? 'selected' : '' %>><%= l %></option><% }) %></select></div>
+  </div>
+  <p class="hint">Setelah menyimpan, lihat hasilnya di <b>Kelas → Cetak Rapor → Lihat/Cetak piagam</b>. Di halaman cetak, teks piagam juga bisa diklik dan diubah langsung sebelum dicetak (hanya untuk cetakan itu).</p>
   <div class="form-actions"><button class="btn btn-primary"><%- h.icon('check') %> Simpan pengaturan</button></div>
 </form>
 

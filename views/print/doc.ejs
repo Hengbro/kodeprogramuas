@@ -10,10 +10,11 @@
   <div class="toolbar">
     <a href="<%= back %>">← Kembali</a>
     <span><%= title %> · <%= items.length %> dokumen</span>
+    <% if (kind === 'piagam' && items.length) { %><span class="info">Klik teks piagam untuk mengubahnya sebelum dicetak</span><% } %>
     <span class="sp"></span>
     <button class="primary" onclick="window.print()">Cetak / Simpan PDF</button>
   </div>
-  <% if (!items.length) { %><div class="page"><p class="center">Tidak ada data untuk dicetak.</p></div><% } %>
+  <% if (!items.length) { %><div class="page"><p class="center"><%= kind === 'piagam' ? 'Belum ada siswa yang memiliki peringkat. Peringkat muncul setelah nilai mata pelajaran siswa diisi.' : 'Tidak ada data untuk dicetak.' %></p></div><% } %>
   <% if (kind === 'induk' && parts.includes('cover') && items[0]) { %><%- include('_induk-sampul', { r: items[0] }) %><% } %>
   <% items.forEach(r => { %>
     <%- include('_' + partial, { r, parts }) %>
