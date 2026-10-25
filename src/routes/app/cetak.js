@@ -2,7 +2,7 @@ const express = require('express');
 const { db } = require('../../db');
 const { canAccessClass } = require('../../lib/auth');
 const {
-  buildClassReport, buildStudentRapor, buildProjectRapor, buildBukuInduk, studentsOfClass, legerColumns, legerValue, getPeriod, classOfStudent,
+  buildClassReport, buildStudentRapor, buildProjectRapor, buildBukuInduk, studentsOfClass, legerColumns, legerValue, getPeriod, classOfStudent, getSettings,
 } = require('../../lib/rapor');
 const { toCSV } = require('../../lib/csv');
 const { loadClass, workingPeriod } = require('./_util');
@@ -69,12 +69,26 @@ router.get('/kelas/:classId/cetak-semua/:kind', loadClass, (req, res) => {
     const top = report.students.filter((r) => r.rank && r.rank <= (Number(req.query.top) || res.locals.settings.juara)).sort((a, b) => a.rank - b.rank);
     students = top.map((r) => r.student);
   }
-  const items = students.map((s) => buildFor(kind, period.id, s.id)).filter((x) => x && x.cls);
+  let items = students.map((s) => buildFor(kind, period.id, s.id)).filter((x) => x && x.cls);
+  if (kind === 'piagam' && !items.length) items = [contohPiagam(period, req.cls)];
   res.render('print/doc', {
     title: `${KINDS[kind].label} ${req.cls.nama}`, items, kind, partial: KINDS[kind].partial,
     parts: parseParts(req.query), back: `/app/kelas/${req.cls.id}/cetak?period=${period.id}`,
   });
 });
+
+/**
+ * Piagam contoh bila belum ada peringkat (nilai belum diisi): tetap bisa dilihat & diatur tampilannya.
+ * Memakai siswa pertama di kelas bila ada; peringkat dan rata-rata dibiarkan kosong.
+ */
+function contohPiagam(period, cls) {
+  const siswa = studentsOfClass(period.id, cls.id)[0];
+  const r = siswa ? buildStudentRapor(period.id, siswa.id) : null;
+  return {
+    ...(r && r.cls ? r : { settings: getSettings(), cls, period, student: { nama: 'Nama Siswa', nisn: '' } }),
+    rank: null, rata: null, contoh: true,
+  };
+}
 
 // ===== Cetak rapor satu siswa =====
 router.get('/rapor/:studentId/:kind', (req, res) => {
@@ -86,7 +100,9 @@ router.get('/rapor/:studentId/:kind', (req, res) => {
   if (!cls || !canAccessClass(res.locals.user, cls.id)) {
     return res.status(403).render('error', { title: 'Akses ditolak', message: 'Siswa tidak berada di kelas Anda pada periode ini.' });
   }
-  const data = buildFor(kind, period.id, st.id);
+  let data = buildFor(kind, period.id, st.id);
+  // siswa tanpa peringkat (nilai belum lengkap): tampilkan piagam contoh atas nama siswa itu
+  if (kind === 'piagam' && data && data.cls && !data.rank) data = { ...data, rank: null, rata: null, contoh: true };
   res.render('print/doc', {
     title: `${KINDS[kind].label} - ${st.nama}`, items: [data], kind, partial: KINDS[kind].partial,
     parts: parseParts(req.query), back: /^\/app\/[\w/?=&-]*$/.test(req.query.back || '') ? req.query.back : `/app/kelas/${cls.id}/cetak?period=${period.id}`,

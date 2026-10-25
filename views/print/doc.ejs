@@ -14,6 +14,7 @@
     <span class="sp"></span>
     <button class="primary" onclick="window.print()">Cetak / Simpan PDF</button>
   </div>
+  <% if (items.some(r => r.contoh)) { %><div class="contoh-catatan">⚠ <b>Contoh tampilan piagam.</b> Peringkat dan rata-rata masih kosong karena nilai siswa <%= items[0].student.nama === 'Nama Siswa' ? '(dan data siswa) ' : '' %>belum diisi. Piagam asli dicetak otomatis untuk juara setelah nilai mata pelajaran diisi. Teks piagam tetap bisa diatur di Pengaturan Nilai atau diklik langsung di bawah.</div><% } %>
   <% if (!items.length) { %><div class="page"><p class="center"><%= kind === 'piagam' ? 'Belum ada siswa yang memiliki peringkat. Peringkat muncul setelah nilai mata pelajaran siswa diisi.' : 'Tidak ada data untuk dicetak.' %></p></div><% } %>
   <% if (kind === 'induk' && parts.includes('cover') && items[0]) { %><%- include('_induk-sampul', { r: items[0] }) %><% } %>
   <% items.forEach(r => { %>

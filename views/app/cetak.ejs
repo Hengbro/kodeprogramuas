@@ -34,7 +34,7 @@
 
 <%# formulir piagam terpisah (formulir tidak boleh bersarang di dalam formulir rapor di atas) %>
 <form id="form-piagam" method="get" action="/app/kelas/<%= cls.id %>/cetak-semua/piagam" target="_blank"><input type="hidden" name="period" value="<%= period.id %>"></form>
-<% if (!report.students.some(r => r.rank)) { %><div class="alert alert-info">Peringkat (untuk piagam) belum ada: isi nilai mata pelajaran siswa terlebih dahulu.</div><% } %>
+<% if (!report.students.some(r => r.rank)) { %><div class="alert alert-info">Peringkat belum ada karena nilai belum diisi. Piagam tetap bisa dilihat sebagai <b>contoh tampilan</b> (peringkat &amp; rata-rata kosong); piagam juara terisi otomatis setelah nilai diisi.</div><% } %>
 <% if (user.role === 'admin') { %><p class="muted" style="margin:-.4rem 0 1rem">Isi teks dan warna piagam bisa diatur di <a href="/app/pengaturan#piagam">Pengaturan Nilai → Isi piagam penghargaan</a>.</p><% } %>
 <div class="card flush">
   <div class="card-head"><h2>Per siswa</h2></div>
@@ -49,7 +49,7 @@
         <a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/akhir<%= q %>">Nilai</a>
         <a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/tts<%= q %>">TTS</a>
         <% if (projects) { %><a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/projek<%= q %>">P5</a><% } %>
-        <% if (r.rank && r.rank <= settings.juara) { %><a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/piagam<%= q %>">Piagam</a><% } %>
+        <a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/piagam<%= q %>" title="<%= r.rank ? 'Piagam peringkat ' + r.rank : 'Belum ada peringkat — tampil sebagai contoh' %>">Piagam</a>
         <a class="btn btn-sm" target="_blank" href="/app/rapor/<%= r.student.id %>/induk<%= q %>">Induk</a>
       </td></tr>
     <% }) %>

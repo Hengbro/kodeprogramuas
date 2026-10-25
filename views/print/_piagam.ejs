@@ -1,6 +1,6 @@
 <% const s = r.settings, st = r.student, lg = s.logo || {};
-   const isi = (t) => String(t || '').replace(/\{kelas\}/g, r.cls.nama).replace(/\{semester\}/g, r.period.semester).replace(/\{tahun\}/g, r.period.tahun_pelajaran)
-     .replace(/\{rata\}/g, h.angka(r.rata, 2)).replace(/\{peringkat\}/g, h.peringkatKata(r.rank)).replace(/\{nama\}/g, st.nama); %>
+   const isi = (t) => String(t || '').replace(/\{kelas\}/g, String(r.cls.nama).replace(/^kelas\s+/i, '')).replace(/\{semester\}/g, r.period.semester).replace(/\{tahun\}/g, r.period.tahun_pelajaran)
+     .replace(/\{rata\}/g, r.rata != null ? h.angka(r.rata, 2) : '…..').replace(/\{peringkat\}/g, r.rank ? h.peringkatKata(r.rank) : '…..').replace(/\{nama\}/g, st.nama); %>
 <section class="page landscape piagam warna-<%= s.piagam_warna || 'biru' %>">
   <div class="piagam-frame" contenteditable="true" spellcheck="false">
     <div style="display:grid;grid-template-columns:28mm 1fr 28mm;align-items:center;width:100%">
@@ -17,7 +17,7 @@
     <div class="nama"><%= st.nama %></div>
     <div>NISN <%= st.nisn || '-' %></div>
     <div style="margin-top:5mm"><%= s.piagam_sebagai || 'Sebagai' %></div>
-    <div class="peringkat">Peringkat <%= h.peringkatKata(r.rank) %></div>
+    <div class="peringkat">Peringkat <%= r.rank ? h.peringkatKata(r.rank) : '…..' %></div>
     <div style="margin-top:3mm;max-width:200mm"><%= isi(s.piagam_kalimat || 'pada Kelas {kelas} Semester {semester} Tahun Pelajaran {tahun} dengan rata-rata nilai {rata}.') %></div>
     <div class="ttd" style="grid-template-columns:1fr 1fr;width:100%;margin-top:8mm">
       <div>Mengetahui,<br><%= s.piagam_ttd_kiri || 'Kepala Sekolah' %><div class="space"></div><div class="name"><%= s.kepsek_nama || '.....................' %></div><div>NIP. <%= s.kepsek_nip || '-' %></div></div>

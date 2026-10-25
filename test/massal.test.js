@@ -212,3 +212,21 @@ test('piagam: tombol cetak membuka piagam (bukan rapor) dan isinya bisa diatur a
   assert.match(r.text, /contenteditable="true"/);
   assert.doesNotMatch(r.text, /RAPOR DAN PROFIL PESERTA DIDIK/);
 });
+
+test('piagam tetap bisa dilihat sebagai contoh walau belum ada nilai / siswa', async () => {
+  const { req, token } = await masuk('admin', 'admin123');
+  let r = await req('POST', '/app/kelas', { _csrf: token, nama: 'KELAS TANPA NILAI', tingkat: '2' });
+  const id = /\/app\/kelas\/(\d+)/.exec(r.location)[1];
+  r = await req('GET', `/app/kelas/${id}/cetak-semua/piagam?top=3`);
+  assert.strictEqual(r.status, 200);
+  assert.match(r.text, /Contoh tampilan piagam/);
+  assert.match(r.text, /Nama Siswa/);
+  assert.match(r.text, /Peringkat …\.\./);
+  const sid = db.prepare("INSERT INTO students (nama, class_id) VALUES ('Siswa Belum Dinilai', ?)").run(id).lastInsertRowid;
+  r = await req('GET', `/app/kelas/${id}/cetak-semua/piagam`);
+  assert.match(r.text, /Siswa Belum Dinilai/);
+  r = await req('GET', `/app/rapor/${sid}/piagam`);
+  assert.match(r.text, /Contoh tampilan piagam/);
+  r = await req('GET', `/app/kelas/${id}/cetak`);
+  assert.match(r.text, new RegExp(`/app/rapor/${sid}/piagam`));
+});
