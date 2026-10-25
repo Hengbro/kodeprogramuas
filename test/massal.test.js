@@ -197,11 +197,10 @@ test('kata sandi acak: kosong saat tambah guru dan reset sandi oleh admin', asyn
 test('piagam: tombol cetak membuka piagam (bukan rapor) dan isinya bisa diatur admin', async () => {
   const { req, token } = await masuk('admin', 'admin123');
   let r = await req('GET', `/app/kelas/${kelas}/cetak`);
-  // formulir piagam tidak boleh berada di dalam formulir rapor (formulir bersarang membuat tombol membuka rapor akhir)
-  const awal = r.text.indexOf('<form class="card" method="get"') + 5;
-  const luar = r.text.slice(awal, r.text.indexOf('</form>', awal));
-  assert.doesNotMatch(luar, /<form/);
-  assert.match(r.text, /<form id="form-piagam" method="get" action="\/app\/kelas\/\d+\/cetak-semua\/piagam"/);
+  // formulir piagam tidak boleh berada di dalam formulir lain (formulir bersarang membuat tombol membuka rapor akhir)
+  let dalam = 0;
+  for (const m of r.text.matchAll(/<form\b|<\/form>/g)) { dalam += m[0] === '</form>' ? -1 : 1; assert.ok(dalam <= 1, 'ada formulir bersarang'); }
+  assert.match(r.text, /<form class="cetak-tile" id="form-piagam" method="get" action="\/app\/kelas\/\d+\/cetak-semua\/piagam"/);
   await req('POST', '/app/pengaturan', { _csrf: token, bobot_f: '1', bobot_s: '2', bobot_as: '2', juara_jumlah: '3',
     piagam_judul: 'PIAGAM PRESTASI', piagam_kalimat: 'atas prestasi {nama} di kelas {kelas} ({tahun})', piagam_ttd_kanan: 'Wali Kelas', piagam_warna: 'emas' });
   r = await req('GET', `/app/kelas/${kelas}/cetak-semua/piagam?top=3`);

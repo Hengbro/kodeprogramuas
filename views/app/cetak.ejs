@@ -3,51 +3,52 @@
 <div class="page-head"><div><h1>Cetak Rapor Kelas <%= cls.nama %></h1><p>Pilih periode dan jenis dokumen. Gunakan kertas A4; pada dialog cetak pilih “Simpan sebagai PDF” untuk arsip digital.</p></div>
   <form><select name="period" onchange="this.form.submit()" style="width:auto"><% periods.forEach(p => { %><option value="<%= p.id %>" <%= p.id === period.id ? 'selected' : '' %>><%= h.periodLabel(p) %></option><% }) %></select></form></div>
 
-<form class="card" method="get" action="/app/kelas/<%= cls.id %>/cetak-semua/akhir" target="_blank">
-  <input type="hidden" name="period" value="<%= period.id %>">
-  <h2>Cetak satu kelas sekaligus</h2>
-  <div class="grid grid-2">
-    <div>
-      <label>Halaman rapor akhir semester</label>
+<div class="card">
+  <h2 style="margin-top:0">Cetak satu kelas sekaligus</h2>
+  <div class="cetak-grid">
+    <form class="cetak-tile" method="get" action="/app/kelas/<%= cls.id %>/cetak-semua/akhir" target="_blank">
+      <input type="hidden" name="period" value="<%= period.id %>">
+      <div class="cetak-judul"><%- h.icon('print') %> Rapor akhir semester</div>
       <label class="checkbox"><input type="checkbox" name="part" value="cover"> Sampul</label>
       <label class="checkbox"><input type="checkbox" name="part" value="sekolah"> Identitas sekolah</label>
       <label class="checkbox"><input type="checkbox" name="part" value="identitas"> Identitas peserta didik</label>
       <label class="checkbox"><input type="checkbox" name="part" value="nilai" checked> Rapor &amp; profil peserta didik (nilai)</label>
-      <div class="btn-group" style="margin-top:.6rem"><button class="btn btn-primary"><%- h.icon('print') %> Rapor akhir semester</button></div>
-    </div>
-    <div>
-      <label>Dokumen lain</label>
-      <div class="btn-group">
+      <div class="cetak-aksi"><button class="btn btn-primary"><%- h.icon('print') %> Cetak rapor akhir semester</button></div>
+    </form>
+    <div class="cetak-tile">
+      <div class="cetak-judul"><%- h.icon('file') %> Dokumen lain</div>
+      <div class="cetak-daftar">
         <a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/tts?period=<%= period.id %>">Rapor tengah semester</a>
         <% if (projects) { %><a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/projek?period=<%= period.id %>">Rapor projek P5</a><a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/projek?period=<%= period.id %>&part=cover&part=nilai">Rapor P5 + sampul</a><% } %>
         <a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/leger?print=1&period=<%= period.id %>">Leger nilai</a>
         <a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/induk?period=<%= period.id %>&part=cover&part=nilai"><%- h.icon('book') %> Buku Induk kelas (+ sampul)</a>
       </div>
-      <div class="piagam-pilih">
-        <label style="margin:0;width:100%"><%- h.icon('award') %> Piagam juara</label>
-        <span class="muted">Juara 1 s.d.</span>
-        <input type="number" name="top" form="form-piagam" min="1" max="200" value="<%= settings.juara %>" style="width:70px" aria-label="Jumlah juara">
-        <select name="tpl" form="form-piagam" style="width:auto;max-width:100%" aria-label="Template piagam" title="Template piagam">
-          <option value="">Template sekolah (no. <%= settings.piagam_template || 1 %>)</option>
+    </div>
+    <form class="cetak-tile" id="form-piagam" method="get" action="/app/kelas/<%= cls.id %>/cetak-semua/piagam" target="_blank">
+      <input type="hidden" name="period" value="<%= period.id %>">
+      <div class="cetak-judul"><%- h.icon('award') %> Piagam juara</div>
+      <div class="cetak-isian">
+        <div class="field"><label>Juara 1 sampai</label><input type="number" name="top" min="1" max="200" value="<%= settings.juara %>" aria-label="Jumlah juara"></div>
+        <div class="field"><label>Template</label><select name="tpl" aria-label="Template piagam">
+          <option value="">Bawaan sekolah (no. <%= settings.piagam_template || 1 %>)</option>
           <% ['Klasik biru','Elegan emas','Modern pita samping','Sudut ornamen','Pita judul','Bingkai tebal','Gradasi warna','Minimalis','Ceria anak','Pola garis formal'].forEach((nm, i) => { %><option value="<%= i + 1 %>"><%= i + 1 %>. <%= nm %></option><% }) %>
-        </select>
-        <button class="btn btn-primary" form="form-piagam">Lihat / cetak piagam</button>
+        </select></div>
+      </div>
+      <div class="cetak-aksi">
+        <button class="btn btn-primary"><%- h.icon('award') %> Lihat / cetak piagam</button>
         <a class="btn" href="/app/piagam/template" target="_blank">Lihat 10 template</a>
       </div>
-
-    </div>
+    </form>
   </div>
-</form>
+</div>
 
-<%# formulir piagam terpisah (formulir tidak boleh bersarang di dalam formulir rapor di atas) %>
-<form id="form-piagam" method="get" action="/app/kelas/<%= cls.id %>/cetak-semua/piagam" target="_blank"><input type="hidden" name="period" value="<%= period.id %>"></form>
 <% if (!report.students.some(r => r.rank)) { %><div class="alert alert-info">Peringkat belum ada karena nilai belum diisi. Piagam tetap bisa dilihat sebagai <b>contoh tampilan</b> (peringkat &amp; rata-rata kosong); piagam juara terisi otomatis setelah nilai diisi.</div><% } %>
 <% if (user.role === 'admin') { %><p class="muted" style="margin:-.4rem 0 1rem">Isi teks dan warna piagam bisa diatur di <a href="/app/pengaturan#piagam">Pengaturan Nilai → Isi piagam penghargaan</a>.</p><% } %>
 <div class="card flush">
   <div class="card-head"><h2>Per siswa</h2></div>
   <div class="table-wrap">
   <table class="table">
-    <thead><tr><th class="num">No</th><th>Nama</th><th class="num">Rata-rata</th><th class="num">Peringkat</th><th class="actions">Cetak</th></tr></thead>
+    <thead><tr><th class="num" style="width:44px">No</th><th style="min-width:200px">Nama</th><th class="num" style="width:96px">Rata-rata</th><th class="num" style="width:96px">Peringkat</th><th class="actions" style="width:1%">Cetak</th></tr></thead>
     <tbody>
     <% report.students.forEach((r, i) => { const q = '?period=' + period.id; %>
       <tr><td class="num"><%= i + 1 %></td><td><%= r.student.nama %></td><td class="num"><%= h.angka(r.rata, 2) %></td><td class="num"><%= r.rank || '' %></td>
