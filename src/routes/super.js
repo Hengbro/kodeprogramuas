@@ -6,6 +6,7 @@ const express = require('express');
 const { DATA_DIR } = require('../db');
 const master = require('../lib/master');
 const { periksaZip } = require('../lib/zip');
+const pembaruan = require('../lib/pembaruan');
 const { hashPassword, verifyPassword } = require('../lib/password');
 const { rateLimit } = require('../lib/rate-limit');
 
@@ -84,6 +85,23 @@ router.get('/offline/:id', wajibSuper, (req, res) => {
   const l = master.m().prepare('SELECT * FROM lisensi_offline WHERE id = ?').get(req.params.id);
   if (!l) return res.redirect('/super#offline');
   res.render('super/offline-hasil', { title: 'Kode aktivasi offline', l, offline: master.infoOffline() });
+});
+
+// ===== Pembaruan aplikasi dari GitHub =====
+router.get('/pembaruan', wajibSuper, (req, res) => {
+  res.render('super/pembaruan', { title: 'Pembaruan aplikasi', st: pembaruan.status(), hasil: null });
+});
+
+router.post('/pembaruan', wajibSuper, (req, res) => {
+  let hasil;
+  try { hasil = pembaruan.perbarui(); } catch (e) {
+    req.flash('error', `Pembaruan gagal: ${String(e.stderr || e.message).trim().split('\n').slice(0, 4).join(' ')}`);
+    return res.redirect('/super/pembaruan');
+  }
+  const ulang = hasil.berubah && pembaruan.bisaMulaiUlang();
+  res.render('super/pembaruan', { title: 'Pembaruan aplikasi', st: pembaruan.status({ ambil: false }), hasil: { ...hasil, ulang } });
+  // beri waktu halaman terkirim, lalu minta peluncur menjalankan ulang aplikasi
+  if (ulang) setTimeout(() => process.exit(pembaruan.KODE_ULANG), 1500);
 });
 
 // Unggah ZIP aplikasi Windows (E-Rapor-SD-Windows.zip) langsung dari panel, tanpa harus menyalin ke folder dist

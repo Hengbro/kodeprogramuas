@@ -3,6 +3,7 @@
   <nav class="public-nav">
     <a href="/super" class="brand" style="text-decoration:none"><div class="brand-logo">S</div><div><b>Superadmin E-Rapor</b><small>Pengelola semua sekolah</small></div></a>
     <% if (locals.superAkun) { %><div class="btn-group">
+      <a class="btn btn-sm btn-ghost" href="/super/pembaruan"><%- h.icon('download') %> Pembaruan</a>
       <a class="btn btn-sm btn-ghost" href="/super/akun"><%- h.icon('user') %> <%= superAkun.username %></a>
       <form method="post" action="/super/keluar" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm"><%- h.icon('logout') %> Keluar</button></form>
     </div><% } %>

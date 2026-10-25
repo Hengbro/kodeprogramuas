@@ -1,0 +1,38 @@
+<%- include('_top') %>
+<div class="card" style="max-width:760px;margin:0 auto">
+  <h1>Pembaruan aplikasi</h1>
+  <p class="muted">Mengambil versi terbaru aplikasi dari GitHub dan menjalankannya ulang, tanpa Terminal. Data sekolah tidak berubah.</p>
+  <% if (hasil) { %>
+    <div class="alert alert-success">
+      <b><%= hasil.berubah ? 'Aplikasi diperbarui.' : 'Sudah versi terbaru, tidak ada yang berubah.' %></b><br>
+      Versi sekarang: <code><%= hasil.versi %></code>
+      <% if (hasil.ulang) { %><br>Aplikasi menjalankan ulang sendiri. <b>Tunggu sekitar 10 detik</b>, lalu <a href="/super">muat ulang halaman</a>.<% } else if (hasil.berubah) { %><br><b>Tutup lalu jalankan ulang aplikasi</b> (Ctrl+C di jendela Terminal, lalu jalankan peluncurnya lagi) agar perubahan berlaku.<% } %>
+    </div>
+    <% if (hasil.log) { %><pre style="white-space:pre-wrap;font-size:.8rem;background:var(--surface-2,#f8fafc);padding:.75rem;border-radius:8px"><%= hasil.log %></pre><% } %>
+  <% } %>
+  <% if (!st.git) { %>
+    <div class="alert alert-info"><%= st.pesan %></div>
+  <% } else if (st.galat) { %>
+    <div class="alert alert-error">Tidak bisa memeriksa pembaruan: <%= st.galat %><br><small>Pastikan komputer tersambung internet.</small></div>
+  <% } else { %>
+    <table class="table">
+      <tr><th style="width:190px">Versi terpasang</th><td><code><%= st.lokal %></code></td></tr>
+      <tr><th>Cabang</th><td><code><%= st.cabang %></code></td></tr>
+      <tr><th>Status</th><td><% if (st.tertinggal) { %><span class="badge badge-primary"><%= st.tertinggal %> pembaruan tersedia</span><% } else { %><span class="badge badge-success">Terbaru</span><% } %></td></tr>
+    </table>
+    <% if (st.tertinggal) { %>
+      <h3>Isi pembaruan</h3>
+      <ul><% st.baru.forEach(function (b) { %><li><%= b %></li><% }) %></ul>
+      <% if (st.kotor && st.kotor.length) { %><div class="alert alert-error">Ada file di komputer ini yang diubah manual (<%= st.kotor.slice(0, 3).join(', ') %>). Pembaruan mungkin ditolak agar perubahan itu tidak tertimpa.</div><% } %>
+      <form method="post" action="/super/pembaruan" class="form-actions" style="justify-content:flex-start">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <button class="btn btn-primary" data-confirm="Perbarui aplikasi sekarang? Aplikasi akan dijalankan ulang sebentar (sekitar 10 detik) dan semua pengguna yang sedang membuka akan terputus sejenak."><%- h.icon('download') %> Perbarui sekarang</button>
+        <% if (!st.bisaMulaiUlang) { %><small class="muted">Setelah selesai, jalankan ulang aplikasi secara manual.</small><% } %>
+      </form>
+    <% } else { %>
+      <form method="get" action="/super/pembaruan" class="form-actions" style="justify-content:flex-start"><button class="btn">Periksa lagi</button></form>
+    <% } %>
+  <% } %>
+  <div class="form-actions"><a class="btn" href="/super">Kembali</a></div>
+</div>
+<%- include('_bottom') %>
