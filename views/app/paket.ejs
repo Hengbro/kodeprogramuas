@@ -26,10 +26,10 @@
         <% gurus.forEach(g => { %><option value="<%= g.id %>"><%= g.nama %> (<%= g.username %>) — <%= g.kelas ? 'Kelas ' + g.kelas : 'belum punya kelas' %></option><% }) %>
         <option value="semua">Semua guru (untuk satu komputer bersama)</option>
       </select></div>
-    <button class="btn btn-primary" name="bentuk" value="zip" <%= windows ? '' : 'disabled title="Hanya di aplikasi versi Windows"' %>><%- h.icon('download') %> Unduh aplikasi (ZIP)</button>
+    <button class="btn btn-primary" name="bentuk" value="zip" <%= windows ? '' : 'disabled title="Berkas aplikasi Windows belum ada di server ini"' %>><%- h.icon('download') %> Unduh aplikasi (ZIP)</button>
     <button class="btn" name="bentuk" value="json" title="File data saja, untuk diletakkan di folder data salinan aplikasi">Unduh paketnya saja</button>
   </form>
-  <% if (!windows) { %><p class="hint muted" style="margin-top:.5rem">Tombol ZIP aktif saat aplikasi dijalankan dari paket Windows. Alternatif: unduh paketnya saja, lalu taruh file itu di folder <code>data</code> pada salinan baru E-Rapor-SD-Windows sebelum dijalankan pertama kali.</p><% } %>
+  <% if (!windows) { %><p class="hint muted" style="margin-top:.5rem">Tombol ZIP aktif bila berkas <code>E-Rapor-SD-Windows.zip</code> ada di folder <code>dist</code> server ini. Alternatif: klik <b>Unduh paketnya saja</b>, lalu taruh file itu di folder <code>data</code> pada salinan baru E-Rapor-SD-Windows sebelum dijalankan pertama kali.</p><% } %>
   <div class="alert alert-info" style="margin:1rem 0 0">
     Klik <b>Unduh aplikasi (ZIP)</b> lalu berikan ZIP itu ke guru bersama <b>Panduan-Guru.pdf</b>. Guru mengekstrak ZIP, membuka
     <b>Pasang-E-Rapor-SD.exe</b> (atau <b>Jalankan-Rapor.bat</b> jika pemasang gagal), lalu masuk dengan akun dari Anda —

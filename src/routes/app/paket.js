@@ -5,7 +5,7 @@ const express = require('express');
 const { db } = require('../../db');
 const { requireAdmin, allowedClasses } = require('../../lib/auth');
 const { exportPaket, parsePaket, ringkas, importPaket, exportPaketGuru } = require('../../lib/paket');
-const { writeZip, listFiles } = require('../../lib/zip');
+const { writeZip, listFiles, tambahkanKeZip } = require('../../lib/zip');
 const { NAMA: NAMA_PAKET_AWAL } = require('../../lib/paket-otomatis');
 
 const router = express.Router();
@@ -16,6 +16,9 @@ const ROOT = path.dirname(APP_DIR);
 function paketWindowsTersedia() {
   return fs.existsSync(path.join(ROOT, 'node', 'node.exe')) && fs.existsSync(path.join(ROOT, 'Jalankan-Rapor.bat'));
 }
+// Di server (bukan paket Windows): pakai ZIP aplikasi Windows yang sudah dibangun (scripts/build-windows.sh)
+const ZIP_DASAR = process.env.ZIP_WINDOWS || path.join(APP_DIR, 'dist', 'E-Rapor-SD-Windows.zip');
+const zipDasarTersedia = () => fs.existsSync(ZIP_DASAR);
 
 function guruList() {
   return db.prepare(`SELECT u.id, u.nama, u.username, (SELECT GROUP_CONCAT(nama, ', ') FROM classes WHERE guru_id = u.id) AS kelas
@@ -30,7 +33,7 @@ router.get('/paket', (req, res) => {
     : allowedClasses(res.locals.user).map((c) => ({ ...c, jumlah: c.jumlah_siswa }));
   res.render('app/paket', {
     title: isAdmin ? 'Paket Data' : 'Kirim Data ke Admin', classes, isAdmin,
-    gurus: isAdmin ? guruList() : [], windows: paketWindowsTersedia(),
+    gurus: isAdmin ? guruList() : [], windows: paketWindowsTersedia() || zipDasarTersedia(),
   });
 });
 
@@ -71,8 +74,16 @@ router.get('/paket/guru', requireAdmin, (req, res, next) => {
     return res.send(JSON.stringify(pkg));
   }
   if (!paketWindowsTersedia()) {
-    req.flash('error', 'ZIP aplikasi hanya bisa dibuat dari aplikasi versi Windows. Unduh file paketnya saja.');
-    return res.redirect('/app/paket#bagikan');
+    if (!zipDasarTersedia()) {
+      req.flash('error', 'Berkas aplikasi Windows (E-Rapor-SD-Windows.zip) belum ada di server ini. Letakkan di folder dist, atau unduh file paketnya saja.');
+      return res.redirect('/app/paket#bagikan');
+    }
+    try {
+      // sisipkan data guru ke ZIP aplikasi yang sudah jadi
+      const tmp = path.join(os.tmpdir(), `E-Rapor-SD-${label}-${Date.now()}.zip`);
+      tambahkanKeZip(ZIP_DASAR, tmp, [{ name: `data/${NAMA_PAKET_AWAL}`, data: JSON.stringify(pkg) }]);
+      return res.download(tmp, `E-Rapor-SD-${label}.zip`, () => fs.unlink(tmp, () => {}));
+    } catch (e) { return next(e); }
   }
   try {
     const folder = `E-Rapor-SD-${label}`;

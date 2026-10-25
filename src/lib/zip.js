@@ -88,4 +88,67 @@ function writeZip(target, entries) {
   }
 }
 
-module.exports = { writeZip, listFiles };
+/**
+ * Menyalin ZIP yang sudah jadi lalu menambahkan berkas baru di dalamnya, tanpa mengompres ulang isi lama
+ * (cepat walau ZIP-nya puluhan MB). Folder utama ZIP sumber dipakai sebagai awalan nama berkas baru.
+ * @param {string} sumber ZIP dasar (bukan ZIP64)
+ * @param {string} target ZIP hasil
+ * @param {{ name: string, data: Buffer|string }[]} entries nama relatif terhadap folder utama ZIP sumber
+ * @returns {string} nama folder utama ZIP
+ */
+function tambahkanKeZip(sumber, target, entries) {
+  const zip = fs.readFileSync(sumber);
+  let eocd = -1;
+  for (let i = zip.length - 22; i >= Math.max(0, zip.length - 22 - 65535); i -= 1) {
+    if (zip.readUInt32LE(i) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('Berkas ZIP dasar tidak valid.');
+  const jumlah = zip.readUInt16LE(eocd + 10);
+  const cdSize = zip.readUInt32LE(eocd + 12);
+  const cdStart = zip.readUInt32LE(eocd + 16);
+  if (jumlah === 0xffff || cdStart === 0xffffffff) throw new Error('ZIP dasar terlalu besar (ZIP64) dan tidak didukung.');
+  const nameLen = zip.readUInt16LE(cdStart + 28);
+  const first = zip.toString('utf8', cdStart + 46, cdStart + 46 + nameLen);
+  const folder = first.includes('/') ? first.slice(0, first.indexOf('/')) : '';
+
+  const { time, date } = dosTime(new Date());
+  const locals = []; const centrals = [];
+  let offset = cdStart;
+  for (const e of entries) {
+    const raw = Buffer.from(e.data);
+    const deflated = zlib.deflateRawSync(raw, { level: 6 });
+    const useDeflate = deflated.length < raw.length;
+    const body = useDeflate ? deflated : raw;
+    const crc = zlib.crc32(raw) >>> 0;
+    const name = Buffer.from(folder ? `${folder}/${e.name}` : e.name, 'utf8');
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0); local.writeUInt16LE(20, 4); local.writeUInt16LE(0x0800, 6);
+    local.writeUInt16LE(useDeflate ? 8 : 0, 8); local.writeUInt16LE(time, 10); local.writeUInt16LE(date, 12);
+    local.writeUInt32LE(crc, 14); local.writeUInt32LE(body.length, 18); local.writeUInt32LE(raw.length, 22);
+    local.writeUInt16LE(name.length, 26);
+    locals.push(local, name, body);
+    const h = Buffer.alloc(46);
+    h.writeUInt32LE(0x02014b50, 0); h.writeUInt16LE(20, 4); h.writeUInt16LE(20, 6); h.writeUInt16LE(0x0800, 8);
+    h.writeUInt16LE(useDeflate ? 8 : 0, 10); h.writeUInt16LE(time, 12); h.writeUInt16LE(date, 14);
+    h.writeUInt32LE(crc, 16); h.writeUInt32LE(body.length, 20); h.writeUInt32LE(raw.length, 24);
+    h.writeUInt16LE(name.length, 28); h.writeUInt32LE(offset, 42);
+    centrals.push(h, name);
+    offset += local.length + name.length + body.length;
+  }
+  const tambahan = centrals.reduce((n, b) => n + b.length, 0);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(jumlah + entries.length, 8); end.writeUInt16LE(jumlah + entries.length, 10);
+  end.writeUInt32LE(cdSize + tambahan, 12); end.writeUInt32LE(offset, 16);
+  const fd = fs.openSync(target, 'w');
+  try {
+    fs.writeSync(fd, zip, 0, cdStart);                       // isi lama apa adanya
+    for (const b of locals) fs.writeSync(fd, b);             // berkas baru
+    fs.writeSync(fd, zip, cdStart, cdSize);                  // daftar isi lama (posisi tetap)
+    for (const b of centrals) fs.writeSync(fd, b);           // daftar isi baru
+    fs.writeSync(fd, end);
+  } finally { fs.closeSync(fd); }
+  return folder;
+}
+
+module.exports = { writeZip, listFiles, tambahkanKeZip };

@@ -9,6 +9,10 @@ const { execFileSync } = require('child_process');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rapor-massal-'));
 process.env.DATA_DIR = dir;
 execFileSync(process.execPath, [path.join(__dirname, '..', 'src', 'seed-demo.js')], { env: { ...process.env, DATA_DIR: dir } });
+// ZIP aplikasi Windows tiruan (kecil) sebagai dasar tombol "Unduh aplikasi (ZIP)" di server biasa
+const zipDasar = path.join(dir, 'E-Rapor-SD-Windows.zip');
+require('../src/lib/zip').writeZip(zipDasar, [{ name: 'E-Rapor-SD-Windows/Jalankan-Rapor.bat', data: '@echo off' }, { name: 'E-Rapor-SD-Windows/data/', data: '' }]);
+process.env.ZIP_WINDOWS = zipDasar;
 const app = require('../server');
 const { db } = require('../src/db');
 const { buildStudentRapor, getActivePeriod } = require('../src/lib/rapor');
@@ -302,4 +306,23 @@ test('Pengguna & Guru: daftar dengan Detail/Hapus, edit guru (username dan kelas
   // tanpa centang sama sekali → tidak mengampu kelas
   await req('POST', `/app/pengguna/${g}`, { _csrf: token, nama: 'Guru Diubah', username: 'gurubaru', role: 'guru', atur_kelas: '1' });
   assert.strictEqual(guruDari(k2), null);
+});
+
+test('unduh aplikasi (ZIP) untuk guru berfungsi di server biasa: data guru disisipkan ke ZIP aplikasi', async () => {
+  const { req, token } = await masuk('admin', 'admin123');
+  const r = await req('GET', '/app/paket');
+  assert.doesNotMatch(r.text, /name="bentuk" value="zip" disabled/);
+  const guru = db.prepare("SELECT id FROM users WHERE username = 'guru4a'").get().id;
+  const res = await fetch(`${base}/app/paket/guru?guru=${guru}&bentuk=zip`, { headers: { cookie: req.cookie() } });
+  assert.strictEqual(res.status, 200);
+  assert.match(res.headers.get('content-disposition'), /E-Rapor-SD-guru4a\.zip/);
+  const berkas = path.join(dir, 'hasil-guru.zip');
+  fs.writeFileSync(berkas, Buffer.from(await res.arrayBuffer()));
+  const daftar = execFileSync('unzip', ['-l', berkas]).toString();
+  assert.match(daftar, /E-Rapor-SD-Windows\/Jalankan-Rapor\.bat/);
+  assert.match(daftar, /E-Rapor-SD-Windows\/data\/paket-awal.*\.rapor\.json/);
+  execFileSync('unzip', ['-tq', berkas]);
+  const paket = JSON.parse(execFileSync('unzip', ['-p', berkas, 'E-Rapor-SD-Windows/data/paket-awal.rapor.json']).toString());
+  assert.ok(paket && typeof paket === 'object');
+  void token;
 });
