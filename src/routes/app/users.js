@@ -10,9 +10,7 @@ const router = express.Router();
 router.get('/pengguna', requireAdmin, (req, res) => {
   const users = db.prepare(`SELECT u.*, (SELECT GROUP_CONCAT(nama, ', ') FROM classes WHERE guru_id = u.id) AS kelas
     FROM users u ORDER BY u.role, u.nama`).all();
-  const kelas = db.prepare(`SELECT c.id, c.nama, c.guru_id, u.nama AS guru_nama FROM classes c
-    LEFT JOIN users u ON u.id = c.guru_id ORDER BY c.tingkat, c.nama`).all();
-  res.render('app/pengguna', { title: 'Pengguna & Guru', users, kelas });
+  res.render('app/pengguna', { title: 'Pengguna & Guru', users });
 });
 
 router.post('/pengguna', requireAdmin, (req, res) => {
@@ -43,6 +41,14 @@ router.post('/pengguna', requireAdmin, (req, res) => {
   res.redirect('/app/pengguna');
 });
 
+router.get('/pengguna/:id', requireAdmin, (req, res, next) => {
+  const u = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!u) return next();
+  const kelas = db.prepare(`SELECT c.id, c.nama, c.guru_id, g.nama AS guru_nama FROM classes c
+    LEFT JOIN users g ON g.id = c.guru_id ORDER BY c.tingkat, c.nama`).all();
+  res.render('app/pengguna-detail', { title: u.nama, u, kelas });
+});
+
 router.post('/pengguna/:id', requireAdmin, (req, res) => {
   const u = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
   if (!u) return res.redirect('/app/pengguna');
@@ -55,7 +61,7 @@ router.post('/pengguna/:id', requireAdmin, (req, res) => {
     const sandi = sandiAcak();
     db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hashPassword(sandi), u.id);
     req.flash('success', `Kata sandi baru untuk ${u.username}: ${sandi} — catat sekarang, hanya ditampilkan sekali.`);
-    return res.redirect('/app/pengguna');
+    return res.redirect(`/app/pengguna/${u.id}`);
   }
   const role = u.id === res.locals.user.id ? u.role : (req.body.role === 'admin' ? 'admin' : 'guru');
   // username boleh diganti asal belum dipakai pengguna lain

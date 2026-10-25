@@ -287,19 +287,10 @@ h1 svg, h2 svg, h3 svg { width: 1em; height: 1em; vertical-align: -.12em; }
 .hapus-bar { display: flex; justify-content: space-between; align-items: center; gap: .75rem; padding: .6rem 1rem; background: #fff1f2; border-bottom: 1px solid #fecdd3; }
 .hapus-bar[hidden] { display: none; }
 
-/* Pengguna & Guru: pilih kelas yang diampu langsung di tabel */
-.pilih-kelas { min-width: 9rem; }
-.pilih-kelas summary { cursor: pointer; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); white-space: nowrap; list-style: none; }
-.pilih-kelas summary::-webkit-details-marker { display: none; }
-.pilih-kelas summary::after { content: '▾'; margin-left: .4rem; opacity: .6; }
-.pilih-kelas-isi { margin-top: 4px; max-height: 14rem; overflow: auto; padding: .4rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); }
-.pilih-kelas-isi label { display: flex; gap: .45rem; align-items: center; padding: .3rem .25rem; white-space: nowrap; font-weight: 400; }
+/* Detail pengguna: daftar centang kelas yang diampu */
+.pilih-kelas-isi { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; }
+.pilih-kelas-isi label { display: flex; gap: .45rem; align-items: center; padding: .3rem 0; font-weight: 400; }
 .pilih-kelas-isi input[type=checkbox] { width: auto; }
-.input-username { min-width: 7rem; }
-.tabel-pengguna input[name=nama] { min-width: 12rem; }
-.tabel-pengguna .nama-nip input { display: block; }
-.tabel-pengguna .nama-nip input[name=nip] { margin-top: .35rem; padding-top: .3rem; padding-bottom: .3rem; font-size: .85rem; }
-.tabel-pengguna select[name=role] { min-width: 6.5rem; }
-.tabel-pengguna input[name=password] { min-width: 7.5rem; }
-.tabel-pengguna td.actions, .tabel-pengguna th.actions { white-space: nowrap; position: sticky; right: 0; background: var(--surface); box-shadow: -6px 0 8px -6px rgba(15, 23, 42, .18); }
+.tabel-pengguna td, .tabel-pengguna th { white-space: nowrap; }
+.tabel-pengguna td.actions, .tabel-pengguna th.actions { position: sticky; right: 0; background: var(--surface); box-shadow: -6px 0 8px -6px rgba(15, 23, 42, .18); }
 .tabel-pengguna th.actions { background: var(--surface-2); }

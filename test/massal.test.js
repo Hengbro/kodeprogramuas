@@ -276,14 +276,19 @@ test('hapus siswa langsung dari daftar: satu per satu dan banyak sekaligus', asy
   assert.ok(ada(lain));
 });
 
-test('Pengguna & Guru: edit guru (username dan kelas yang diampu) langsung dari daftar', async () => {
+test('Pengguna & Guru: daftar dengan Detail/Hapus, edit guru (username dan kelas yang diampu) di halaman detail', async () => {
   const { req, token } = await masuk('admin', 'admin123');
   const g = db.prepare("INSERT INTO users (username, password_hash, nama, role) VALUES ('guruedit', 'x', 'Guru Edit', 'guru')").run().lastInsertRowid;
   const kls = db.prepare('INSERT INTO classes (nama, tingkat, fase) VALUES (?, 5, ?)');
   const k1 = kls.run('V Edit', 'C').lastInsertRowid; const k2 = kls.run('VI Edit', 'C').lastInsertRowid;
+  // daftar hanya menampilkan data + tombol Detail dan Hapus
   let r = await req('GET', '/app/pengguna');
-  assert.match(r.text, new RegExp(`form="u${g}" name="username" value="guruedit"`));
-  assert.match(r.text, new RegExp(`form="u${g}" type="checkbox" name="kelas" value="${k1}"`));
+  assert.match(r.text, new RegExp(`href="/app/pengguna/${g}"[^>]*>[^<]*<svg[\\s\\S]*?Detail</a>`));
+  assert.match(r.text, /value="delete"[^>]*>[\s\S]*?Hapus<\/button>/);
+  assert.doesNotMatch(r.text, /name="username" value="guruedit"/);
+  r = await req('GET', `/app/pengguna/${g}`);
+  assert.match(r.text, /name="username" value="guruedit"/);
+  assert.match(r.text, new RegExp(`type="checkbox" name="kelas" value="${k1}"`));
   // ganti nama, username, dan ampu dua kelas
   r = await req('POST', `/app/pengguna/${g}`, { _csrf: token, nama: 'Guru Diubah', nip: '123', username: 'gurubaru', role: 'guru', atur_kelas: '1', kelas: [String(k1), String(k2)] });
   assert.strictEqual(r.location, '/app/pengguna');
