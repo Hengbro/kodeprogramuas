@@ -7,6 +7,7 @@
     <tr><th>No. seri</th><td><%= l.seri %> · seumur hidup · dibuat <%= String(l.dibuat).slice(0, 10) %></td></tr>
     <tr><th>Halaman unduhan sekolah</th><td><code><%= baseUrl %>/unduh/offline/<%= l.token %></code><br><small class="muted">Berisi tombol unduh aplikasi, panduan PDF, dan kode aktivasi. Diunduh <%= l.unduhan %>×.</small></td></tr>
   </table>
+  <% if (!offline.zip) { %><div class="alert alert-error"><b>File aplikasi (ZIP) belum ada di server.</b> Sekolah belum bisa mengunduhnya. <a href="/super#offline">Unggah E-Rapor-SD-Windows.zip di panel superadmin</a> (sekali saja), lalu halaman unduhan sekolah akan menampilkan tombol unduh.</div><% } %>
   <label><b>Kode Aktivasi</b></label>
   <textarea readonly rows="5" onclick="this.select()" style="font-family:monospace;font-size:.8rem;word-break:break-all"><%= l.kode %></textarea>
   <h3 style="margin-top:1rem">Pesan siap kirim (WhatsApp/email)</h3>

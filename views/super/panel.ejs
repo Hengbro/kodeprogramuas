@@ -75,7 +75,34 @@
     </div></div>
   <p class="muted">Sekolah versi offline dibuat lewat formulir <a href="#tambah">Tambah sekolah</a> di bawah (centang <b>Offline</b>). Sekolah yang online <i>dan</i> offline tampil di daftar atas dengan label Offline; di sini hanya sekolah yang <b>offline saja</b>.</p>
   <% if (!offline.kunci) { %><div class="alert alert-error">Kunci rahasia penjual tidak ada di server ini, jadi kode aktivasi belum bisa dibuat dari panel. Salin <code>kunci-penjual/kunci-rahasia.pem</code> ke server.</div><% } %>
-  <% if (!offline.zip) { %><div class="alert alert-error">Berkas ZIP Windows belum ada di server. Jalankan <code>scripts/build-windows.sh</code>.</div><% } %>
+  <% if (!offline.zip) { %><div class="alert alert-error"><b>Berkas aplikasi Windows (ZIP) belum ada di server ini</b>, sehingga sekolah tidak punya tombol unduh. Unggah file <code>E-Rapor-SD-Windows.zip</code> di bawah ini (sekali saja).</div><% } %>
+  <form class="unggah-zip" data-unggah-zip style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.5rem 0 1rem">
+    <input type="file" accept=".zip" required>
+    <button class="btn btn-sm btn-primary" type="submit"><%- h.icon('upload') %> <%= offline.zip ? 'Ganti ZIP aplikasi Windows' : 'Unggah ZIP aplikasi Windows' %></button>
+    <span class="muted" data-unggah-status style="font-size:.85rem"><%= offline.zip ? 'ZIP sekarang: ' + (offline.zip.ukuran / 1024 / 1024).toFixed(0) + ' MB, ' + String(offline.zip.tanggal).slice(4, 15) : 'Pilih file E-Rapor-SD-Windows.zip (± 40 MB).' %></span>
+  </form>
+  <script>
+  (function () {
+    var f = document.querySelector('[data-unggah-zip]'); if (!f) return;
+    var st = f.querySelector('[data-unggah-status]'), btn = f.querySelector('button');
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var berkas = f.querySelector('input[type=file]').files[0]; if (!berkas) return;
+      var x = new XMLHttpRequest(); x.open('POST', '/super/unggah-zip');
+      x.setRequestHeader('Content-Type', 'application/octet-stream');
+      x.upload.onprogress = function (ev) { if (ev.lengthComputable) st.textContent = 'Mengunggah… ' + Math.round(ev.loaded * 100 / ev.total) + '%'; };
+      x.onload = function () {
+        var r = {}; try { r = JSON.parse(x.responseText); } catch (er) {}
+        btn.disabled = false;
+        if (x.status === 200 && r.ok) { st.textContent = r.pesan + ' Memuat ulang…'; setTimeout(function () { location.reload(); }, 900); }
+        else { st.textContent = 'Gagal: ' + (r.pesan || ('kode ' + x.status)); st.style.color = '#b91c1c'; }
+      };
+      x.onerror = function () { btn.disabled = false; st.textContent = 'Gagal: koneksi terputus. Coba lagi.'; st.style.color = '#b91c1c'; };
+      btn.disabled = true; st.style.color = ''; st.textContent = 'Mengunggah… 0%';
+      x.send(berkas);
+    });
+  })();
+  </script>
   <% if (!offline.saja.length) { %><p class="muted">Belum ada sekolah yang hanya memakai versi offline.</p><% } %>
   <% if (offline.saja.length) { %>
   <div class="table-wrap"><table class="table">

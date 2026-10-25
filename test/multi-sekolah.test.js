@@ -43,6 +43,7 @@ function klien() {
     for (const c of res.headers.getSetCookie()) { const [kv] = c.split(';'); const i = kv.indexOf('='); jar[kv.slice(0, i)] = kv.slice(i + 1); }
     return { status: res.status, text: await res.text(), location: res.headers.get('location') };
   };
+  req.cookie = () => Object.entries(jar).map(([k, v]) => `${k}=${v}`).join('; ');
   req.token = async (url = '/login') => /name="_csrf" value="([^"]+)"/.exec((await req('GET', url)).text)[1];
   return req;
 }
@@ -321,4 +322,33 @@ test('halaman detail sekolah menampilkan alamat, akun, dan kode aktivasi untuk a
   // halaman lain tidak bisa dibuka tanpa login superadmin
   r = await klien()('GET', '/super/sekolah/60100005');
   assert.strictEqual(r.location, '/super/login');
+});
+
+test('superadmin mengunggah ZIP aplikasi Windows dari panel (hanya ZIP paket yang sah diterima)', async () => {
+  const su = klien();
+  await su('POST', '/super/login', { _csrf: await su.token('/super/login'), username: 'superadmin', password: 'rahasia-super' });
+  const kirim = (isi, cookie = su.cookie()) => fetch(`${base}/super/unggah-zip`, { method: 'POST', headers: { 'content-type': 'application/octet-stream', origin: base, cookie }, body: isi, redirect: 'manual' });
+  const asli = fs.readFileSync(process.env.ZIP_WINDOWS);
+  // bukan ZIP → ditolak, berkas lama utuh
+  let r = await kirim(Buffer.from('bukan zip'));
+  assert.strictEqual(r.status, 400);
+  assert.ok(!(await r.json()).ok);
+  // ZIP lain (bukan paket aplikasi) → ditolak
+  const { writeZip } = require('../src/lib/zip');
+  const salah = path.join(dir, 'salah.zip'); writeZip(salah, [{ name: 'x/a.txt', data: 'a' }]);
+  r = await kirim(fs.readFileSync(salah));
+  assert.strictEqual(r.status, 400);
+  assert.deepStrictEqual(fs.readFileSync(process.env.ZIP_WINDOWS), asli);
+  // paket yang sah → tersimpan dan halaman panel menampilkannya
+  const sah = path.join(dir, 'sah.zip');
+  writeZip(sah, [{ name: 'E-Rapor-SD-Windows/Jalankan-Rapor.bat', data: '@echo off' }, { name: 'E-Rapor-SD-Windows/node/node.exe', data: 'MZ' }]);
+  r = await kirim(fs.readFileSync(sah));
+  const j = await r.json();
+  assert.strictEqual(r.status, 200); assert.ok(j.ok);
+  assert.deepStrictEqual(fs.readFileSync(process.env.ZIP_WINDOWS), fs.readFileSync(sah));
+  assert.ok(!fs.existsSync(`${process.env.ZIP_WINDOWS}.unggah`));
+  assert.match((await su('GET', '/super')).text, /Ganti ZIP aplikasi Windows/);
+  // tanpa login superadmin → tidak boleh
+  r = await kirim(fs.readFileSync(sah), '');
+  assert.ok(r.status === 302 || r.status === 401 || r.status === 403);
 });

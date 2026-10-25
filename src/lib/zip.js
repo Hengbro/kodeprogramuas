@@ -151,4 +151,25 @@ function tambahkanKeZip(sumber, target, entries) {
   return folder;
 }
 
-module.exports = { writeZip, listFiles, tambahkanKeZip };
+/** Memastikan berkas adalah ZIP biasa yang utuh; mengembalikan { folder, jumlah, nama[] } (nama = semua entri) atau melempar galat. */
+function periksaZip(file) {
+  const zip = fs.readFileSync(file);
+  let eocd = -1;
+  for (let i = zip.length - 22; i >= Math.max(0, zip.length - 22 - 65535); i -= 1) {
+    if (zip.readUInt32LE(i) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('Berkas ini bukan ZIP yang utuh (unduhannya mungkin terputus).');
+  const jumlah = zip.readUInt16LE(eocd + 10);
+  let pos = zip.readUInt32LE(eocd + 16);
+  const nama = [];
+  for (let n = 0; n < jumlah; n += 1) {
+    if (zip.readUInt32LE(pos) !== 0x02014b50) throw new Error('Daftar isi ZIP rusak.');
+    const len = zip.readUInt16LE(pos + 28); const ext = zip.readUInt16LE(pos + 30); const kom = zip.readUInt16LE(pos + 32);
+    nama.push(zip.toString('utf8', pos + 46, pos + 46 + len));
+    pos += 46 + len + ext + kom;
+  }
+  const folder = nama[0] && nama[0].includes('/') ? nama[0].slice(0, nama[0].indexOf('/')) : '';
+  return { folder, jumlah, nama };
+}
+
+module.exports = { writeZip, listFiles, tambahkanKeZip, periksaZip };

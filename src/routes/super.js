@@ -5,6 +5,7 @@ const path = require('path');
 const express = require('express');
 const { DATA_DIR } = require('../db');
 const master = require('../lib/master');
+const { periksaZip } = require('../lib/zip');
 const { hashPassword, verifyPassword } = require('../lib/password');
 const { rateLimit } = require('../lib/rate-limit');
 
@@ -77,6 +78,29 @@ router.get('/offline/:id', wajibSuper, (req, res) => {
   const l = master.m().prepare('SELECT * FROM lisensi_offline WHERE id = ?').get(req.params.id);
   if (!l) return res.redirect('/super#offline');
   res.render('super/offline-hasil', { title: 'Kode aktivasi offline', l, offline: master.infoOffline() });
+});
+
+// Unggah ZIP aplikasi Windows (E-Rapor-SD-Windows.zip) langsung dari panel, tanpa harus menyalin ke folder dist
+router.post('/unggah-zip', wajibSuper, (req, res) => {
+  const tmp = `${master.ZIP_WINDOWS}.unggah`;
+  const gagal = (kode, pesan) => { fs.rm(tmp, { force: true }, () => {}); res.status(kode).json({ ok: false, pesan }); };
+  try { fs.mkdirSync(path.dirname(master.ZIP_WINDOWS), { recursive: true }); } catch (e) { return gagal(500, e.message); }
+  const out = fs.createWriteStream(tmp);
+  let ukuran = 0; let batal = false;
+  req.on('data', (c) => { ukuran += c.length; if (ukuran > 300 * 1024 * 1024 && !batal) { batal = true; req.unpipe(out); out.destroy(); gagal(413, 'Berkas terlalu besar (maks. 300 MB).'); } });
+  req.pipe(out);
+  out.on('error', (e) => { if (!batal) gagal(500, e.message); });
+  out.on('finish', () => {
+    if (batal) return;
+    try {
+      const info = periksaZip(tmp);
+      if (!info.nama.some((n) => /Jalankan-Rapor\.bat$/i.test(n)) || !info.nama.some((n) => /node\.exe$/i.test(n))) {
+        return gagal(400, 'ZIP ini bukan paket aplikasi Windows E-Rapor SD (Jalankan-Rapor.bat / node.exe tidak ditemukan).');
+      }
+      fs.renameSync(tmp, master.ZIP_WINDOWS);
+      res.json({ ok: true, ukuran, pesan: `ZIP aplikasi Windows tersimpan (${(ukuran / 1024 / 1024).toFixed(1)} MB, ${info.jumlah} berkas).` });
+    } catch (e) { gagal(400, e.message); }
+  });
 });
 
 router.get('/unduh/windows', wajibSuper, (req, res) => {
