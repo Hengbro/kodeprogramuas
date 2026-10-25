@@ -267,3 +267,6 @@ h1 svg, h2 svg, h3 svg { width: 1em; height: 1em; vertical-align: -.12em; }
 .anak-item small { color: var(--muted); }
 .langkah { padding-left: 1.3rem; line-height: 1.65; margin: 1rem 0; }
 .langkah li { margin-bottom: .45rem; }
+
+.piagam-pilih { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: 1rem; padding-top: .9rem; border-top: 1px solid var(--border); }
+.piagam-pilih label svg { width: 1em; height: 1em; vertical-align: -2px; }

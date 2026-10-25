@@ -20,19 +20,21 @@
       <div class="btn-group">
         <a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/tts?period=<%= period.id %>">Rapor tengah semester</a>
         <% if (projects) { %><a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/projek?period=<%= period.id %>">Rapor projek P5</a><a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/projek?period=<%= period.id %>&part=cover&part=nilai">Rapor P5 + sampul</a><% } %>
-        <span style="display:inline-flex;gap:.4rem;align-items:center;flex-wrap:nowrap;white-space:nowrap">
-          <span class="btn" style="cursor:default"><%- h.icon('award') %> Piagam juara 1 s.d.</span>
-          <input type="number" name="top" form="form-piagam" min="1" max="200" value="<%= settings.juara %>" style="width:64px;flex:none" aria-label="Jumlah juara">
-          <select name="tpl" form="form-piagam" style="width:auto;flex:none" aria-label="Template piagam" title="Template piagam">
-            <option value="">Template sekolah (no. <%= settings.piagam_template || 1 %>)</option>
-            <% ['Klasik biru','Elegan emas','Modern pita samping','Sudut ornamen','Pita judul','Bingkai tebal','Gradasi warna','Minimalis','Ceria anak','Pola garis formal'].forEach((nm, i) => { %><option value="<%= i + 1 %>"><%= i + 1 %>. <%= nm %></option><% }) %>
-          </select>
-          <button class="btn btn-primary" form="form-piagam">Lihat / cetak piagam</button>
-          <a class="btn btn-sm btn-ghost" href="/app/piagam/template" target="_blank">Lihat 10 template</a>
-        </span>
         <a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/leger?print=1&period=<%= period.id %>">Leger nilai</a>
         <a class="btn" target="_blank" href="/app/kelas/<%= cls.id %>/cetak-semua/induk?period=<%= period.id %>&part=cover&part=nilai"><%- h.icon('book') %> Buku Induk kelas (+ sampul)</a>
       </div>
+      <div class="piagam-pilih">
+        <label style="margin:0;width:100%"><%- h.icon('award') %> Piagam juara</label>
+        <span class="muted">Juara 1 s.d.</span>
+        <input type="number" name="top" form="form-piagam" min="1" max="200" value="<%= settings.juara %>" style="width:70px" aria-label="Jumlah juara">
+        <select name="tpl" form="form-piagam" style="width:auto;max-width:100%" aria-label="Template piagam" title="Template piagam">
+          <option value="">Template sekolah (no. <%= settings.piagam_template || 1 %>)</option>
+          <% ['Klasik biru','Elegan emas','Modern pita samping','Sudut ornamen','Pita judul','Bingkai tebal','Gradasi warna','Minimalis','Ceria anak','Pola garis formal'].forEach((nm, i) => { %><option value="<%= i + 1 %>"><%= i + 1 %>. <%= nm %></option><% }) %>
+        </select>
+        <button class="btn btn-primary" form="form-piagam">Lihat / cetak piagam</button>
+        <a class="btn" href="/app/piagam/template" target="_blank">Lihat 10 template</a>
+      </div>
+
     </div>
   </div>
 </form>
