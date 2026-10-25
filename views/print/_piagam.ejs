@@ -1,7 +1,8 @@
 <% const s = r.settings, st = r.student, lg = s.logo || {};
    const isi = (t) => String(t || '').replace(/\{kelas\}/g, String(r.cls.nama).replace(/^kelas\s+/i, '')).replace(/\{semester\}/g, r.period.semester).replace(/\{tahun\}/g, r.period.tahun_pelajaran)
      .replace(/\{rata\}/g, r.rata != null ? h.angka(r.rata, 2) : '…..').replace(/\{peringkat\}/g, r.rank ? h.peringkatKata(r.rank) : '…..').replace(/\{nama\}/g, st.nama); %>
-<section class="page landscape piagam warna-<%= s.piagam_warna || 'biru' %>">
+<% const nomorTpl = Number(locals.tpl) || Number(s.piagam_template) || 1; const warna = locals.tpl ? 'template' : (s.piagam_warna || 'template'); %>
+<section class="page landscape piagam tpl-<%= nomorTpl %><%= warna !== 'template' ? ' warna-' + warna : '' %>">
   <div class="piagam-frame" contenteditable="true" spellcheck="false">
     <div class="piagam-kop">
       <div><% if (lg.pemda) { %><%- include('_logo', { r, jenis: 'pemda' }) %><% } %></div>

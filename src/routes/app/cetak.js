@@ -8,6 +8,9 @@ const { toCSV } = require('../../lib/csv');
 const { loadClass, workingPeriod } = require('./_util');
 
 const router = express.Router();
+const { requireAdmin } = require('../../lib/auth');
+const TEMPLATE_PIAGAM = ['Klasik biru', 'Elegan emas', 'Modern pita samping', 'Sudut ornamen', 'Pita judul', 'Bingkai tebal', 'Gradasi warna', 'Minimalis', 'Ceria anak', 'Pola garis formal'];
+const nomorTpl = (v) => { const n = Number(v); return n >= 1 && n <= TEMPLATE_PIAGAM.length ? n : null; };
 
 const KINDS = {
   akhir: { label: 'Rapor Akhir Semester', partial: 'rapor' },
@@ -73,7 +76,7 @@ router.get('/kelas/:classId/cetak-semua/:kind', loadClass, (req, res) => {
   if (kind === 'piagam' && !items.length) items = [contohPiagam(period, req.cls)];
   res.render('print/doc', {
     title: `${KINDS[kind].label} ${req.cls.nama}`, items, kind, partial: KINDS[kind].partial,
-    parts: parseParts(req.query), back: `/app/kelas/${req.cls.id}/cetak?period=${period.id}`,
+    parts: parseParts(req.query), back: `/app/kelas/${req.cls.id}/cetak?period=${period.id}`, tpl: nomorTpl(req.query.tpl),
   });
 });
 
@@ -106,7 +109,36 @@ router.get('/rapor/:studentId/:kind', (req, res) => {
   res.render('print/doc', {
     title: `${KINDS[kind].label} - ${st.nama}`, items: [data], kind, partial: KINDS[kind].partial,
     parts: parseParts(req.query), back: /^\/app\/[\w/?=&-]*$/.test(req.query.back || '') ? req.query.back : `/app/kelas/${cls.id}/cetak?period=${period.id}`,
+    tpl: nomorTpl(req.query.tpl),
   });
+});
+
+// ===== Galeri 10 template piagam =====
+router.get('/piagam/template', (req, res) => {
+  const period = res.locals.activePeriod;
+  const kelas = require('../../lib/auth').allowedClasses(res.locals.user);
+  let contoh = null;
+  for (const c of kelas) {
+    const report = buildClassReport(period.id, c.id);
+    const juara = report.students.find((r) => r.rank === 1);
+    if (juara) { contoh = buildStudentRapor(period.id, juara.student.id); break; }
+  }
+  if (!contoh) {
+    const cls = kelas[0] ? db.prepare('SELECT c.*, u.nama AS guru_nama, u.nip AS guru_nip FROM classes c LEFT JOIN users u ON u.id = c.guru_id WHERE c.id = ?').get(kelas[0].id) : { nama: 'IV A' };
+    contoh = kelas[0] ? contohPiagam(period, cls) : { settings: getSettings(), cls, period, student: { nama: 'Nama Siswa', nisn: '' }, rank: null, rata: null, contoh: true };
+  }
+  res.render('print/piagam-template', { title: 'Template Piagam', r: contoh, daftar: TEMPLATE_PIAGAM, terpilih: Number(res.locals.settings.piagam_template) || 1 });
+});
+
+router.post('/piagam/template', requireAdmin, (req, res) => {
+  const n = nomorTpl(req.body.tpl);
+  if (n) {
+    const set = db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value');
+    set.run('piagam_template', String(n));
+    set.run('piagam_warna', 'template');
+    req.flash('success', `Template piagam nomor ${n} (${TEMPLATE_PIAGAM[n - 1]}) dipakai untuk semua piagam.`);
+  }
+  res.redirect('/app/piagam/template');
 });
 
 module.exports = router;

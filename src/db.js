@@ -80,7 +80,8 @@ const DEFAULT_SETTINGS = {
   piagam_kalimat: 'pada Kelas {kelas} Semester {semester} Tahun Pelajaran {tahun} dengan rata-rata nilai {rata}.',
   piagam_ttd_kiri: 'Kepala Sekolah',
   piagam_ttd_kanan: 'Guru Kelas',
-  piagam_warna: 'biru',
+  piagam_warna: 'template',
+  piagam_template: '1',
 };
 
 const SUBJECTS = [

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/static/css/print.css">
+  <style>
+    .galeri { display: grid; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); gap: 18px; padding: 18px; max-width: 1400px; margin: 0 auto; }
+    .tpl-kartu { background: #fff; border-radius: 10px; box-shadow: 0 4px 16px rgba(15, 23, 42, .12); padding: 12px; font: 14px/1.4 system-ui, sans-serif; }
+    .tpl-kartu.terpilih { outline: 3px solid #2453d6; }
+    .tpl-mini { width: 416px; height: 294px; overflow: hidden; position: relative; margin: 0 auto 10px; }
+    .tpl-mini .page { transform: scale(.37); transform-origin: top left; margin: 0; box-shadow: none; position: absolute; top: 0; left: 0; pointer-events: none; }
+    .tpl-bawah { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .tpl-bawah button, .tpl-bawah a { font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; text-decoration: none; color: #0f172a; }
+    .tpl-bawah button.utama { background: #2453d6; border-color: #2453d6; color: #fff; }
+    .pesan { max-width: 1400px; margin: 14px auto 0; padding: 10px 14px; border-radius: 8px; background: #dcfce7; color: #14532d; font: 14px system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <a href="/app/pengaturan#piagam">← Kembali</a>
+    <span>Pilih template piagam · 10 pilihan<%= r.contoh ? ' · contoh (nilai belum ada)' : ' · contoh memakai juara 1' %></span>
+    <span class="sp"></span>
+  </div>
+  <% if (flash) { %><div class="pesan"><%= flash.message %></div><% } %>
+  <div class="galeri">
+    <% daftar.forEach((nama, i) => { const n = i + 1; %>
+    <div class="tpl-kartu<%= n === terpilih ? ' terpilih' : '' %>">
+      <div class="tpl-mini"><%- include('_piagam', { r, tpl: n }) %></div>
+      <div class="tpl-bawah">
+        <b><%= n %>. <%= nama %><%= n === terpilih ? ' ✓ dipakai' : '' %></b>
+        <span>
+          <% if (r.cls && r.cls.id) { %><a href="/app/kelas/<%= r.cls.id %>/cetak-semua/piagam?tpl=<%= n %>" target="_blank">Lihat penuh</a><% } %>
+          <% if (user.role === 'admin' && n !== terpilih) { %><form method="post" style="display:inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="tpl" value="<%= n %>"><button class="utama">Pakai template ini</button></form><% } %>
+        </span>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+  <script src="/static/js/logo-rapi.js"></script>
+</body>
+</html>

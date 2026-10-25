@@ -230,3 +230,23 @@ test('piagam tetap bisa dilihat sebagai contoh walau belum ada nilai / siswa', a
   r = await req('GET', `/app/kelas/${id}/cetak`);
   assert.match(r.text, new RegExp(`/app/rapor/${sid}/piagam`));
 });
+
+test('10 template piagam: galeri, pilih template (admin), dan pilihan saat mencetak', async () => {
+  const { req, token } = await masuk('admin', 'admin123');
+  let r = await req('GET', '/app/piagam/template');
+  assert.strictEqual(r.status, 200);
+  for (let n = 1; n <= 10; n += 1) assert.match(r.text, new RegExp(`piagam tpl-${n}[ "]`));
+  r = await req('POST', '/app/piagam/template', { _csrf: token, tpl: '7' });
+  assert.strictEqual(db.prepare("SELECT value FROM settings WHERE key = 'piagam_template'").get().value, '7');
+  r = await req('GET', `/app/kelas/${kelas}/cetak-semua/piagam`);
+  assert.match(r.text, /piagam tpl-7/);
+  r = await req('GET', `/app/kelas/${kelas}/cetak-semua/piagam?tpl=3`);
+  assert.match(r.text, /piagam tpl-3/);
+  r = await req('GET', `/app/kelas/${kelas}/cetak-semua/piagam?tpl=99`);
+  assert.match(r.text, /piagam tpl-7/);
+  // guru boleh melihat galeri, tetapi tidak bisa mengganti template sekolah
+  const g = await masuk('guru4a', 'guru123');
+  r = await g.req('POST', '/app/piagam/template', { _csrf: g.token, tpl: '2' });
+  assert.strictEqual(r.status, 403);
+  assert.strictEqual(db.prepare("SELECT value FROM settings WHERE key = 'piagam_template'").get().value, '7');
+});

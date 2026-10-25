@@ -74,7 +74,7 @@ router.post('/pengaturan', requireAdmin, (req, res) => {
       piagam_kalimat: 'pada Kelas {kelas} Semester {semester} Tahun Pelajaran {tahun} dengan rata-rata nilai {rata}.',
       piagam_ttd_kiri: 'Kepala Sekolah', piagam_ttd_kanan: 'Guru Kelas' };
     for (const [k, v] of Object.entries(PIAGAM_BAWAAN)) if (k in b) setSetting.run(k, String(b[k] || '').trim().slice(0, 300) || v);
-    if ('piagam_warna' in b) setSetting.run('piagam_warna', ['biru', 'hijau', 'emas', 'merah', 'hitam'].includes(b.piagam_warna) ? b.piagam_warna : 'biru');
+    if ('piagam_warna' in b) setSetting.run('piagam_warna', ['template', 'biru', 'hijau', 'emas', 'merah', 'hitam'].includes(b.piagam_warna) ? b.piagam_warna : 'template');
     setSetting.run('public_portal', b.public_portal ? '1' : '0');
   })();
   req.flash('success', 'Pengaturan penilaian disimpan.');
