@@ -157,6 +157,26 @@ const PANDUAN_PDF = path.join(ROOT, 'docs', 'Panduan-Admin-Sekolah.pdf');
 const PANDUAN_GURU_PDF = path.join(ROOT, 'docs', 'Panduan-Guru.pdf');
 const SETUP_WINDOWS = process.env.SETUP_WINDOWS || path.join(ROOT, 'dist', 'Pasang-E-Rapor-SD.exe');
 
+/** Nama dasar berkas/folder khusus satu sekolah: E-Rapor-SD-<NAMA>-<NPSN> (huruf besar, tanpa spasi/simbol). */
+function namaPaketSekolah(l) {
+  const nama = String(l.sekolah || 'SEKOLAH').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50);
+  return `E-Rapor-${nama}-${String(l.npsn || '').replace(/[^A-Za-z0-9]/g, '')}`;
+}
+
+/**
+ * Membuat ZIP aplikasi Windows KHUSUS satu sekolah: folder bernama sekolah+NPSN dan Kode Aktivasi sekolah itu
+ * sudah di dalamnya (data/kode-aktivasi.txt), sehingga aplikasi langsung dikenali sebagai milik sekolah tersebut.
+ * @returns {{ file: string, nama: string }} file sementara (hapus setelah dipakai) dan nama berkas unduhan
+ */
+function buatZipSekolah(l) {
+  const { buatZipDenganFolder } = require('./zip');
+  const os = require('os');
+  const dasar = namaPaketSekolah(l);
+  const file = path.join(os.tmpdir(), `${dasar}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.zip`);
+  buatZipDenganFolder(ZIP_WINDOWS, file, { folder: dasar, entries: [{ name: 'data/kode-aktivasi.txt', data: l.kode }] });
+  return { file, nama: `${dasar}.zip` };
+}
+
 function infoOffline() {
   const zip = fs.existsSync(ZIP_WINDOWS) ? fs.statSync(ZIP_WINDOWS) : null;
   const setup = fs.existsSync(SETUP_WINDOWS) ? fs.statSync(SETUP_WINDOWS) : null;
@@ -196,4 +216,4 @@ function buatLisensiOffline({ npsn, sekolah, catatan, sekolahKode }) {
   return m().prepare('SELECT * FROM lisensi_offline WHERE token = ?').get(token);
 }
 
-module.exports = { m, daftar, cari, dbSekolah, buatSekolah, siapkan, statistik, pengaturan, sandiAcak, slug, tutup, KODE_RE, MASTER_PATH, infoOffline, buatLisensiOffline, cekLisensiOffline, ZIP_WINDOWS, SETUP_WINDOWS, PANDUAN_PDF, PANDUAN_GURU_PDF };
+module.exports = { namaPaketSekolah, buatZipSekolah, m, daftar, cari, dbSekolah, buatSekolah, siapkan, statistik, pengaturan, sandiAcak, slug, tutup, KODE_RE, MASTER_PATH, infoOffline, buatLisensiOffline, cekLisensiOffline, ZIP_WINDOWS, SETUP_WINDOWS, PANDUAN_PDF, PANDUAN_GURU_PDF };

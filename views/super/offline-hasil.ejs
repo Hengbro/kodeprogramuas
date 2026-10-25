@@ -7,21 +7,22 @@
     <tr><th>No. seri</th><td><%= l.seri %> · seumur hidup · dibuat <%= String(l.dibuat).slice(0, 10) %></td></tr>
     <tr><th>Halaman unduhan sekolah</th><td><code><%= baseUrl %>/unduh/offline/<%= l.token %></code><br><small class="muted">Berisi tombol unduh aplikasi, panduan PDF, dan kode aktivasi. Diunduh <%= l.unduhan %>×.</small></td></tr>
   </table>
-  <% if (!offline.zip) { %><div class="alert alert-error"><b>File aplikasi (ZIP) belum ada di server.</b> Sekolah belum bisa mengunduhnya. <a href="/super#offline">Unggah E-Rapor-SD-Windows.zip di panel superadmin</a> (sekali saja), lalu halaman unduhan sekolah akan menampilkan tombol unduh.</div><% } %>
+  <% if (!offline.zip) { %><div class="alert alert-error"><b>ZIP dasar aplikasi belum ada di server.</b> ZIP khusus sekolah ini belum bisa dibuat. <a href="/super#offline">Unggah E-Rapor-SD-Windows.zip di panel superadmin</a> (sekali saja), lalu halaman unduhan sekolah akan menampilkan tombol unduh.</div><% } %>
   <label><b>Kode Aktivasi</b></label>
   <textarea readonly rows="5" onclick="this.select()" style="font-family:monospace;font-size:.8rem;word-break:break-all"><%= l.kode %></textarea>
   <h3 style="margin-top:1rem">Pesan siap kirim (WhatsApp/email)</h3>
   <textarea readonly rows="10" onclick="this.select()" style="font-size:.85rem">E-Rapor SD (versi offline Windows) untuk <%= l.sekolah %>
 
-1. Buka tautan ini dan unduh aplikasinya (ZIP):
+1. Buka tautan ini dan unduh aplikasinya (ZIP khusus sekolah Anda):
 <%= baseUrl %>/unduh/offline/<%= l.token %>
 2. Klik kanan ZIP > Extract All, lalu buka Pasang-E-Rapor-SD.exe > Lanjut > Pasang > Selesai
    (jika gagal: klik Jalankan-Rapor.bat di folder yang sama)
-3. Saat E-Rapor SD terbuka, tempel Kode Aktivasi berikut, lalu buat akun admin sekolah:
+3. Saat E-Rapor SD terbuka, nama sekolah & NPSN sudah terisi otomatis. Buat akun admin sekolah.
+   (Bila aplikasi meminta kode, tempel Kode Aktivasi berikut:)
 
 <%= l.kode %>
 
-Lisensi seumur hidup, khusus <%= l.sekolah %> (NPSN <%= l.npsn %>).</textarea>
-  <div class="form-actions"><a class="btn" href="/super/unduh/windows">Unduh ZIP (untuk flashdisk)</a><a class="btn btn-primary" href="<%= locals.kembali || (l.sekolah_kode ? '/super/sekolah/' + l.sekolah_kode : '/super#offline') %>">Kembali</a></div>
+Lisensi seumur hidup, khusus <%= l.sekolah %> (NPSN <%= l.npsn %>). Mohon tidak dibagikan ke sekolah lain.</textarea>
+  <div class="form-actions"><a class="btn" href="/super/offline/<%= l.id %>/zip"><%- h.icon('download') %> Unduh ZIP khusus <%= l.sekolah %></a><a class="btn btn-primary" href="<%= locals.kembali || (l.sekolah_kode ? '/super/sekolah/' + l.sekolah_kode : '/super#offline') %>">Kembali</a></div>
 </div>
 <%- include('_bottom') %>

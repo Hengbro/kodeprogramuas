@@ -10,6 +10,12 @@ const { hashPassword, verifyPassword } = require('../lib/password');
 const { rateLimit } = require('../lib/rate-limit');
 
 const router = express.Router();
+// dipakai tampilan: apakah ZIP dasar aplikasi Windows sudah ada, dan nama paket khusus sekolah
+router.use((req, res, next) => {
+  res.locals.zipDasarAda = fs.existsSync(master.ZIP_WINDOWS);
+  res.locals.namaPaketSekolah = master.namaPaketSekolah;
+  next();
+});
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
 
 router.use((req, res, next) => {
@@ -101,6 +107,16 @@ router.post('/unggah-zip', wajibSuper, (req, res) => {
       res.json({ ok: true, ukuran, pesan: `ZIP aplikasi Windows tersimpan (${(ukuran / 1024 / 1024).toFixed(1)} MB, ${info.jumlah} berkas).` });
     } catch (e) { gagal(400, e.message); }
   });
+});
+
+router.get('/offline/:id/zip', wajibSuper, (req, res) => {
+  const l = master.m().prepare('SELECT * FROM lisensi_offline WHERE id = ?').get(req.params.id);
+  if (!l) return res.redirect('/super#offline');
+  if (!fs.existsSync(master.ZIP_WINDOWS)) { req.flash('error', 'ZIP dasar aplikasi Windows belum diunggah. Unggah di bagian Sekolah versi offline.'); return res.redirect('/super#offline'); }
+  try {
+    const z = master.buatZipSekolah(l);
+    res.download(z.file, z.nama, () => fs.unlink(z.file, () => {}));
+  } catch (e) { req.flash('error', `Gagal membuat ZIP: ${e.message}`); res.redirect('/super#offline'); }
 });
 
 router.get('/unduh/windows', wajibSuper, (req, res) => {

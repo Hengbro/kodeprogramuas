@@ -80,3 +80,48 @@ test('aplikasi wajib aktivasi: kode → buat akun → nama sekolah terkunci', as
     srv.kill();
   }
 });
+
+test('ZIP khusus sekolah: kode di dalam paket dipakai otomatis dan tidak bisa dialihkan ke sekolah lain', async () => {
+  const data = fs.mkdtempSync(path.join(os.tmpdir(), 'rapor-lis-zip-'));
+  fs.writeFileSync(path.join(data, 'kode-aktivasi.txt'), `${buatKode(DATA, priv)}\n`);
+  const lain = buatKode({ ...DATA, npsn: '10200099', sekolah: 'SD NEGERI LAIN', seri: 'ZZZZ9999' }, priv);
+  const port = 3400 + Math.floor(Math.random() * 500);
+  const srv = spawn(process.execPath, ['server.js'], {
+    cwd: path.join(__dirname, '..'), env: { ...process.env, DATA_DIR: data, PORT: String(port), HOST: '127.0.0.1', LISENSI_WAJIB: '1', LISENSI_PUBLIK: pubFile },
+  });
+  try {
+    const B = `http://127.0.0.1:${port}`;
+    const jar = {};
+    const req = async (method, url, body) => {
+      for (let i = 0; i < 50; i += 1) {
+        try {
+          const r = await fetch(B + url, { method, redirect: 'manual', headers: { cookie: Object.entries(jar).map(([k, v]) => `${k}=${v}`).join('; '), ...(body ? { 'content-type': 'application/x-www-form-urlencoded' } : {}) }, body: body && new URLSearchParams(body) });
+          for (const c of r.headers.getSetCookie()) { const [kv] = c.split(';'); const i2 = kv.indexOf('='); jar[kv.slice(0, i2)] = kv.slice(i2 + 1); }
+          return { status: r.status, location: r.headers.get('location'), text: await r.text() };
+        } catch { await new Promise((r) => setTimeout(r, 100)); }
+      }
+      throw new Error('server tidak menyala');
+    };
+    const csrf = (t) => /name="_csrf" value="([^"]+)"/.exec(t)[1];
+    let r = await req('GET', '/aktivasi');
+    // langsung ke langkah membuat akun: nama sekolah & NPSN dari kode di dalam paket
+    assert.match(r.text, /Buat akun admin sekolah/);
+    assert.match(r.text, /SD NEGERI 1 NUSANTARA/);
+    assert.match(r.text, /10200000/);
+    // kode sekolah lain tidak bisa dipakai pada aplikasi ini
+    const sesi2 = {}; Object.assign(sesi2, jar);
+    for (const k of Object.keys(jar)) delete jar[k];
+    r = await req('GET', '/aktivasi');
+    r = await req('POST', '/aktivasi', { _csrf: csrf(r.text), kode: lain });
+    assert.strictEqual(r.status, 400);
+    assert.match(r.text, /khusus untuk SD NEGERI 1 NUSANTARA/);
+    // selesaikan aktivasi dengan kode bawaan
+    r = await req('GET', '/aktivasi');
+    r = await req('POST', '/aktivasi/akun', { _csrf: csrf(r.text), nama: 'Kepala Sekolah', username: 'kepsek', password: 'rahasia123', password2: 'rahasia123' });
+    assert.strictEqual(r.location, '/app/sekolah');
+    r = await req('GET', '/app/sekolah');
+    assert.match(r.text, /value="SD NEGERI 1 NUSANTARA"/);
+  } finally {
+    srv.kill();
+  }
+});

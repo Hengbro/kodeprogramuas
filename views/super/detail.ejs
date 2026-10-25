@@ -40,6 +40,7 @@
     <div class="<%= i ? 'box' : '' %>" style="<%= i ? 'margin-top:1rem' : '' %>">
     <table class="table">
       <tr><th style="width:190px">NPSN · No. seri</th><td><%= l.npsn %> · <code><%= l.seri %></code> · seumur hidup · dibuat <%= String(l.dibuat).slice(0, 10) %></td></tr>
+      <tr><th>ZIP khusus sekolah</th><td><a class="btn btn-sm" href="/super/offline/<%= l.id %>/zip"><%- h.icon('download') %> Unduh ZIP <%= l.sekolah %></a><br><small class="muted">Dibuat otomatis: folder bernama sekolah + NPSN, kode aktivasi sudah di dalamnya.</small></td></tr>
       <tr><th>Halaman unduhan</th><td><code><%= baseUrl %>/unduh/offline/<%= l.token %></code><br><small class="muted">Diunduh <%= l.unduhan %>×</small></td></tr>
     </table>
     <label><b>Kode aktivasi</b></label>
@@ -61,11 +62,13 @@ Username     : <%= stat.admin.map(a => a.username).join(', ') %>
 Portal orang tua: <%= baseUrl %>/sekolah/<%= s.kode %>/
 <% if (l) { %>
 VERSI OFFLINE (Windows, tanpa internet)
-1. Unduh aplikasi (ZIP): <%= baseUrl %>/unduh/offline/<%= l.token %>
+1. Unduh aplikasi (ZIP khusus sekolah Anda): <%= baseUrl %>/unduh/offline/<%= l.token %>
 2. Klik kanan ZIP > Extract All, lalu buka Pasang-E-Rapor-SD.exe > Lanjut > Pasang > Selesai
    (jika gagal: klik Jalankan-Rapor.bat di folder yang sama)
-3. Tempel kode aktivasi berikut, lalu buat akun admin:
+3. Saat aplikasi terbuka, nama sekolah & NPSN sudah terisi otomatis; buat akun admin.
+   (Bila aplikasi meminta kode, tempel kode berikut:)
 <%= l.kode %>
+Khusus sekolah ini, mohon tidak dibagikan ke sekolah lain.
 <% } %></textarea>
 </div>
 

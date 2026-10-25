@@ -20,6 +20,14 @@
     <tr><th style="width:190px">NPSN · No. seri</th><td><%= l.npsn %> · <%= l.seri %> (seumur hidup)</td></tr>
     <tr><th>Halaman unduhan</th><td><code><%= baseUrl %>/unduh/offline/<%= l.token %></code></td></tr>
   </table>
+  <% if (zipDasarAda) { %>
+  <div class="alert alert-success" style="display:flex;gap:.75rem;align-items:center;justify-content:space-between;flex-wrap:wrap">
+    <span><b>ZIP khusus sekolah ini sudah siap</b><br><small>Nama folder: <code><%= namaPaketSekolah(l) %></code> &mdash; kode aktivasi sudah ada di dalamnya, jadi aplikasi langsung terisi nama sekolah &amp; NPSN.</small></span>
+    <a class="btn btn-primary" href="/super/offline/<%= l.id %>/zip"><%- h.icon('download') %> Unduh ZIP <%= nama %></a>
+  </div>
+  <% } else { %>
+  <div class="alert alert-error"><b>ZIP dasar aplikasi belum diunggah.</b> <a href="/super#offline">Unggah E-Rapor-SD-Windows.zip di panel superadmin</a> (sekali saja), lalu ZIP khusus sekolah ini bisa diunduh.</div>
+  <% } %>
   <label><b>Kode aktivasi</b></label>
   <textarea readonly rows="4" onclick="this.select()" style="font-family:monospace;font-size:.8rem;word-break:break-all"><%= l.kode %></textarea>
   <% } %>
@@ -34,11 +42,13 @@ Kata sandi   : <%= password %>
 Segera ganti kata sandi di menu Akun setelah masuk.
 <% } %><% if (l) { %>
 VERSI OFFLINE (Windows, tanpa internet)
-1. Unduh aplikasi (ZIP): <%= baseUrl %>/unduh/offline/<%= l.token %>
+1. Unduh aplikasi (ZIP khusus sekolah Anda): <%= baseUrl %>/unduh/offline/<%= l.token %>
 2. Klik kanan ZIP > Extract All, lalu buka Pasang-E-Rapor-SD.exe > Lanjut > Pasang > Selesai
    (jika gagal: klik Jalankan-Rapor.bat di folder yang sama)
-3. Tempel kode aktivasi berikut, lalu buat akun admin:
+3. Saat aplikasi terbuka, nama sekolah & NPSN sudah terisi otomatis; buat akun admin.
+   (Bila aplikasi meminta kode, tempel kode berikut:)
 <%= l.kode %>
+Khusus sekolah ini, mohon tidak dibagikan ke sekolah lain.
 <% } %></textarea>
   <div class="form-actions"><% if (sekolah) { %><a class="btn" href="/super/sekolah/<%= sekolah.kode %>">Detail sekolah</a><% } %><a class="btn btn-primary" href="/super">Kembali ke daftar sekolah</a></div>
 </div>

@@ -180,13 +180,16 @@ if (MULTI) {
     if (!l) return res.status(404).render('error', { title: 'Tautan tidak berlaku', message: 'Tautan unduhan tidak ditemukan. Minta tautan baru kepada penyedia aplikasi.' });
     if (req.query.berkas === 'panduan' && require('fs').existsSync(master.PANDUAN_PDF)) return res.download(master.PANDUAN_PDF, 'Panduan-Admin-Sekolah.pdf');
     if (req.query.berkas === 'panduan-guru' && require('fs').existsSync(master.PANDUAN_GURU_PDF)) return res.download(master.PANDUAN_GURU_PDF, 'Panduan-Guru.pdf');
-    const berkas = { setup: [master.SETUP_WINDOWS, 'Pasang-E-Rapor-SD.exe'], zip: [master.ZIP_WINDOWS, 'E-Rapor-SD-Windows.zip'] }[req.query.berkas];
-    if (berkas && require('fs').existsSync(berkas[0])) {
-      master.m().prepare('UPDATE lisensi_offline SET unduhan = unduhan + 1 WHERE id = ?').run(l.id);
-      return res.download(berkas[0], berkas[1]);
+    if (req.query.berkas === 'zip' && require('fs').existsSync(master.ZIP_WINDOWS)) {
+      // ZIP khusus sekolah ini: nama folder = sekolah + NPSN, Kode Aktivasi sudah di dalamnya
+      try {
+        const z = master.buatZipSekolah(l);
+        master.m().prepare('UPDATE lisensi_offline SET unduhan = unduhan + 1 WHERE id = ?').run(l.id);
+        return res.download(z.file, z.nama, () => require('fs').unlink(z.file, () => {}));
+      } catch (e) { console.error(e); return res.status(500).render('error', { title: 'Gagal menyiapkan unduhan', message: 'Berkas aplikasi belum bisa disiapkan. Hubungi penyedia aplikasi.' }); }
     }
     const ada = (f) => require('fs').existsSync(f);
-    res.render('unduh-offline', { title: 'Unduh E-Rapor SD (offline)', l, adaPanduan: ada(master.PANDUAN_PDF), adaSetup: ada(master.SETUP_WINDOWS), adaZip: ada(master.ZIP_WINDOWS) });
+    res.render('unduh-offline', { title: 'Unduh E-Rapor SD (offline)', l, adaPanduan: ada(master.PANDUAN_PDF), adaSetup: false, adaZip: ada(master.ZIP_WINDOWS), namaZip: master.namaPaketSekolah(l) + '.zip' });
   });
 }
 app.use('/', require('./src/routes/aktivasi'));

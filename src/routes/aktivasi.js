@@ -1,5 +1,7 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
-const { db } = require('../db');
+const { db, DB_PATH } = require('../db');
 const lisensi = require('../lib/lisensi');
 const { hashPassword } = require('../lib/password');
 const { rateLimit } = require('../lib/rate-limit');
@@ -11,8 +13,17 @@ function sudahAktif(res) {
   return !!res.locals.settings.lisensi;
 }
 
+// ZIP khusus sekolah membawa data/kode-aktivasi.txt: aplikasi langsung dikenali sebagai milik sekolah itu
+function kodeBawaan() {
+  try {
+    const kode = lisensi.normalisasi(fs.readFileSync(path.join(path.dirname(DB_PATH), 'kode-aktivasi.txt'), 'utf8'));
+    return lisensi.periksaKode(kode) ? kode : null;
+  } catch (e) { return null; }
+}
+
 router.get('/aktivasi', (req, res) => {
   if (sudahAktif(res)) return res.redirect('/app');
+  if (!req.session.kodeAktivasi) { const bawaan = kodeBawaan(); if (bawaan) req.session.kodeAktivasi = bawaan; }
   const data = req.session.kodeAktivasi ? lisensi.periksaKode(req.session.kodeAktivasi) : null;
   res.render('aktivasi', { title: 'Aktivasi', data, error: null, kode: '' });
 });
@@ -25,6 +36,15 @@ router.post('/aktivasi', limiter, (req, res) => {
     return res.status(400).render('aktivasi', {
       title: 'Aktivasi', data: null, kode: req.body.kode || '',
       error: 'Kode aktivasi tidak valid. Pastikan seluruh kode disalin utuh, termasuk awalan ERAPOR-.',
+    });
+  }
+  // ZIP khusus sekolah hanya boleh diaktifkan dengan kode sekolah itu sendiri (tidak bisa dipindah ke sekolah lain)
+  const bawaan = kodeBawaan();
+  if (bawaan && bawaan !== kode) {
+    const milik = lisensi.periksaKode(bawaan);
+    return res.status(400).render('aktivasi', {
+      title: 'Aktivasi', data: null, kode: req.body.kode || '',
+      error: `Aplikasi ini khusus untuk ${milik.sekolah} (NPSN ${milik.npsn}) dan tidak bisa diaktifkan untuk sekolah lain.`,
     });
   }
   req.session.kodeAktivasi = kode;

@@ -69,13 +69,14 @@
 <div class="card" id="offline">
   <div class="card-head"><h2 style="margin:0">Sekolah versi offline (Windows)</h2>
     <div class="btn-group">
-      <% if (offline.zip) { %><a class="btn btn-sm" href="/super/unduh/windows"><%- h.icon('download') %> Paket Windows ZIP (<%= (offline.zip.ukuran / 1024 / 1024).toFixed(0) %> MB)</a><% } %>
+      
       <% if (offline.panduan) { %><a class="btn btn-sm" href="/super/unduh/panduan"><%- h.icon('file') %> Panduan Admin</a><% } %>
       <% if (offline.panduanGuru) { %><a class="btn btn-sm" href="/super/unduh/panduan?untuk=guru"><%- h.icon('file') %> Panduan Guru</a><% } %>
     </div></div>
   <p class="muted">Sekolah versi offline dibuat lewat formulir <a href="#tambah">Tambah sekolah</a> di bawah (centang <b>Offline</b>). Sekolah yang online <i>dan</i> offline tampil di daftar atas dengan label Offline; di sini hanya sekolah yang <b>offline saja</b>.</p>
   <% if (!offline.kunci) { %><div class="alert alert-error">Kunci rahasia penjual tidak ada di server ini, jadi kode aktivasi belum bisa dibuat dari panel. Salin <code>kunci-penjual/kunci-rahasia.pem</code> ke server.</div><% } %>
   <% if (!offline.zip) { %><div class="alert alert-error"><b>Berkas aplikasi Windows (ZIP) belum ada di server ini</b>, sehingga sekolah tidak punya tombol unduh. Unggah file <code>E-Rapor-SD-Windows.zip</code> di bawah ini (sekali saja).</div><% } %>
+  <p class="muted" style="font-size:.85rem;margin:.5rem 0 0"><b>ZIP dasar</b> (aplikasi kosong, <u>tidak untuk dibagikan</u>): dipakai server untuk membuat ZIP khusus tiap sekolah secara otomatis saat sekolah/kode dibuat. Unggah sekali, ganti hanya bila ada versi aplikasi baru.</p>
   <form class="unggah-zip" data-unggah-zip style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.5rem 0 1rem">
     <input type="file" accept=".zip" required>
     <button class="btn btn-sm btn-primary" type="submit"><%- h.icon('upload') %> <%= offline.zip ? 'Ganti ZIP aplikasi Windows' : 'Unggah ZIP aplikasi Windows' %></button>
@@ -110,7 +111,7 @@
     <tbody><% offline.saja.forEach(l => { %><tr>
       <td><%= String(l.dibuat).slice(0, 10) %></td><td><b><%= l.sekolah %></b></td><td><%= l.npsn %></td><td><code><%= l.seri %></code></td>
       <td class="num"><%= l.unduhan %>×</td><td><%= l.catatan || '' %></td>
-      <td class="actions"><a class="btn btn-sm" href="/super/offline/<%= l.id %>">Lihat kode &amp; pesan</a></td></tr><% }) %></tbody>
+      <td class="actions"><a class="btn btn-sm" href="/super/offline/<%= l.id %>/zip"><%- h.icon('download') %> ZIP</a> <a class="btn btn-sm" href="/super/offline/<%= l.id %>">Lihat kode &amp; pesan</a></td></tr><% }) %></tbody>
   </table></div>
   <% } %>
 </div>

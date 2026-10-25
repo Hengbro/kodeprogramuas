@@ -18,7 +18,8 @@ process.env.SUPERADMIN_PASSWORD = 'rahasia-super';
   fs.writeFileSync(path.join(dir, 'kunci', 'publik.pem'), publicKey.export({ type: 'spki', format: 'pem' }));
   process.env.LISENSI_PRIVAT = path.join(dir, 'kunci', 'rahasia.pem');
   process.env.LISENSI_PUBLIK = path.join(dir, 'kunci', 'publik.pem');
-  fs.writeFileSync(path.join(dir, 'app.zip'), 'ZIPDUMMY');
+  // ZIP dasar aplikasi Windows tiruan (kecil, tetapi berbentuk paket yang sah)
+  require('../src/lib/zip').writeZip(path.join(dir, 'app.zip'), [{ name: 'E-Rapor-SD-Windows/Jalankan-Rapor.bat', data: '@echo off' }, { name: 'E-Rapor-SD-Windows/node/node.exe', data: 'MZ' }, { name: 'E-Rapor-SD-Windows/data/', data: '' }]);
   process.env.ZIP_WINDOWS = path.join(dir, 'app.zip');
 }
 // database satu sekolah lama sudah berisi data → harus menjadi sekolah pertama
@@ -217,16 +218,33 @@ test('superadmin membuat kode aktivasi offline dan tautan unduhan untuk sekolah'
   r = await tamu('GET', `/unduh/offline/${link}`);
   assert.strictEqual(r.status, 200);
   assert.ok(r.text.includes(kode));
-  r = await tamu('GET', `/unduh/offline/${link}?berkas=zip`);
-  assert.strictEqual(r.text, 'ZIPDUMMY');
+  // ZIP yang diunduh sekolah KHUSUS sekolah itu: folder bernama sekolah+NPSN dan kode aktivasi sudah di dalamnya
+  const { execFileSync } = require('child_process');
+  const unduh = await fetch(`${base}/unduh/offline/${link}?berkas=zip`);
+  assert.strictEqual(unduh.status, 200);
+  assert.match(unduh.headers.get('content-disposition'), /E-Rapor-SD-NEGERI-9-SAUMLAKI-60109999\.zip/);
+  const berkas = path.join(dir, 'sekolah-9.zip');
+  fs.writeFileSync(berkas, Buffer.from(await unduh.arrayBuffer()));
+  execFileSync('unzip', ['-tq', berkas]);
+  const daftar = execFileSync('unzip', ['-Z1', berkas]).toString().trim().split('\n');
+  assert.ok(daftar.every((n) => n.startsWith('E-Rapor-SD-NEGERI-9-SAUMLAKI-60109999/')), daftar.join(','));
+  assert.ok(daftar.includes('E-Rapor-SD-NEGERI-9-SAUMLAKI-60109999/Jalankan-Rapor.bat'));
+  assert.strictEqual(execFileSync('unzip', ['-p', berkas, 'E-Rapor-SD-NEGERI-9-SAUMLAKI-60109999/data/kode-aktivasi.txt']).toString(), kode);
   assert.strictEqual(master.m().prepare('SELECT unduhan FROM lisensi_offline WHERE token = ?').get(link).unduhan, 1);
   r = await tamu('GET', '/unduh/offline/salah');
   assert.strictEqual(r.status, 404);
-  // ZIP lengkap hanya untuk superadmin
+  // ZIP dasar (tanpa identitas sekolah) hanya untuk superadmin
   r = await tamu('GET', '/super/unduh/windows');
   assert.strictEqual(r.location, '/super/login');
   r = await su('GET', '/super/unduh/windows');
-  assert.strictEqual(r.text, 'ZIPDUMMY');
+  assert.strictEqual(r.status, 200);
+  // ZIP khusus sekolah dari panel superadmin, dan tidak bisa diambil tanpa login
+  const idLisensi = master.m().prepare('SELECT id FROM lisensi_offline WHERE token = ?').get(link).id;
+  r = await tamu('GET', `/super/offline/${idLisensi}/zip`);
+  assert.strictEqual(r.location, '/super/login');
+  const dariPanel = await fetch(`${base}/super/offline/${idLisensi}/zip`, { headers: { cookie: su.cookie() } });
+  assert.strictEqual(dariPanel.status, 200);
+  assert.match(dariPanel.headers.get('content-disposition'), /60109999\.zip/);
 });
 
 test('orang tua memantau dua anak di sekolah berbeda dari satu perangkat', async () => {

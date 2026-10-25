@@ -6,19 +6,19 @@
       <h1>E-Rapor SD untuk <%= l.sekolah %></h1>
       <p class="muted">NPSN <%= l.npsn %> · No. seri <%= l.seri %> · lisensi seumur hidup</p>
       <% if (adaZip) { %>
-      <a class="btn btn-primary" style="width:100%;justify-content:center;font-size:1.05rem;padding:.8rem" href="?berkas=zip">⬇ Unduh E-Rapor SD (ZIP, ±40 MB)</a>
+      <a class="btn btn-primary" style="width:100%;justify-content:center;font-size:1.05rem;padding:.8rem" href="?berkas=zip">⬇ Unduh E-Rapor SD untuk <%= l.sekolah %> (ZIP, ±40 MB)</a>
       <ol class="langkah">
         <li><b>Ekstrak</b>: klik kanan file ZIP → <b>Extract All…</b> (Ekstrak Semua) → <b>Extract</b>.</li>
         <li>Di folder hasil ekstrak, klik dua kali <b>Pasang-E-Rapor-SD.exe</b> → Lanjut → Pasang → Selesai. Ikon <b>E-Rapor SD</b> muncul di desktop.<br>
           <small>Jika muncul layar biru "Windows melindungi PC Anda": klik <b>Info selengkapnya</b> → <b>Tetap jalankan</b>.</small></li>
         <li><b>Jika pemasang gagal</b>: di folder yang sama klik dua kali <b>Jalankan-Rapor.bat</b>.</li>
-        <li>Saat E-Rapor SD terbuka, <b>salin Kode Aktivasi</b> di bawah, tempel, lalu buat akun admin sekolah.</li>
+        <li>Saat E-Rapor SD terbuka, nama sekolah &amp; NPSN <b>sudah terisi otomatis</b> (kode aktivasi sudah ada di dalam file ini). Cukup buat akun admin sekolah.</li>
       </ol>
       <% } %>
-      <label for="kode"><b>Kode Aktivasi</b></label>
+      <details style="margin-top:.8rem"><summary style="cursor:pointer"><b>Kode Aktivasi</b> (cadangan — hanya bila aplikasi memintanya)</summary>
       <textarea id="kode" readonly rows="5" onclick="this.select()" style="font-family:monospace;font-size:.8rem;word-break:break-all"><%= l.kode %></textarea>
-      <button type="button" class="btn btn-sm" onclick="var k=document.getElementById('kode');k.select();(navigator.clipboard?navigator.clipboard.writeText(k.value):Promise.reject()).then(()=>{this.textContent='Kode disalin ✓'},()=>{document.execCommand('copy');this.textContent='Kode disalin ✓'})">Salin kode</button>
-      <p class="muted" style="font-size:.85rem;margin-top:.8rem">Kode ini hanya untuk <%= l.sekolah %>. Nama sekolah &amp; NPSN di rapor terkunci sesuai kode.
+      <button type="button" class="btn btn-sm" onclick="var k=document.getElementById('kode');k.select();(navigator.clipboard?navigator.clipboard.writeText(k.value):Promise.reject()).then(()=>{this.textContent='Kode disalin ✓'},()=>{document.execCommand('copy');this.textContent='Kode disalin ✓'})">Salin kode</button></details>
+      <p class="muted" style="font-size:.85rem;margin-top:.8rem">File dan kode ini <b>khusus untuk <%= l.sekolah %></b> (NPSN <%= l.npsn %>); nama sekolah &amp; NPSN di rapor terkunci dan tidak bisa dipakai untuk sekolah lain. Mohon tidak dibagikan.
         <% if (adaPanduan) { %><a href="?berkas=panduan">Panduan Admin (PDF)</a> · <a href="?berkas=panduan-guru">Panduan Guru (PDF)</a><% } %></p>
     </div>
   </div>
