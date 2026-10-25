@@ -17,13 +17,15 @@ const kelas = db.prepare("SELECT id FROM classes WHERE nama = 'IV A'").get().id;
 let server; let base;
 function klien() {
   const jar = {};
-  return async function req(method, url, body) {
+  const req = async function (method, url, body) {
     const headers = { cookie: Object.entries(jar).map(([k, v]) => `${k}=${v}`).join('; ') };
     if (body) headers['content-type'] = 'application/x-www-form-urlencoded';
     const res = await fetch(base + url, { method, headers, body: body && new URLSearchParams(body).toString(), redirect: 'manual' });
     for (const c of res.headers.getSetCookie()) { const [kv] = c.split(';'); const i = kv.indexOf('='); jar[kv.slice(0, i)] = kv.slice(i + 1); }
     return { status: res.status, text: await res.text(), location: res.headers.get('location') };
   };
+  req.cookie = () => Object.entries(jar).map(([k, v]) => `${k}=${v}`).join('; ');
+  return req;
 }
 const csrf = (html) => /name="_csrf" value="([^"]+)"/.exec(html)[1];
 async function masuk(username, password) {
@@ -248,4 +250,26 @@ test('10 template piagam: galeri, pilih template (admin), dan pilihan saat mence
   r = await g.req('POST', '/app/piagam/template', { _csrf: g.token, tpl: '2' });
   assert.strictEqual(r.status, 403);
   assert.strictEqual(db.prepare("SELECT value FROM settings WHERE key = 'piagam_template'").get().value, '7');
+});
+
+test('hapus siswa langsung dari daftar: satu per satu dan banyak sekaligus', async () => {
+  const { req, token } = await masuk('guru4a', 'guru123');
+  const buat = (nama) => db.prepare('INSERT INTO students (nama, class_id) VALUES (?, ?)').run(nama, kelas).lastInsertRowid;
+  const a = buat('Hapus A'); const b = buat('Hapus B'); const c = buat('Hapus C'); const d = buat('Tetap D');
+  let r = await req('GET', `/app/siswa?kelas=${kelas}`);
+  assert.match(r.text, /id="form-hapus-siswa"/);
+  assert.match(r.text, new RegExp(`name="satu" value="${a}"`));
+  // tombol hapus di baris A walau B & C dicentang → hanya A
+  r = await req('POST', '/app/siswa/hapus', { _csrf: token, kembali: `/app/siswa?kelas=${kelas}`, satu: String(a), ids: [String(b), String(c)] });
+  assert.strictEqual(r.location, `/app/siswa?kelas=${kelas}`);
+  const ada = (id) => !!db.prepare('SELECT 1 FROM students WHERE id = ?').get(id);
+  assert.deepStrictEqual([ada(a), ada(b), ada(c), ada(d)], [false, true, true, true]);
+  // banyak sekaligus
+  const p = new URLSearchParams({ _csrf: token }); p.append('ids', String(b)); p.append('ids', String(c));
+  await fetch(`${base}/app/siswa/hapus`, { method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded', cookie: req.cookie() }, body: p.toString() });
+  assert.deepStrictEqual([ada(b), ada(c), ada(d)], [false, false, true]);
+  // siswa kelas lain tidak bisa dihapus guru
+  const lain = db.prepare("SELECT id FROM students WHERE nama = 'Siswa Lain'").get().id;
+  await req('POST', '/app/siswa/hapus', { _csrf: token, satu: String(lain) });
+  assert.ok(ada(lain));
 });

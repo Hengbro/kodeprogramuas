@@ -21,12 +21,20 @@
 </div>
 <div class="card flush">
   <% if (!students.length) { %><div class="empty"><%- h.icon('users') %><p>Tidak ada data siswa.</p></div><% } else { %>
+  <form method="post" action="/app/siswa/hapus" id="form-hapus-siswa">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <input type="hidden" name="kembali" value="<%= kelas ? '/app/siswa?kelas=' + kelas : '/app/siswa' %>">
+  <div class="hapus-bar" data-hapus-bar hidden>
+    <span><b data-hapus-jumlah>0</b> siswa dipilih</span>
+    <button class="btn btn-sm btn-danger" data-hapus-terpilih><%- h.icon('trash') %> Hapus yang dipilih</button>
+  </div>
   <div class="table-wrap">
   <table class="table">
-    <thead><tr><th class="num">No</th><th>Nama</th><th>NIS / NISN</th><th>L/P</th><th>Tempat, tanggal lahir</th><th>Agama</th><th>Kelas</th><th class="actions"></th></tr></thead>
+    <thead><tr><th style="width:36px"><input type="checkbox" data-pilih-semua aria-label="Pilih semua siswa" title="Pilih semua"></th><th class="num">No</th><th>Nama</th><th>NIS / NISN</th><th>L/P</th><th>Tempat, tanggal lahir</th><th>Agama</th><th>Kelas</th><th class="actions"></th></tr></thead>
     <tbody>
     <% students.forEach((s, i) => { %>
       <tr>
+        <td><input type="checkbox" name="ids" value="<%= s.id %>" data-pilih-siswa aria-label="Pilih <%= s.nama %>"></td>
         <td class="num"><%= i + 1 %></td>
         <td><a href="/app/siswa/<%= s.id %>"><b><%= s.nama %></b></a><% if (s.status !== 'aktif') { %> <span class="badge badge-warning"><%= s.status %></span><% } %></td>
         <td><%= s.nis || '-' %> / <%= s.nisn || '-' %></td>
@@ -34,12 +42,14 @@
         <td><%= h.ttl(s) %></td>
         <td><%= s.agama || '' %></td>
         <td><%= s.kelas_nama || '—' %></td>
-        <td class="actions"><a class="btn btn-sm" href="/app/siswa/<%= s.id %>/edit"><%- h.icon('edit') %></a></td>
+        <td class="actions"><a class="btn btn-sm" href="/app/siswa/<%= s.id %>/edit" title="Ubah"><%- h.icon('edit') %></a>
+          <button class="btn btn-sm btn-danger" name="satu" value="<%= s.id %>" data-hapus-satu data-confirm="Hapus <%= s.nama %> beserta seluruh nilainya?" title="Hapus siswa"><%- h.icon('trash') %></button></td>
       </tr>
     <% }) %>
     </tbody>
   </table>
   </div>
+  </form>
   <% } %>
 </div>
 <%- include('../partials/bottom') %>

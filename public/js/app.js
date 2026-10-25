@@ -40,6 +40,30 @@
     else tandai('Catat!');
   });
 
+  // Daftar siswa: pilih beberapa siswa lalu hapus sekaligus
+  var formHapus = document.getElementById('form-hapus-siswa');
+  if (formHapus) {
+    var kotak = function () { return Array.prototype.slice.call(formHapus.querySelectorAll('[data-pilih-siswa]')); };
+    var perbarui = function () {
+      var n = kotak().filter(function (c) { return c.checked; }).length;
+      formHapus.querySelector('[data-hapus-bar]').hidden = !n;
+      formHapus.querySelector('[data-hapus-jumlah]').textContent = n;
+      var semua = formHapus.querySelector('[data-pilih-semua]');
+      semua.checked = n && n === kotak().length; semua.indeterminate = n > 0 && n < kotak().length;
+    };
+    formHapus.addEventListener('change', function (e) {
+      if (e.target.matches('[data-pilih-semua]')) kotak().forEach(function (c) { c.checked = e.target.checked; });
+      perbarui();
+    });
+    formHapus.addEventListener('click', function (e) {
+      var banyak = e.target.closest('[data-hapus-terpilih]');
+      if (banyak) {
+        var n = kotak().filter(function (c) { return c.checked; }).length;
+        if (!window.confirm(n + ' siswa yang dipilih akan dihapus beserta seluruh nilainya. Lanjutkan?')) e.preventDefault();
+      }
+    });
+  }
+
   // Tutup sidebar saat klik di luar (mobile)
   document.addEventListener('click', function (e) {
     var sb = document.getElementById('sidebar');

@@ -141,6 +141,26 @@ router.post('/siswa/massal', (req, res) => {
   res.redirect(`/app/siswa/massal?kelas=${cls.id}`);
 });
 
+// Hapus satu atau banyak siswa langsung dari daftar siswa
+router.post('/siswa/hapus', (req, res) => {
+  // tombol hapus di satu baris mengirim "satu"; centang di baris lain diabaikan
+  const ids = req.body.satu ? [Number(req.body.satu)] : [...new Set([].concat(req.body.ids || []).map(Number).filter(Boolean))];
+  const del = db.prepare('DELETE FROM students WHERE id = ?');
+  const terhapus = [];
+  db.transaction(() => {
+    for (const id of ids) {
+      const st = db.prepare('SELECT * FROM students WHERE id = ?').get(id);
+      if (!st || !canEditStudent(res.locals.user, st)) continue; // guru hanya siswa kelasnya sendiri
+      del.run(id);
+      terhapus.push(st.nama);
+    }
+  })();
+  if (terhapus.length) req.flash('success', terhapus.length === 1 ? `Data ${terhapus[0]} dihapus.` : `${terhapus.length} siswa dihapus.`);
+  else req.flash('error', 'Pilih siswa yang akan dihapus.');
+  const kembali = String(req.body.kembali || '');
+  res.redirect(/^\/app\/siswa(\?kelas=[\w-]+)?$/.test(kembali) ? kembali : '/app/siswa');
+});
+
 router.get('/siswa/impor', (req, res) => {
   const classes = allowedClasses(res.locals.user);
   res.render('app/siswa-impor', { title: 'Impor Siswa', classes, FIELDS, EXTRA: BUKU_INDUK_FIELDS, kelas: req.query.kelas || '' });
