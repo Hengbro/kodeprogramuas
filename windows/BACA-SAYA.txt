@@ -11,6 +11,16 @@ CARA MEMASANG (SATU PAKET, DUA CARA)
 3. JIKA PEMASANG GAGAL: di folder yang sama, klik dua kali "Jalankan-Rapor.bat".
    Aplikasi tetap berjalan dari folder ini (langkah di bawah).
 
+JIKA WINDOWS 11 MEMBLOKIR ("Smart App Control blocked a file that may be unsafe")
+Penyebab: file dari internet diberi tanda "dari internet" oleh Windows. Pemasang versi terbaru
+menghapus tanda itu otomatis. Jika masih muncul, lakukan SEKALI SAJA:
+1. Tekan tombol Windows, ketik "PowerShell", lalu klik "Open" (tidak perlu administrator).
+2. Tempel perintah ini lalu tekan Enter:
+   Get-ChildItem "$env:LOCALAPPDATA\E-Rapor-SD" -Recurse | Unblock-File
+3. Buka lagi ikon E-Rapor SD di desktop.
+(Jika Anda menjalankan dari folder hasil ekstrak, ganti alamat di langkah 2 dengan folder itu, mis. "D:\E-Rapor-SD".)
+Alternatif tanpa memasang apa pun: buka aplikasi lewat link web yang diberikan admin (di browser).
+
 MENJALANKAN TANPA PEMASANG (Jalankan-Rapor.bat)
 1. Ekstrak (Extract All) file ZIP ini ke folder mana saja, misalnya D:\E-Rapor-SD
    (jangan dijalankan langsung dari dalam ZIP).

@@ -81,6 +81,11 @@ Section "E-Rapor SD"
   IfFileExists "$INSTDIR\data\rapor.sqlite" ikon 0
     CopyFiles /SILENT "$EXEDIR\data\*.*" "$INSTDIR\data"
   ikon:
+  ; ZIP dari internet membawa tanda "Mark of the Web" yang ikut tersalin; Smart App Control / SmartScreen Windows 11
+  ; memblokir berkas bertanda itu. Hapus tandanya dari folder aplikasi yang baru dipasang.
+  DetailPrint "Menyiapkan izin berkas ..."
+  nsExec::Exec `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -LiteralPath '$INSTDIR' -Recurse -File | Unblock-File"`
+  Pop $0
   CreateShortcut "$DESKTOP\E-Rapor SD.lnk" "$INSTDIR\Jalankan-Rapor.bat" "" "$INSTDIR\e-rapor.ico" 0 SW_SHOWMINIMIZED
   CreateDirectory "$SMPROGRAMS\E-Rapor SD"
   CreateShortcut "$SMPROGRAMS\E-Rapor SD\E-Rapor SD.lnk" "$INSTDIR\Jalankan-Rapor.bat" "" "$INSTDIR\e-rapor.ico" 0 SW_SHOWMINIMIZED
