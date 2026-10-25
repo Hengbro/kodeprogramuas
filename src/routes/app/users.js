@@ -10,7 +10,9 @@ const router = express.Router();
 router.get('/pengguna', requireAdmin, (req, res) => {
   const users = db.prepare(`SELECT u.*, (SELECT GROUP_CONCAT(nama, ', ') FROM classes WHERE guru_id = u.id) AS kelas
     FROM users u ORDER BY u.role, u.nama`).all();
-  res.render('app/pengguna', { title: 'Pengguna & Guru', users });
+  const kelas = db.prepare(`SELECT c.id, c.nama, c.guru_id, u.nama AS guru_nama FROM classes c
+    LEFT JOIN users u ON u.id = c.guru_id ORDER BY c.tingkat, c.nama`).all();
+  res.render('app/pengguna', { title: 'Pengguna & Guru', users, kelas });
 });
 
 router.post('/pengguna', requireAdmin, (req, res) => {
@@ -56,8 +58,25 @@ router.post('/pengguna/:id', requireAdmin, (req, res) => {
     return res.redirect('/app/pengguna');
   }
   const role = u.id === res.locals.user.id ? u.role : (req.body.role === 'admin' ? 'admin' : 'guru');
-  db.prepare('UPDATE users SET nama = ?, nip = ?, role = ? WHERE id = ?').run(str(req.body.nama) || u.nama, str(req.body.nip), role, u.id);
-  if (req.body.password && String(req.body.password).length < 6) {
+  // username boleh diganti asal belum dipakai pengguna lain
+  let username = str(req.body.username) || u.username;
+  const dobel = username !== u.username && db.prepare('SELECT 1 FROM users WHERE username = ? AND id != ?').get(username, u.id);
+  if (dobel) username = u.username;
+  db.transaction(() => {
+    db.prepare('UPDATE users SET nama = ?, nip = ?, role = ?, username = ? WHERE id = ?')
+      .run(str(req.body.nama) || u.nama, str(req.body.nip), role, username, u.id);
+    // kelas yang diampu (centang di kolom "Guru kelas"); kelas yang dicentang berpindah ke guru ini
+    if (req.body.atur_kelas) {
+      const pilih = [...new Set([].concat(req.body.kelas || []).map(Number).filter(Boolean))];
+      const lepas = db.prepare('UPDATE classes SET guru_id = NULL WHERE guru_id = ? AND id = ?');
+      for (const c of db.prepare('SELECT id FROM classes WHERE guru_id = ?').all(u.id)) if (!pilih.includes(c.id)) lepas.run(u.id, c.id);
+      const ampu = db.prepare('UPDATE classes SET guru_id = ? WHERE id = ?');
+      for (const id of pilih) ampu.run(u.id, id);
+    }
+  })();
+  if (dobel) {
+    req.flash('error', `Data disimpan, tetapi username "${str(req.body.username)}" sudah dipakai pengguna lain sehingga tidak diubah.`);
+  } else if (req.body.password && String(req.body.password).length < 6) {
     req.flash('error', 'Data disimpan, tetapi kata sandi tidak diubah (minimal 6 karakter).');
   } else {
     if (req.body.password) db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hashPassword(req.body.password), u.id);

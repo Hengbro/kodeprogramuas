@@ -470,3 +470,8 @@
       });
   });
 })();
+
+// Pengguna & Guru: daftar centang kelas tertutup saat klik di luar
+document.addEventListener('click', function (e) {
+  document.querySelectorAll('details.pilih-kelas[open]').forEach(function (d) { if (!d.contains(e.target)) d.open = false; });
+});
