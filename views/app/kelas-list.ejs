@@ -12,7 +12,7 @@
 </div>
 <% } %>
 <% if (user.role === 'admin') { %>
-<form method="post" action="/app/kelas" class="card" style="margin-top:1.25rem">
+<form method="post" action="/app/kelas" class="card" data-track style="margin-top:1.25rem">
   <input type="hidden" name="_csrf" value="<%= csrf %>">
   <h2>Tambah kelas</h2>
   <p class="muted">Bisa menambah beberapa kelas sekaligus. Baris tanpa nama kelas dilewati.</p>

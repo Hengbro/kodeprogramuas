@@ -400,7 +400,7 @@
   function ambilIsian(f) {
     var out = {};
     Array.prototype.forEach.call(f.elements, function (el, i) {
-      if (!el.name || el.name === '_csrf' || el.type === 'password' || el.type === 'file' || el.type === 'submit' || el.type === 'button') return;
+      if (!el.name || el.name === '_csrf' || el.type === 'password' || /^(password|new_password|old_password)/.test(el.name) || el.type === 'file' || el.type === 'submit' || el.type === 'button') return;
       out[i + ':' + el.name] = (el.type === 'checkbox' || el.type === 'radio') ? el.checked : el.value;
     });
     return out;
