@@ -74,3 +74,10 @@ table.info td.sep { width: 12px; }
 
 .contoh-catatan { max-width: 297mm; margin: 12px auto; background: #fef3c7; color: #78350f; border: 1px solid #fcd34d; border-radius: 8px; padding: 10px 14px; font: 14px/1.5 system-ui, sans-serif; }
 @media print { .contoh-catatan { display: none; } }
+
+/* kop piagam: logo besar, nama pemda paling besar */
+.piagam-kop { display: grid; grid-template-columns: 38mm 1fr 38mm; align-items: center; width: 100%; }
+.piagam-kop .emblem, .piagam-kop .logo-img { width: 34mm; height: 34mm; }
+.piagam-kop .kop-pemda { font-size: 19pt; line-height: 1.2; }
+.piagam-kop .kop-instansi { font-size: 15pt; line-height: 1.25; }
+.piagam-kop .kop-sekolah { font-size: 14pt; line-height: 1.3; }
