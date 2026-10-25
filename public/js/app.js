@@ -1,11 +1,53 @@
 (function () {
   'use strict';
 
-  // Konfirmasi untuk tombol berbahaya
+  // Kotak konfirmasi bergaya aplikasi (pengganti confirm() bawaan browser)
+  var dlg = null;
+  function tanya(pesan, bahaya) {
+    if (!window.HTMLDialogElement) return Promise.resolve(window.confirm(pesan));
+    if (!dlg) {
+      dlg = document.createElement('dialog');
+      dlg.className = 'konfirmasi';
+      dlg.innerHTML = '<form method="dialog"><div class="konfirmasi-ikon" aria-hidden="true"></div>' +
+        '<h3 class="konfirmasi-judul"></h3><p class="konfirmasi-pesan"></p>' +
+        '<div class="konfirmasi-aksi"><button value="batal" class="btn">Batal</button><button value="ya" class="btn konfirmasi-ya"></button></div></form>';
+      document.body.appendChild(dlg);
+      dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close('batal'); });
+    }
+    // bahaya: tombol merah; pesan yang menyebut "hapus" memakai judul & tombol khusus hapus
+    var hapus = bahaya && /hapus/i.test(pesan);
+    dlg.classList.toggle('bahaya', !!bahaya);
+    dlg.querySelector('.konfirmasi-ikon').textContent = bahaya ? '!' : '?';
+    dlg.querySelector('.konfirmasi-judul').textContent = hapus ? 'Yakin ingin menghapus?' : 'Konfirmasi';
+    dlg.querySelector('.konfirmasi-pesan').textContent = pesan;
+    var ya = dlg.querySelector('.konfirmasi-ya');
+    ya.textContent = hapus ? 'Ya, hapus' : 'Ya, lanjutkan';
+    ya.className = 'btn konfirmasi-ya ' + (bahaya ? 'btn-danger-solid' : 'btn-primary');
+    dlg.returnValue = '';
+    return new Promise(function (selesai) {
+      dlg.addEventListener('close', function () { selesai(dlg.returnValue === 'ya'); }, { once: true });
+      dlg.showModal();
+      ya.focus();
+    });
+  }
+  window.tanya = tanya;
+  var berbahaya = function (el, pesan) {
+    return el.classList.contains('btn-danger') || el.getAttribute('value') === 'delete' || /hapus/i.test(pesan);
+  };
+
+  // Konfirmasi untuk tombol berbahaya: klik ditahan, lalu diulang setelah pengguna memilih "Ya"
   document.addEventListener('click', function (e) {
     var el = e.target.closest('[data-confirm]');
-    if (el && !window.confirm(el.getAttribute('data-confirm'))) e.preventDefault();
-  });
+    if (!el) return;
+    if (el.hasAttribute('data-confirm-ok')) { el.removeAttribute('data-confirm-ok'); return; }
+    e.preventDefault(); e.stopImmediatePropagation();
+    var pesan = el.getAttribute('data-confirm');
+    tanya(pesan, berbahaya(el, pesan)).then(function (ok) {
+      if (!ok) return;
+      el.setAttribute('data-confirm-ok', '');
+      el.click();
+    });
+  }, true);
 
   // Tab / mapel yang aktif selalu terlihat walau barisnya perlu digeser (layar HP)
   document.querySelectorAll('.tabs a.active, .mapel-chips .chip.active').forEach(function (a) {
@@ -55,12 +97,10 @@
       if (e.target.matches('[data-pilih-semua]')) kotak().forEach(function (c) { c.checked = e.target.checked; });
       perbarui();
     });
-    formHapus.addEventListener('click', function (e) {
-      var banyak = e.target.closest('[data-hapus-terpilih]');
-      if (banyak) {
-        var n = kotak().filter(function (c) { return c.checked; }).length;
-        if (!window.confirm(n + ' siswa yang dipilih akan dihapus beserta seluruh nilainya. Lanjutkan?')) e.preventDefault();
-      }
+    // pesan konfirmasi mengikuti jumlah yang dicentang (kotak konfirmasi ditampilkan oleh [data-confirm])
+    formHapus.addEventListener('change', function () {
+      var n = kotak().filter(function (c) { return c.checked; }).length;
+      formHapus.querySelector('[data-hapus-terpilih]').setAttribute('data-confirm', n + ' siswa yang dipilih akan dihapus beserta seluruh nilainya.');
     });
   }
 
@@ -429,8 +469,13 @@
   document.addEventListener('submit', function (e) {
     var n = e.target.querySelectorAll('input[name^="hapus__"]:checked').length;
     if (!n || e.target.getAttribute('data-hapus-ok') === String(n)) return;
-    if (!window.confirm(n + ' siswa yang dicentang akan dihapus beserta seluruh nilainya. Lanjutkan?')) { e.preventDefault(); e.stopImmediatePropagation(); return; }
-    e.target.setAttribute('data-hapus-ok', String(n));
+    e.preventDefault(); e.stopImmediatePropagation();
+    var f = e.target, submitter = e.submitter;
+    tanya(n + ' siswa yang dicentang akan dihapus beserta seluruh nilainya.', true).then(function (ok) {
+      if (!ok) return;
+      f.setAttribute('data-hapus-ok', String(n));
+      if (f.requestSubmit) f.requestSubmit(submitter && submitter.form === f ? submitter : undefined); else f.submit();
+    });
   }, true);
 
   // Sebelum mengirim, pastikan server bisa dihubungi; bila tidak, isian tetap di layar

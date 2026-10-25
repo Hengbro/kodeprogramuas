@@ -294,3 +294,18 @@ h1 svg, h2 svg, h3 svg { width: 1em; height: 1em; vertical-align: -.12em; }
 .tabel-pengguna td, .tabel-pengguna th { white-space: nowrap; }
 .tabel-pengguna td.actions, .tabel-pengguna th.actions { position: sticky; right: 0; background: var(--surface); box-shadow: -6px 0 8px -6px rgba(15, 23, 42, .18); }
 .tabel-pengguna th.actions { background: var(--surface-2); }
+
+/* Kotak konfirmasi (pengganti confirm() bawaan browser) */
+dialog.konfirmasi { width: min(420px, calc(100vw - 32px)); padding: 0; border: 0; border-radius: 16px; background: var(--surface); color: var(--text); box-shadow: 0 24px 60px rgba(15, 23, 42, .3); }
+dialog.konfirmasi[open] { animation: konfirmasi-masuk .16s ease-out; }
+dialog.konfirmasi::backdrop { background: rgba(15, 23, 42, .5); backdrop-filter: blur(2px); }
+dialog.konfirmasi form { padding: 1.5rem 1.5rem 1.25rem; text-align: center; }
+.konfirmasi-ikon { width: 52px; height: 52px; margin: 0 auto .75rem; border-radius: 50%; display: grid; place-items: center; font-size: 1.6rem; font-weight: 800; background: var(--primary-50); color: var(--primary); }
+dialog.konfirmasi.bahaya .konfirmasi-ikon { background: var(--danger-50); color: var(--danger); }
+.konfirmasi-judul { margin: 0 0 .4rem; font-size: 1.15rem; }
+.konfirmasi-pesan { margin: 0 0 1.25rem; color: var(--muted); white-space: pre-line; line-height: 1.5; }
+.konfirmasi-aksi { display: flex; gap: .6rem; justify-content: center; }
+.konfirmasi-aksi .btn { flex: 1; justify-content: center; }
+.btn-danger-solid { background: var(--danger); border-color: var(--danger); color: #fff; }
+.btn-danger-solid:hover { filter: brightness(.92); }
+@keyframes konfirmasi-masuk { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }

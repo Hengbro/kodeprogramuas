@@ -26,7 +26,7 @@
   <input type="hidden" name="kembali" value="<%= kelas ? '/app/siswa?kelas=' + kelas : '/app/siswa' %>">
   <div class="hapus-bar" data-hapus-bar hidden>
     <span><b data-hapus-jumlah>0</b> siswa dipilih</span>
-    <button class="btn btn-sm btn-danger" data-hapus-terpilih><%- h.icon('trash') %> Hapus yang dipilih</button>
+    <button class="btn btn-sm btn-danger" data-hapus-terpilih data-confirm="Siswa yang dipilih akan dihapus beserta seluruh nilainya."><%- h.icon('trash') %> Hapus yang dipilih</button>
   </div>
   <div class="table-wrap">
   <table class="table">
