@@ -117,7 +117,14 @@ test('ZIP khusus sekolah: kode di dalam paket dipakai otomatis dan tidak bisa di
     assert.match(r.text, /khusus untuk SD NEGERI 1 NUSANTARA/);
     // selesaikan aktivasi dengan kode bawaan
     r = await req('GET', '/aktivasi');
-    r = await req('POST', '/aktivasi/akun', { _csrf: csrf(r.text), nama: 'Kepala Sekolah', username: 'kepsek', password: 'rahasia123', password2: 'rahasia123' });
+    // nama pengguna yang tidak valid → pesan jelas, isian tidak hilang
+    r = await req('POST', '/aktivasi/akun', { _csrf: csrf(r.text), nama: 'Kepala Sekolah', nip: '1980', username: 'kep sek!', password: 'rahasia123', password2: 'rahasia123' });
+    assert.strictEqual(r.status, 400);
+    assert.match(r.text, /Nama pengguna &#34;kep sek!&#34; tidak bisa dipakai|Nama pengguna "kep sek!" tidak bisa dipakai/);
+    assert.match(r.text, /value="Kepala Sekolah"/);
+    assert.match(r.text, /value="1980"/);
+    // tanda @ diperbolehkan (seperti nama pengguna guru: nama@kodesekolah)
+    r = await req('POST', '/aktivasi/akun', { _csrf: csrf(r.text), nama: 'Kepala Sekolah', username: 'kepsek@siwalawa', password: 'rahasia123', password2: 'rahasia123' });
     assert.strictEqual(r.location, '/app/sekolah');
     r = await req('GET', '/app/sekolah');
     assert.match(r.text, /value="SD NEGERI 1 NUSANTARA"/);
