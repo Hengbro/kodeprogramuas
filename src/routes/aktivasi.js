@@ -61,7 +61,6 @@ router.post('/aktivasi/akun', limiter, (req, res) => {
   const password = String(req.body.password || '');
   let error = null;
   if (!nama || !username) error = 'Nama dan nama pengguna wajib diisi.';
-  else if (!/^[a-zA-Z0-9._@-]{3,50}$/.test(username)) error = `Nama pengguna "${username}" tidak bisa dipakai. Gunakan 3–50 karakter: huruf, angka, titik, garis bawah, tanda minus, atau @ (tanpa spasi).`;
   else if (password.length < 8) error = 'Kata sandi minimal 8 karakter.';
   else if (password !== req.body.password2) error = 'Ulangi kata sandi tidak sama.';
   if (error) return res.status(400).render('aktivasi', { title: 'Aktivasi', data, error, kode: '', isian: { nama, nip: String(req.body.nip || ''), username } });
