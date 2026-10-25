@@ -5,7 +5,7 @@ const express = require('express');
 const { db } = require('../../db');
 const { requireAdmin, allowedClasses } = require('../../lib/auth');
 const { exportPaket, parsePaket, ringkas, importPaket, exportPaketGuru } = require('../../lib/paket');
-const { writeZip, listFiles, tambahkanKeZip } = require('../../lib/zip');
+const { writeZip, listFiles, buatZipDenganFolder } = require('../../lib/zip');
 const { NAMA: NAMA_PAKET_AWAL } = require('../../lib/paket-otomatis');
 
 const router = express.Router();
@@ -79,10 +79,34 @@ router.get('/paket/guru', requireAdmin, (req, res, next) => {
       return res.redirect('/app/paket#bagikan');
     }
     try {
-      // sisipkan data guru ke ZIP aplikasi yang sudah jadi
-      const tmp = path.join(os.tmpdir(), `E-Rapor-SD-${label}-${Date.now()}.zip`);
-      tambahkanKeZip(ZIP_DASAR, tmp, [{ name: `data/${NAMA_PAKET_AWAL}`, data: JSON.stringify(pkg) }]);
-      return res.download(tmp, `E-Rapor-SD-${label}.zip`, () => fs.unlink(tmp, () => {}));
+      // Aplikasi guru harus membawa lisensi sekolahnya, kalau tidak ia meminta kode aktivasi.
+      // Sekolah di server tidak punya lisensi tersimpan: ambil dari daftar lisensi offline (superadmin: dibuat otomatis).
+      let lisensi = pkg.lisensi;
+      let l = null;
+      if (!lisensi) {
+        const master = require('../../lib/master');
+        const st = res.locals.settings || {};
+        try {
+          l = master.lisensiSekolah({ sekolahKode: res.locals.sekolah && res.locals.sekolah.kode, npsn: st.npsn, sekolah: st.nama_sekolah, bolehBuat: !!res.locals.dariSuper });
+        } catch (e) { req.flash('error', `Lisensi offline sekolah belum bisa dibuat: ${e.message}`); return res.redirect('/app/paket#bagikan'); }
+        if (!l) {
+          req.flash('error', 'Sekolah ini belum punya lisensi aplikasi offline, jadi ZIP guru belum bisa dibuat. Minta penyedia aplikasi membuat lisensi offline untuk sekolah ini.');
+          return res.redirect('/app/paket#bagikan');
+        }
+        lisensi = l.kode;
+        pkg.lisensi = lisensi;
+      }
+      // ZIP guru: folder bernama sekolah + NPSN + guru, lisensi ikut di dalamnya (login langsung dengan akun dari admin)
+      const master = require('../../lib/master');
+      const { periksaKode } = require('../../lib/lisensi');
+      const info = periksaKode(lisensi) || {};
+      const dasar = `${master.namaPaketSekolah({ sekolah: info.sekolah || (res.locals.settings || {}).nama_sekolah, npsn: info.npsn || (res.locals.settings || {}).npsn })}-GURU-${label}`.replace(/[^A-Za-z0-9._-]/g, '-');
+      const tmp = path.join(os.tmpdir(), `${dasar}-${Date.now()}.zip`);
+      buatZipDenganFolder(ZIP_DASAR, tmp, { folder: dasar, entries: [
+        { name: `data/${NAMA_PAKET_AWAL}`, data: JSON.stringify(pkg) },
+        { name: 'data/kode-aktivasi.txt', data: lisensi },
+      ] });
+      return res.download(tmp, `${dasar}.zip`, () => fs.unlink(tmp, () => {}));
     } catch (e) { return next(e); }
   }
   try {

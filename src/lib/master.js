@@ -198,6 +198,18 @@ function cekLisensiOffline({ npsn, sekolah }) {
   if (!fs.existsSync(KUNCI_PRIVAT)) throw new Error('Kunci rahasia penjual tidak ada di server ini (kunci-penjual/kunci-rahasia.pem).');
 }
 
+/**
+ * Lisensi offline milik satu sekolah (dicari lewat kode sekolah di server, lalu NPSN).
+ * Bila belum ada dan `bolehBuat`, dibuat otomatis dari nama & NPSN sekolah.
+ */
+function lisensiSekolah({ sekolahKode, npsn, sekolah, bolehBuat = false }) {
+  const db = m();
+  let l = sekolahKode ? db.prepare('SELECT * FROM lisensi_offline WHERE sekolah_kode = ? ORDER BY id DESC').get(sekolahKode) : null;
+  if (!l && npsn) l = db.prepare('SELECT * FROM lisensi_offline WHERE npsn = ? ORDER BY id DESC').get(String(npsn).trim());
+  if (l || !bolehBuat) return l || null;
+  return buatLisensiOffline({ npsn, sekolah, sekolahKode, catatan: 'otomatis dari ZIP guru' });
+}
+
 function buatLisensiOffline({ npsn, sekolah, catatan, sekolahKode }) {
   const { buatKode, periksaKode } = require('./lisensi');
   cekLisensiOffline({ npsn, sekolah });
@@ -216,4 +228,4 @@ function buatLisensiOffline({ npsn, sekolah, catatan, sekolahKode }) {
   return m().prepare('SELECT * FROM lisensi_offline WHERE token = ?').get(token);
 }
 
-module.exports = { namaPaketSekolah, buatZipSekolah, m, daftar, cari, dbSekolah, buatSekolah, siapkan, statistik, pengaturan, sandiAcak, slug, tutup, KODE_RE, MASTER_PATH, infoOffline, buatLisensiOffline, cekLisensiOffline, ZIP_WINDOWS, SETUP_WINDOWS, PANDUAN_PDF, PANDUAN_GURU_PDF };
+module.exports = { lisensiSekolah, namaPaketSekolah, buatZipSekolah, m, daftar, cari, dbSekolah, buatSekolah, siapkan, statistik, pengaturan, sandiAcak, slug, tutup, KODE_RE, MASTER_PATH, infoOffline, buatLisensiOffline, cekLisensiOffline, ZIP_WINDOWS, SETUP_WINDOWS, PANDUAN_PDF, PANDUAN_GURU_PDF };

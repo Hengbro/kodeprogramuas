@@ -308,21 +308,31 @@ test('Pengguna & Guru: daftar dengan Detail/Hapus, edit guru (username dan kelas
   assert.strictEqual(guruDari(k2), null);
 });
 
-test('unduh aplikasi (ZIP) untuk guru berfungsi di server biasa: data guru disisipkan ke ZIP aplikasi', async () => {
+test('unduh aplikasi (ZIP) untuk guru: membawa lisensi sekolah agar guru langsung login (tanpa kode aktivasi)', async () => {
   const { req, token } = await masuk('admin', 'admin123');
   const r = await req('GET', '/app/paket');
   assert.doesNotMatch(r.text, /name="bentuk" value="zip" disabled/);
   const guru = db.prepare("SELECT id FROM users WHERE username = 'guru4a'").get().id;
-  const res = await fetch(`${base}/app/paket/guru?guru=${guru}&bentuk=zip`, { headers: { cookie: req.cookie() } });
+  // sekolah tanpa lisensi (dan bukan superadmin) → ditolak dengan penjelasan, bukan ZIP yang meminta kode aktivasi
+  let res = await fetch(`${base}/app/paket/guru?guru=${guru}&bentuk=zip`, { headers: { cookie: req.cookie() }, redirect: 'manual' });
+  assert.strictEqual(res.status, 302);
+  assert.match(res.headers.get('location'), /\/app\/paket/);
+  // sekolah berlisensi → ZIP berisi lisensi di paket awal dan di kode-aktivasi.txt
+  const KODE = 'ERAPOR-contoh.lisensi';
+  db.prepare("INSERT INTO settings (key, value) VALUES ('_lisensi', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(KODE);
+  res = await fetch(`${base}/app/paket/guru?guru=${guru}&bentuk=zip`, { headers: { cookie: req.cookie() } });
   assert.strictEqual(res.status, 200);
-  assert.match(res.headers.get('content-disposition'), /E-Rapor-SD-guru4a\.zip/);
+  assert.match(res.headers.get('content-disposition'), /E-Rapor-SD-NEGERI-1-NUSANTARA-10200000-GURU-guru4a\.zip/);
   const berkas = path.join(dir, 'hasil-guru.zip');
   fs.writeFileSync(berkas, Buffer.from(await res.arrayBuffer()));
-  const daftar = execFileSync('unzip', ['-l', berkas]).toString();
-  assert.match(daftar, /E-Rapor-SD-Windows\/Jalankan-Rapor\.bat/);
-  assert.match(daftar, /E-Rapor-SD-Windows\/data\/paket-awal.*\.rapor\.json/);
   execFileSync('unzip', ['-tq', berkas]);
-  const paket = JSON.parse(execFileSync('unzip', ['-p', berkas, 'E-Rapor-SD-Windows/data/paket-awal.rapor.json']).toString());
-  assert.ok(paket && typeof paket === 'object');
+  const nama = execFileSync('unzip', ['-Z1', berkas]).toString().trim().split('\n');
+  const folder = nama[0].split('/')[0];
+  assert.ok(nama.every((n) => n.startsWith(`${folder}/`)));
+  assert.ok(nama.includes(`${folder}/Jalankan-Rapor.bat`));
+  assert.strictEqual(execFileSync('unzip', ['-p', berkas, `${folder}/data/kode-aktivasi.txt`]).toString(), KODE);
+  const paket = JSON.parse(execFileSync('unzip', ['-p', berkas, `${folder}/data/paket-awal.rapor.json`]).toString());
+  assert.strictEqual(paket.lisensi, KODE);
+  assert.ok(paket.akun.some((a) => a.username === 'guru4a'));
   void token;
 });

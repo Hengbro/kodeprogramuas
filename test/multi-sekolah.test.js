@@ -370,3 +370,37 @@ test('superadmin mengunggah ZIP aplikasi Windows dari panel (hanya ZIP paket yan
   r = await kirim(fs.readFileSync(sah), '');
   assert.ok(r.status === 302 || r.status === 401 || r.status === 403);
 });
+
+test('ZIP guru dari sekolah di server: lisensi offline ikut (dibuat otomatis oleh superadmin), admin sekolah biasa tidak bisa membuatnya', async () => {
+  const { execFileSync } = require('child_process');
+  const su = klien();
+  await su('POST', '/super/login', { _csrf: await su.token('/super/login'), username: 'superadmin', password: 'rahasia-super' });
+  const tok = await su.token('/super');
+  await su('POST', '/super/sekolah', { _csrf: tok, online: '1', nama: 'SD NEGERI GURU ZIP', npsn: '60105555', kode: 'guru-zip', admin_username: 'kepsek', admin_password: 'sandi-kepsek-1' });
+  const d = master.dbSekolah(master.cari('guru-zip'));
+  const guru = d.prepare("INSERT INTO users (username, password_hash, nama, role) VALUES ('bu.guru', 'x', 'Bu Guru', 'guru')").run().lastInsertRowid;
+  d.prepare("INSERT INTO classes (nama, tingkat, fase, guru_id) VALUES ('IV A', 4, 'B', ?)").run(guru);
+  const url = `/sekolah/guru-zip/app/paket/guru?guru=${guru}&bentuk=zip`;
+  // admin sekolah (bukan superadmin): belum ada lisensi offline → ditolak
+  const kepsek = await masuk('guru-zip', 'kepsek', 'sandi-kepsek-1');
+  let res = await fetch(base + url, { headers: { cookie: kepsek.req.cookie() }, redirect: 'manual' });
+  assert.strictEqual(res.status, 302);
+  assert.strictEqual(master.m().prepare("SELECT COUNT(*) n FROM lisensi_offline WHERE sekolah_kode = 'guru-zip'").get().n, 0);
+  // superadmin masuk ke sekolah itu → lisensi dibuat otomatis dan ikut di ZIP
+  await su('POST', '/super/sekolah/guru-zip/masuk', { _csrf: await su.token('/super') });
+  res = await fetch(base + url, { headers: { cookie: su.cookie() }, redirect: 'manual' });
+  assert.strictEqual(res.status, 200);
+  const l = master.m().prepare("SELECT * FROM lisensi_offline WHERE sekolah_kode = 'guru-zip'").get();
+  assert.ok(l); assert.strictEqual(l.npsn, '60105555'); assert.match(l.catatan, /otomatis/);
+  assert.match(res.headers.get('content-disposition'), /E-Rapor-SD-NEGERI-GURU-ZIP-60105555-GURU-bu\.guru\.zip/);
+  const berkas = path.join(dir, 'guru-zip.zip');
+  fs.writeFileSync(berkas, Buffer.from(await res.arrayBuffer()));
+  execFileSync('unzip', ['-tq', berkas]);
+  const folder = 'E-Rapor-SD-NEGERI-GURU-ZIP-60105555-GURU-bu.guru';
+  assert.strictEqual(execFileSync('unzip', ['-p', berkas, `${folder}/data/kode-aktivasi.txt`]).toString(), l.kode);
+  assert.strictEqual(JSON.parse(execFileSync('unzip', ['-p', berkas, `${folder}/data/paket-awal.rapor.json`]).toString()).lisensi, l.kode);
+  // permintaan berikutnya memakai lisensi yang sama (tidak membuat lisensi baru), juga oleh admin sekolah
+  res = await fetch(base + url, { headers: { cookie: kepsek.req.cookie() }, redirect: 'manual' });
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(master.m().prepare("SELECT COUNT(*) n FROM lisensi_offline WHERE sekolah_kode = 'guru-zip'").get().n, 1);
+});

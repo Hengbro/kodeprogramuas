@@ -125,3 +125,48 @@ test('ZIP khusus sekolah: kode di dalam paket dipakai otomatis dan tidak bisa di
     srv.kill();
   }
 });
+
+test('aplikasi guru dengan paket berlisensi: langsung ke halaman login (tanpa kode aktivasi) dan akun guru dari admin berfungsi', async () => {
+  const { execFileSync } = require('child_process');
+  const akar = path.join(__dirname, '..');
+  const dataAdmin = fs.mkdtempSync(path.join(os.tmpdir(), 'rapor-lis-admin-'));
+  const dataGuru = fs.mkdtempSync(path.join(os.tmpdir(), 'rapor-lis-guru-'));
+  execFileSync(process.execPath, ['src/seed-demo.js'], { cwd: akar, env: { ...process.env, DATA_DIR: dataAdmin } });
+  // "server/admin": sekolah berlisensi mengekspor paket untuk guru4a (sama seperti tombol Unduh aplikasi ZIP)
+  const kode = buatKode(DATA, priv);
+  execFileSync(process.execPath, ['-e', `
+    const { db } = require('./src/db');
+    db.prepare("INSERT INTO settings (key, value) VALUES ('_lisensi', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(${JSON.stringify(kode)});
+    const { exportPaketGuru } = require('./src/lib/paket');
+    const id = db.prepare("SELECT id FROM users WHERE username = 'guru4a'").get().id;
+    require('fs').writeFileSync(${JSON.stringify(path.join(dataGuru, 'paket-awal.rapor.json'))}, JSON.stringify(exportPaketGuru([id])));
+  `], { cwd: akar, env: { ...process.env, DATA_DIR: dataAdmin, LISENSI_PUBLIK: pubFile } });
+  // laptop guru: data kosong + paket-awal.rapor.json (persis isi ZIP guru)
+  const port = 3400 + Math.floor(Math.random() * 500);
+  const srv = spawn(process.execPath, ['server.js'], {
+    cwd: akar, env: { ...process.env, DATA_DIR: dataGuru, PORT: String(port), HOST: '127.0.0.1', LISENSI_WAJIB: '1', LISENSI_PUBLIK: pubFile },
+  });
+  try {
+    const B = `http://127.0.0.1:${port}`;
+    const jar = {};
+    const req = async (method, url, body) => {
+      for (let i = 0; i < 50; i += 1) {
+        try {
+          const r = await fetch(B + url, { method, redirect: 'manual', headers: { cookie: Object.entries(jar).map(([k, v]) => `${k}=${v}`).join('; '), ...(body ? { 'content-type': 'application/x-www-form-urlencoded' } : {}) }, body: body && new URLSearchParams(body) });
+          for (const c of r.headers.getSetCookie()) { const [kv] = c.split(';'); const i2 = kv.indexOf('='); jar[kv.slice(0, i2)] = kv.slice(i2 + 1); }
+          return { status: r.status, location: r.headers.get('location'), text: await r.text() };
+        } catch { await new Promise((r2) => setTimeout(r2, 100)); }
+      }
+      throw new Error('server tidak menyala');
+    };
+    const csrf = (t) => /name="_csrf" value="([^"]+)"/.exec(t)[1];
+    let r = await req('GET', '/app');
+    assert.notStrictEqual(r.location, '/aktivasi', 'guru tidak boleh diminta kode aktivasi');
+    assert.strictEqual(r.location, '/login');
+    r = await req('GET', '/login');
+    r = await req('POST', '/login', { _csrf: csrf(r.text), username: 'guru4a', password: 'guru123' });
+    assert.match(r.location, /^\/app\/?$/);
+  } finally {
+    srv.kill();
+  }
+});
