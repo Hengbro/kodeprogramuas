@@ -47,3 +47,32 @@ test('pembaruan: bukan salinan git → dilaporkan tanpa galat', () => {
   const st = require('../src/lib/pembaruan').status();
   assert.strictEqual(st.git, false);
 });
+
+test('pembaruan: perubahan sendiri yang sudah di-commit digabung (tidak hilang); bentrok dibatalkan tanpa merusak', () => {
+  process.env.PEMBARUAN_DIR = app;
+  delete require.cache[require.resolve('../src/lib/pembaruan')];
+  const pb = require('../src/lib/pembaruan');
+  // kembalikan app ke kondisi bersih & sejajar dengan pusat
+  git(app, 'checkout', '--', '.');
+  pb.perbarui();
+  // perubahan sendiri (commit lokal) di berkas yang tidak disentuh pusat, misalnya "penilaian baru"
+  fs.writeFileSync(path.join(app, 'penilaian-baru.txt'), 'milik saya');
+  git(app, 'add', '-A'); git(app, 'commit', '-m', 'penilaian baru');
+  // pusat menambah berkas lain → riwayat berbeda
+  fs.writeFileSync(path.join(dev, 'fitur-pusat.txt'), 'dari pusat');
+  git(dev, 'add', '-A'); git(dev, 'commit', '-m', 'fitur pusat'); git(dev, 'push');
+  const hasil = pb.perbarui();
+  assert.ok(hasil.berubah);
+  assert.ok(fs.existsSync(path.join(app, 'penilaian-baru.txt')), 'perubahan sendiri tetap ada');
+  assert.ok(fs.existsSync(path.join(app, 'fitur-pusat.txt')), 'versi baru ikut');
+  assert.strictEqual(git(app, 'status', '--porcelain'), '');
+  // bentrok: kedua sisi mengubah baris yang sama → dibatalkan, berkas sendiri utuh, tidak ada merge setengah jalan
+  fs.writeFileSync(path.join(dev, 'fitur-pusat.txt'), 'pusat versi 2');
+  git(dev, 'commit', '-am', 'ubah lagi'); git(dev, 'push');
+  fs.writeFileSync(path.join(app, 'fitur-pusat.txt'), 'saya ubah juga');
+  git(app, 'commit', '-am', 'ubah saya');
+  assert.throws(() => pb.perbarui(), /bentrok/);
+  assert.strictEqual(fs.readFileSync(path.join(app, 'fitur-pusat.txt'), 'utf8'), 'saya ubah juga');
+  assert.strictEqual(git(app, 'status', '--porcelain'), '');
+  assert.ok(!fs.existsSync(path.join(app, '.git', 'MERGE_HEAD')));
+});

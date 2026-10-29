@@ -18,9 +18,10 @@ function status({ ambil = true } = {}) {
     if (ambil) git('fetch', 'origin', cabang);
     const lokal = git('log', '-1', '--pretty=%h %s');
     const tertinggal = Number(git('rev-list', '--count', `HEAD..origin/${cabang}`)) || 0;
+    const maju = Number(git('rev-list', '--count', `origin/${cabang}..HEAD`)) || 0;
     const baru = tertinggal ? git('log', '--pretty=%s', '-n', '15', `HEAD..origin/${cabang}`).split('\n').filter(Boolean) : [];
     const kotor = git('status', '--porcelain', '--untracked-files=no').split('\n').filter(Boolean);
-    return { git: true, cabang, lokal, tertinggal, baru, kotor, bisaMulaiUlang: bisaMulaiUlang() };
+    return { git: true, cabang, lokal, tertinggal, maju, baru, kotor, bisaMulaiUlang: bisaMulaiUlang() };
   } catch (e) {
     return { git: true, galat: String(e.stderr || e.message).trim().split('\n').slice(0, 3).join(' ') };
   }
@@ -32,7 +33,25 @@ function perbarui() {
   const sebelum = git('rev-parse', 'HEAD');
   const log = [];
   git('fetch', 'origin', cabang);
-  log.push(git('pull', '--ff-only', 'origin', cabang).split('\n').slice(-6).join('\n'));
+  try {
+    log.push(git('pull', '--ff-only', 'origin', cabang).split('\n').slice(-6).join('\n'));
+  } catch (e) {
+    const pesan = String(e.stderr || e.message);
+    if (/would be overwritten|Please commit your changes|untracked working tree/i.test(pesan)) {
+      throw new Error('Ada perubahan di komputer ini yang belum disimpan dan bentrok dengan versi baru. Simpan dulu perubahan itu (git add -A lalu git commit -m "perubahan saya"), lalu coba lagi.');
+    }
+    // Riwayat berbeda (ada perubahan sendiri yang sudah di-commit di komputer ini): gabungkan. Perubahan sendiri tetap ada.
+    // Bila ada berkas yang diubah di kedua sisi pada baris yang sama, penggabungan dibatalkan dan semuanya kembali seperti semula.
+    try {
+      git('-c', 'user.name=E-Rapor', '-c', 'user.email=e-rapor@localhost', 'merge', '--no-edit', `origin/${cabang}`);
+      log.push('Perubahan Anda digabung dengan versi terbaru (merge).');
+    } catch (e2) {
+      let bentrok = '';
+      try { bentrok = git('diff', '--name-only', '--diff-filter=U').split('\n').filter(Boolean).join(', '); } catch (e3) { /* abaikan */ }
+      try { git('merge', '--abort'); } catch (e3) { /* tidak ada merge berjalan */ }
+      throw new Error(`Perubahan Anda bentrok dengan versi baru${bentrok ? ` pada: ${bentrok}` : ''}. Tidak ada yang diubah (perubahan Anda aman). Kirim pesan ini ke pengembang agar digabungkan.`);
+    }
+  }
   const sesudah = git('rev-parse', 'HEAD');
   if (sesudah !== sebelum) {
     const berubah = git('diff', '--name-only', sebelum, sesudah).split('\n');

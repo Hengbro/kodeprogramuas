@@ -18,6 +18,7 @@
     <table class="table">
       <tr><th style="width:190px">Versi terpasang</th><td><code><%= st.lokal %></code></td></tr>
       <tr><th>Cabang</th><td><code><%= st.cabang %></code></td></tr>
+      <% if (st.maju) { %><tr><th>Perubahan sendiri</th><td><%= st.maju %> perubahan buatan Anda di komputer ini (tidak hilang; akan digabung otomatis dengan pembaruan)</td></tr><% } %>
       <tr><th>Status</th><td><% if (st.tertinggal) { %><span class="badge badge-primary"><%= st.tertinggal %> pembaruan tersedia</span><% } else { %><span class="badge badge-success">Terbaru</span><% } %></td></tr>
     </table>
     <% if (st.tertinggal) { %>
