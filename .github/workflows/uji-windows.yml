@@ -60,8 +60,16 @@ jobs:
             $r = Invoke-WebRequest "http://127.0.0.1:3210/login" -UseBasicParsing -SessionVariable s
             $t = [regex]::Match($r.Content, 'name="_csrf" value="([^"]+)"').Groups[1].Value
             if (-not $t) { throw "Halaman login tidak tampil (mungkin diarahkan ke aktivasi): $($r.BaseResponse.ResponseUri)" }
-            $r2 = Invoke-WebRequest "http://127.0.0.1:3210/login" -Method Post -Body @{ _csrf = $t; username = $u; password = $p } -WebSession $s -UseBasicParsing
-            return ($r2.Content -match 'Dasbor')
+            # Windows PowerShell melempar galat untuk 401 (login ditolak): itu berarti "tidak berhasil masuk", bukan kegagalan uji
+            try {
+              $r2 = Invoke-WebRequest "http://127.0.0.1:3210/login" -Method Post -Body @{ _csrf = $t; username = $u; password = $p } -WebSession $s -UseBasicParsing
+              Write-Host "Masuk $u -> $($r2.BaseResponse.ResponseUri.AbsolutePath)"
+              return ($r2.Content -match 'Dasbor')
+            } catch {
+              $resp = $_.Exception.Response
+              if ($resp -and [int]$resp.StatusCode -eq 401) { Write-Host "Masuk $u -> ditolak (401)"; return $false }
+              throw
+            }
           }
           '@ | Out-File -FilePath fungsi.ps1 -Encoding utf8
       - name: 1) Pasang ZIP pertama, admin masuk dengan akun dari server
