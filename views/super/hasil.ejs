@@ -11,7 +11,7 @@
     <tr><th>Alamat masuk</th><td><code><%= baseUrl %>/sekolah/<%= sekolah.kode %>/login</code></td></tr>
     <tr><th>Portal orang tua</th><td><code><%= baseUrl %>/sekolah/<%= sekolah.kode %>/</code></td></tr>
     <% if (username) { %><tr><th>Username</th><td><code><%= username %></code></td></tr>
-    <tr><th>Kata sandi</th><td><code><%= password %></code></td></tr><% } %>
+    <tr><th>Kata sandi</th><td><code><%= password %></code> <button type="button" class="btn btn-sm" data-salin="<%= password %>">Salin</button></td></tr><% } %>
   </table>
   <% } %>
   <% if (l) { %>

@@ -65,6 +65,30 @@
       if (/[A-Z]/.test(s) && /[a-z]/.test(s) && /[2-9]/.test(s)) return s;
     }
   }
+  // Menyalin teks ke clipboard. navigator.clipboard hanya jalan di HTTPS/localhost; di alamat lain (mis. http://192.168.x.x
+  // lewat WiFi) dipakai cara lama (textarea + execCommand) agar tombol Salin tetap berfungsi.
+  function salinTeks(teks) {
+    var caraLama = function () {
+      var t = document.createElement('textarea');
+      t.value = teks; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.top = '-1000px'; t.style.opacity = '0';
+      document.body.appendChild(t); t.focus(); t.select(); t.setSelectionRange(0, teks.length);
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+      document.body.removeChild(t);
+      return ok;
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(teks).then(function () { return true; }, function () { return caraLama(); });
+    }
+    return Promise.resolve(caraLama());
+  }
+  window.salinTeks = salinTeks;
+  var tandaiTombol = function (b, teks) {
+    if (!b.hasAttribute('data-label')) b.setAttribute('data-label', b.textContent);
+    b.textContent = teks;
+    clearTimeout(b._t); b._t = setTimeout(function () { b.textContent = b.getAttribute('data-label'); }, 2000);
+  };
+
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-sandi-acak]');
     if (!b) return;
@@ -75,11 +99,50 @@
       inp.type = 'text';
       inp.value = s;
       inp.dispatchEvent(new Event('input', { bubbles: true }));
+      var tampil = inp.parentNode.querySelector('[data-sandi-tampil]');
+      if (tampil) tampil.textContent = 'Sembunyikan';
     });
     inputs[0].focus(); inputs[0].select();
-    var tandai = function (teks) { b.textContent = teks; setTimeout(function () { b.textContent = 'Acak'; }, 2000); };
-    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(s).then(function () { tandai('Disalin ✓'); }, function () { tandai('Catat!'); });
-    else tandai('Catat!');
+    salinTeks(s).then(function (ok) { tandaiTombol(b, ok ? 'Disalin ✓' : 'Catat!'); });
+  });
+
+  // Setiap kolom kata sandi: tombol Tampilkan/Sembunyikan, dan Salin untuk kolom sandi baru
+  function lengkapiKolomSandi(inp) {
+    if (inp.hasAttribute('data-sandi-siap')) return;
+    inp.setAttribute('data-sandi-siap', '');
+    var wadah = inp.parentNode;
+    if (!wadah.classList.contains('sandi-wrap')) {
+      wadah = document.createElement('div');
+      wadah.className = 'sandi-wrap';
+      inp.parentNode.insertBefore(wadah, inp);
+      wadah.appendChild(inp);
+    }
+    var tampil = document.createElement('button');
+    tampil.type = 'button'; tampil.className = 'btn btn-sm sandi-btn'; tampil.textContent = 'Tampilkan';
+    tampil.setAttribute('data-sandi-tampil', ''); tampil.title = 'Tampilkan / sembunyikan kata sandi';
+    tampil.addEventListener('click', function () {
+      var lihat = inp.type === 'password';
+      inp.type = lihat ? 'text' : 'password';
+      tampil.textContent = lihat ? 'Sembunyikan' : 'Tampilkan';
+    });
+    wadah.insertBefore(tampil, inp.nextSibling);
+    if (inp.getAttribute('autocomplete') === 'new-password') {
+      var salin = document.createElement('button');
+      salin.type = 'button'; salin.className = 'btn btn-sm sandi-btn'; salin.textContent = 'Salin'; salin.title = 'Salin kata sandi';
+      salin.addEventListener('click', function () {
+        if (!inp.value) { tandaiTombol(salin, 'Kosong'); inp.focus(); return; }
+        salinTeks(inp.value).then(function (ok) { tandaiTombol(salin, ok ? 'Disalin ✓' : 'Gagal — salin manual'); if (!ok) { inp.type = 'text'; inp.select(); } });
+      });
+      wadah.appendChild(salin);
+    }
+  }
+  document.querySelectorAll('input[type=password]').forEach(lengkapiKolomSandi);
+
+  // Tombol [data-salin="teks"]: salin teks (mis. sandi baru di halaman hasil reset)
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-salin]');
+    if (!b) return;
+    salinTeks(b.getAttribute('data-salin')).then(function (ok) { tandaiTombol(b, ok ? 'Disalin ✓' : 'Gagal — salin manual'); });
   });
 
   // Daftar siswa: pilih beberapa siswa lalu hapus sekaligus
@@ -532,8 +595,10 @@
         var c = document.createElement('code'); c.textContent = j.sandi; c.style.userSelect = 'all'; c.style.padding = '.15rem .4rem';
         var salin = document.createElement('button'); salin.type = 'button'; salin.className = 'btn btn-sm'; salin.textContent = 'Salin'; salin.style.marginLeft = '.35rem';
         salin.addEventListener('click', function () {
-          if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(j.sandi).then(function () { salin.textContent = 'Disalin ✓'; });
-          else { var r = document.createRange(); r.selectNodeContents(c); var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r); salin.textContent = 'Terpilih'; }
+          salinTeks(j.sandi).then(function (ok) {
+            if (ok) { salin.textContent = 'Disalin ✓'; return; }
+            var r = document.createRange(); r.selectNodeContents(c); var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r); salin.textContent = 'Terpilih — tekan Ctrl+C';
+          });
         });
         out.appendChild(c); out.appendChild(salin); out.setAttribute('data-terbuka', '1');
       })
