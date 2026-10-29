@@ -41,7 +41,7 @@ echo "5/5 Berkas peluncur, ZIP & pemasang"
 cp "$ROOT/windows/"Jalankan-*.bat "$ROOT/windows/BACA-SAYA.txt" "$ROOT/windows/e-rapor.ico" "$STAGE/"
 cp "$ROOT/docs/Panduan-Admin-Sekolah.pdf" "$ROOT/docs/Panduan-Guru.pdf" "$STAGE/"
 # baris CRLF agar Notepad & cmd.exe membaca dengan benar
-for f in "$STAGE"/*.bat "$STAGE"/BACA-SAYA.txt; do sed -i 's/\r\{0,1\}$/\r/' "$f"; done
+for f in "$STAGE"/*.bat "$STAGE"/BACA-SAYA.txt; do awk '{ sub(/\r$/, ""); printf "%s\r\n", $0 }' "$f" > "$f.tmp" && mv "$f.tmp" "$f"; done
 
 # Pemasang kecil (NSIS) di dalam paket: menyalin isi folder ini ke komputer + ikon desktop.
 # Bila pemasang gagal, Jalankan-Rapor.bat di folder yang sama tetap bisa dipakai.

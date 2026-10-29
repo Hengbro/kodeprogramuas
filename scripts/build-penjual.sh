@@ -19,6 +19,6 @@ cp "$ROOT/src/lib/lisensi.js" "$ROOT/src/lib/lisensi-publik.pem" "$STAGE/alat/sr
 cp "$ROOT/kunci-penjual/kunci-rahasia.pem" "$STAGE/kunci-penjual/"
 [ -f "$ROOT/kunci-penjual/daftar-lisensi.csv" ] && cp "$ROOT/kunci-penjual/daftar-lisensi.csv" "$STAGE/kunci-penjual/"
 cp "$ROOT/windows/Buat-Kode-Aktivasi.bat" "$ROOT/windows/PENJUAL-BACA-SAYA.txt" "$STAGE/"
-for f in "$STAGE"/*.bat "$STAGE"/*.txt; do sed -i 's/\r\{0,1\}$/\r/' "$f"; done
+for f in "$STAGE"/*.bat "$STAGE"/*.txt; do awk '{ sub(/\r$/, ""); printf "%s\r\n", $0 }' "$f" > "$f.tmp" && mv "$f.tmp" "$f"; done
 (cd "$OUT" && zip -qr "$NAME.zip" "$NAME")
 echo "Selesai: $OUT/$NAME.zip (RAHASIA — berisi kunci penjual)"
