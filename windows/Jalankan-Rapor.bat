@@ -9,6 +9,16 @@ if not exist "%~dp0node\node.exe" (
   pause
   exit /b
 )
+if not exist "%~dp0app\server.js" (
+  echo.
+  echo   Berkas aplikasi tidak lengkap: app\server.js tidak ditemukan di:
+  echo   %~dp0
+  echo   Hapus folder ini, ekstrak ulang file ZIP dengan "Extract All..." sampai selesai ^(tunggu hingga jendela proses tertutup^),
+  echo   lalu pasang/jalankan lagi. Jika tetap gagal, foto layar ini dan kirim ke operator.
+  echo.
+  pause
+  exit /b
+)
 cd /d "%~dp0app"
 set "DATA_DIR=%~dp0data"
 set "PORT=3210"

@@ -68,13 +68,24 @@ Section "E-Rapor SD"
   RMDir /r "$INSTDIR\app"
   RMDir /r "$INSTDIR\node"
   DetailPrint "Menyalin aplikasi (± 1 menit) ..."
-  CopyFiles /SILENT "$EXEDIR\app" "$INSTDIR"
-  CopyFiles /SILENT "$EXEDIR\node" "$INSTDIR"
+  ; robocopy (bawaan Windows) menyalin ribuan berkas dengan andal dan mencoba ulang bila ada yang terkunci antivirus;
+  ; kode keluar 0-7 = berhasil, 8 atau lebih = ada yang gagal. (CopyFiles /SILENT bisa gagal diam-diam di tengah jalan.)
+  nsExec::ExecToLog 'robocopy "$EXEDIR\app" "$INSTDIR\app" /E /R:3 /W:2 /NFL /NDL /NJH /NJS /NP'
+  Pop $0
+  IntCmp $0 8 salin_gagal salin_app_ok salin_gagal
+  salin_app_ok:
+  nsExec::ExecToLog 'robocopy "$EXEDIR\node" "$INSTDIR\node" /E /R:3 /W:2 /NFL /NDL /NJH /NJS /NP'
+  Pop $0
+  IntCmp $0 8 salin_gagal salin_node_ok salin_gagal
+  salin_node_ok:
   CopyFiles /SILENT "$EXEDIR\*.bat" "$INSTDIR"
   CopyFiles /SILENT "$EXEDIR\*.pdf" "$INSTDIR"
   CopyFiles /SILENT "$EXEDIR\*.txt" "$INSTDIR"
   CopyFiles /SILENT "$EXEDIR\e-rapor.ico" "$INSTDIR"
   CopyFiles /SILENT "$EXEPATH" "$INSTDIR\Pasang-E-Rapor-SD.exe"
+  ; pastikan berkas inti benar-benar ada; bila tidak, hentikan dengan pesan jelas (bukan ikon yang tidak bisa dibuka)
+  IfFileExists "$INSTDIR\app\server.js" 0 salin_gagal
+  IfFileExists "$INSTDIR\node\node.exe" 0 salin_gagal
   CreateDirectory "$INSTDIR\data"
   ; isi folder data dari ZIP ikut dipindah bila komputer ini belum punya data:
   ; paket dari admin sekolah (paket-awal.rapor.json) atau data yang sempat diisi lewat Jalankan-Rapor.bat
@@ -107,6 +118,11 @@ Section "E-Rapor SD"
   WriteRegStr HKCU "${UNINST}" "UninstallString" '"$INSTDIR\Hapus-E-Rapor-SD.exe"'
   WriteRegDWORD HKCU "${UNINST}" "NoModify" 1
   WriteRegDWORD HKCU "${UNINST}" "NoRepair" 1
+  Goto selesai
+  salin_gagal:
+  MessageBox MB_OK|MB_ICONSTOP "Pemasangan GAGAL: berkas aplikasi tidak tersalin lengkap ke:$\r$\n$INSTDIR$\r$\n$\r$\nCoba: (1) tutup antivirus sementara lalu pasang ulang, atau (2) cukup klik dua kali Jalankan-Rapor.bat di folder hasil ekstrak ZIP (tanpa memasang).$\r$\n$\r$\nBila tetap gagal, foto layar ini dan kirim ke operator."
+  Abort
+  selesai:
 SectionEnd
 
 Section "Uninstall"
