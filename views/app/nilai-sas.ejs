@@ -1,7 +1,7 @@
 <%- include('../partials/top') %>
 <%- include('_kelas-tabs') %>
-<div class="page-head"><div><h1>Nilai SAS semua mapel</h1>
-  <p>Isi nilai Sumatif Akhir Semester (non-tes &amp; tes) untuk <b>semua mata pelajaran dan semua siswa</b> dalam satu lembar, lalu simpan sekali. <%= h.periodLabel(period) %>.
+<div class="page-head"><div><h1>Nilai STS &amp; SAS semua mapel</h1>
+  <p>Isi nilai Sumatif Tengah Semester (STS) dan Sumatif Akhir Semester (non-tes &amp; tes) untuk <b>semua mata pelajaran dan semua siswa</b> dalam satu lembar, lalu simpan sekali. <%= h.periodLabel(period) %>.
   Kolom Agama otomatis mengikuti agama masing-masing siswa. Nilai formatif per TP dan sumatif lingkup materi tetap diisi di lembar per mapel.</p></div></div>
 <% if (!rows.length) { %>
   <div class="card empty"><%- h.icon('users') %><p>Belum ada siswa di kelas ini.</p></div>
@@ -12,15 +12,16 @@
   <table class="sheet">
     <thead>
       <tr><th rowspan="2" class="no-col">No</th><th rowspan="2" class="sticky-col" style="left:38px">Nama siswa</th>
-        <% kolom.forEach((k, i) => { %><th colspan="2" class="<%= i % 2 ? 'group-s' : 'group-f' %>" title="<%= k.nama %>"><%= k.singkat %></th><% }) %></tr>
-      <tr><% kolom.forEach((k, i) => { %><th class="<%= i % 2 ? 'group-s' : 'group-f' %>">Non-tes</th><th class="<%= i % 2 ? 'group-s' : 'group-f' %>">Tes</th><% }) %></tr>
+        <% kolom.forEach((k, i) => { %><th colspan="3" class="<%= i % 2 ? 'group-s' : 'group-f' %>" title="<%= k.nama %>"><%= k.singkat %></th><% }) %></tr>
+      <tr><% kolom.forEach((k, i) => { %><th class="<%= i % 2 ? 'group-s' : 'group-f' %>" title="Sumatif Tengah Semester">STS</th><th class="<%= i % 2 ? 'group-s' : 'group-f' %>">Non-tes</th><th class="<%= i % 2 ? 'group-s' : 'group-f' %>">Tes</th><% }) %></tr>
     </thead>
     <tbody>
     <% rows.forEach((r, ri) => { %>
       <tr><td class="no-col calc"><%= ri + 1 %></td><td class="sticky-col" style="left:38px"><b><%= r.st.nama %></b></td>
       <% r.cells.forEach((c, i) => { const k = kolom[i]; const g = i % 2 ? 'group-s' : 'group-f'; %>
-        <% if (!c) { %><td class="<%= g %> calc" title="Tidak mengikuti mapel ini">–</td><td class="<%= g %> calc">–</td>
-        <% } else { %><td class="<%= g %>"><input name="nt_<%= k.key %>_<%= r.st.id %>" value="<%= c.a.sas_nontes ?? '' %>" inputmode="decimal" autocomplete="off" title="<%= c.s.nama %> – non-tes"></td>
+        <% if (!c) { %><td class="<%= g %> calc" title="Tidak mengikuti mapel ini">–</td><td class="<%= g %> calc">–</td><td class="<%= g %> calc">–</td>
+        <% } else { %><td class="<%= g %>"><input name="sts_<%= k.key %>_<%= r.st.id %>" value="<%= c.a.sts ?? '' %>" inputmode="decimal" autocomplete="off" title="<%= c.s.nama %> – STS"></td>
+        <td class="<%= g %>"><input name="nt_<%= k.key %>_<%= r.st.id %>" value="<%= c.a.sas_nontes ?? '' %>" inputmode="decimal" autocomplete="off" title="<%= c.s.nama %> – non-tes"></td>
         <td class="<%= g %>"><input name="t_<%= k.key %>_<%= r.st.id %>" value="<%= c.a.sas_tes ?? '' %>" inputmode="decimal" autocomplete="off" title="<%= c.s.nama %> – tes"></td><% } %>
       <% }) %></tr>
     <% }) %>

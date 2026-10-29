@@ -15,7 +15,7 @@ h1, h2, h3 { margin: 0; }
 .bold { font-weight: bold; }
 .upper { text-transform: uppercase; }
 table { border-collapse: collapse; width: 100%; }
-table.grid th, table.grid td { border: 1px solid #000; padding: 4px 6px; vertical-align: top; }
+table.grid th, table.grid td { border: 1px solid #000; padding: 4px 6px; vertical-align: middle; }
 table.grid th { background: #e8eef8; font-weight: bold; text-align: center; vertical-align: middle; }
 table.info td { padding: 2px 4px; vertical-align: top; }
 table.info td.lbl { width: 34%; }

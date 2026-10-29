@@ -16,7 +16,7 @@ function getSettings() {
   s.juara = Math.max(1, Math.min(200, Number(s.juara_jumlah) || 3));
   s.rankingBatas = Math.max(1, Math.min(200, Number(s.ranking_batas) || 10));
   try { s.predikat = JSON.parse(s.predikat); } catch { s.predikat = []; }
-  s.bobot = { f: Number(s.bobot_f) || 0, s: Number(s.bobot_s) || 0, as: Number(s.bobot_as) || 0 };
+  s.bobot = { f: Number(s.bobot_f) || 0, s: Number(s.bobot_s) || 0, sts: Number(s.bobot_sts) || 0, as: Number(s.bobot_as) || 0 };
   // nama sekolah & NPSN selalu mengikuti lisensi (tidak bisa diganti sekolah lain)
   const lis = lisensiAktif(db);
   if (lis) { s.nama_sekolah = lis.sekolah; s.npsn = lis.npsn; }
@@ -115,7 +115,7 @@ function buildClassReport(periodId, classId, settings = getSettings()) {
         .map((t) => ({ ...t, nilai: fMap.has(`${t.id}:${st.id}`) ? fMap.get(`${t.id}:${st.id}`) : null }));
       const lms = lmAll.filter((l) => l.subject_id === sub.id).map((l) => sMap.get(`${l.id}:${st.id}`) ?? null);
       const akhir = naMap.get(`${sub.id}:${st.id}`) || {};
-      const hasil = hitungMapel({ tp: tps, lm: lms, sas: [akhir.sas_nontes ?? null, akhir.sas_tes ?? null], bobot: settings.bobot });
+      const hasil = hitungMapel({ tp: tps, lm: lms, sts: akhir.sts ?? null, sas: [akhir.sas_nontes ?? null, akhir.sas_tes ?? null], bobot: settings.bobot });
       if (hasil.na == null && sub.kelompok === 'seni') continue; // seni hanya tampil bila diikuti
       let desk = deskripsiMapel(hasil, { panggilan: st.panggilan || st.nama.split(' ')[0], settings });
       if (akhir.desk_tinggi || akhir.desk_rendah) {

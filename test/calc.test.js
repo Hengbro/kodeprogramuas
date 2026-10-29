@@ -46,3 +46,15 @@ test('sebutan peringkat untuk berapa pun juara', () => {
     'Pertama', 'Kedua', 'Ketiga', 'Kesepuluh', 'Kesebelas', 'Kedua Belas', 'Kesembilan Belas', 'Kedua Puluh',
     'Kedua Puluh Satu', 'Ketiga Puluh Lima', 'Keseratus', 'Keseratus Dua Puluh Lima']);
 });
+
+test('STS ikut dihitung sebagai komponen berbobot; kosong tidak mengubah nilai', () => {
+  const b = { f: 1, s: 2, sts: 1, as: 2 };
+  // F 80, S 85, STS 70, AS 75 → (80 + 170 + 70 + 150) / 6 = 78,3 → 78
+  const r = hitungMapel({ tp: tp([80]), lm: [85], sts: 70, sas: [75], bobot: b });
+  assert.strictEqual(r.naSTS, 70);
+  assert.strictEqual(r.na, 78);
+  // STS belum diisi: sama dengan rumus lama (80 + 170 + 150) / 5 = 80
+  assert.strictEqual(hitungMapel({ tp: tp([80]), lm: [85], sts: null, sas: [75], bobot: b }).na, 80);
+  // bobot STS 0: STS diabaikan
+  assert.strictEqual(hitungMapel({ tp: tp([80]), lm: [85], sts: 10, sas: [75], bobot: { ...b, sts: 0 } }).na, 80);
+});

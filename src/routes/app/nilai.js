@@ -43,29 +43,30 @@ router.get('/:classId/sas', loadClass, (req, res) => {
   const { period, kolom, students, subjectOf } = sasSheet(req, res);
   const akhir = new Map(db.prepare('SELECT * FROM nilai_akhir WHERE period_id = ?').all(period.id).map((r) => [`${r.subject_id}:${r.student_id}`, r]));
   const rows = students.map((st) => ({ st, cells: kolom.map((k) => { const s = subjectOf(k, st); return s ? { s, a: akhir.get(`${s.id}:${st.id}`) || {} } : null; }) }));
-  res.render('app/nilai-sas', { title: 'Nilai SAS semua mapel', period, kolom, rows });
+  res.render('app/nilai-sas', { title: 'Nilai STS & SAS semua mapel', period, kolom, rows });
 });
 
 router.post('/:classId/sas', loadClass, (req, res) => {
   const { period, kolom, students, subjectOf } = sasSheet(req, res);
   const b = req.body;
   const ada = db.prepare('SELECT 1 FROM nilai_akhir WHERE period_id = ? AND subject_id = ? AND student_id = ?');
-  const up = db.prepare(`INSERT INTO nilai_akhir (period_id, subject_id, student_id, sas_nontes, sas_tes) VALUES (?, ?, ?, ?, ?)
-    ON CONFLICT DO UPDATE SET sas_nontes = excluded.sas_nontes, sas_tes = excluded.sas_tes`);
+  const up = db.prepare(`INSERT INTO nilai_akhir (period_id, subject_id, student_id, sts, sas_nontes, sas_tes) VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT DO UPDATE SET sts = excluded.sts, sas_nontes = excluded.sas_nontes, sas_tes = excluded.sas_tes`);
   db.transaction(() => {
     for (const st of students) {
       for (const k of kolom) {
         const s = subjectOf(k, st);
         if (!s) continue;
+        const sts = num(b[`sts_${k.key}_${st.id}`]);
         const nt = num(b[`nt_${k.key}_${st.id}`]);
         const ts = num(b[`t_${k.key}_${st.id}`]);
-        if (nt == null && ts == null && !ada.get(period.id, s.id, st.id)) continue;
-        up.run(period.id, s.id, st.id, nt, ts);
+        if (sts == null && nt == null && ts == null && !ada.get(period.id, s.id, st.id)) continue;
+        up.run(period.id, s.id, st.id, sts, nt, ts);
       }
       touchRaporSiswa(period.id, st.id, req.cls.id);
     }
   })();
-  req.flash('success', 'Nilai sumatif akhir semester semua mapel tersimpan.');
+  req.flash('success', 'Nilai STS & SAS semua mapel tersimpan.');
   res.redirect(`/app/kelas/${req.cls.id}/sas${req.query.period ? `?period=${req.query.period}` : ''}`);
 });
 
@@ -89,7 +90,7 @@ router.get('/:classId/nilai/:subjectId', loadClass, (req, res) => {
     const tps = tp.map((t) => ({ ...t, nilai: f.has(`${t.id}:${st.id}`) ? f.get(`${t.id}:${st.id}`) : null }));
     const lms = lm.map((l) => (s.has(`${l.id}:${st.id}`) ? s.get(`${l.id}:${st.id}`) : null));
     const a = akhir.get(st.id) || {};
-    const hasil = hitungMapel({ tp: tps, lm: lms, sas: [a.sas_nontes ?? null, a.sas_tes ?? null], bobot: settings.bobot });
+    const hasil = hitungMapel({ tp: tps, lm: lms, sts: a.sts ?? null, sas: [a.sas_nontes ?? null, a.sas_tes ?? null], bobot: settings.bobot });
     const auto = deskripsiMapel(hasil, { panggilan: st.panggilan || st.nama.split(' ')[0], settings });
     return { st, tps, lms, akhir: a, hasil, auto, predikat: predikatFor(hasil.na, settings.predikat) };
   });
@@ -115,8 +116,8 @@ router.post('/:classId/nilai/:subjectId', loadClass, (req, res) => {
   const delF = db.prepare('DELETE FROM nilai_formatif WHERE tp_id = ? AND student_id = ?');
   const upS = db.prepare('INSERT INTO nilai_sumatif (lm_id, student_id, nilai) VALUES (?, ?, ?) ON CONFLICT DO UPDATE SET nilai = excluded.nilai');
   const delS = db.prepare('DELETE FROM nilai_sumatif WHERE lm_id = ? AND student_id = ?');
-  const upA = db.prepare(`INSERT INTO nilai_akhir (period_id, subject_id, student_id, sas_nontes, sas_tes, desk_tinggi, desk_rendah)
-    VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET sas_nontes = excluded.sas_nontes, sas_tes = excluded.sas_tes,
+  const upA = db.prepare(`INSERT INTO nilai_akhir (period_id, subject_id, student_id, sts, sas_nontes, sas_tes, desk_tinggi, desk_rendah)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET sts = excluded.sts, sas_nontes = excluded.sas_nontes, sas_tes = excluded.sas_tes,
     desk_tinggi = excluded.desk_tinggi, desk_rendah = excluded.desk_rendah`);
 
   db.transaction(() => {
@@ -129,7 +130,7 @@ router.post('/:classId/nilai/:subjectId', loadClass, (req, res) => {
         const v = num(b[`s_${l.id}_${st.id}`]);
         if (v == null) delS.run(l.id, st.id); else upS.run(l.id, st.id, v);
       }
-      upA.run(period.id, subject.id, st.id, num(b[`nt_${st.id}`]), num(b[`t_${st.id}`]), str(b[`dt_${st.id}`]), str(b[`dr_${st.id}`]));
+      upA.run(period.id, subject.id, st.id, num(b[`sts_${st.id}`]), num(b[`nt_${st.id}`]), num(b[`t_${st.id}`]), str(b[`dt_${st.id}`]), str(b[`dr_${st.id}`]));
       touchRaporSiswa(period.id, st.id, req.cls.id);
     }
   })();

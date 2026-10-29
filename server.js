@@ -169,7 +169,8 @@ app.use((req, res, next) => {
 
 // Wajib aktivasi (versi offline yang dijual ke sekolah): semua halaman diarahkan ke /aktivasi
 app.use((req, res, next) => {
-  if (!lisensi.wajib() || res.locals.settings.lisensi || req.path.startsWith('/aktivasi')) return next();
+  // aplikasi guru (dari ZIP "Bagikan ke guru") tidak perlu aktivasi: guru cukup login dengan akun dari admin
+  if (!lisensi.wajib() || res.locals.settings.lisensi || res.locals.settings._instalasi_guru === '1' || req.path.startsWith('/aktivasi')) return next();
   return res.redirect('/aktivasi');
 });
 if (MULTI) {

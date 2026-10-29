@@ -124,11 +124,12 @@ CREATE TABLE IF NOT EXISTS nilai_sumatif (
   PRIMARY KEY (lm_id, student_id)
 );
 
--- Sumatif akhir semester + deskripsi manual (opsional)
+-- Sumatif tengah & akhir semester + deskripsi manual (opsional)
 CREATE TABLE IF NOT EXISTS nilai_akhir (
   period_id   INTEGER NOT NULL REFERENCES periods(id) ON DELETE CASCADE,
   subject_id  INTEGER NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
   student_id  INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  sts         REAL,
   sas_nontes  REAL,
   sas_tes     REAL,
   desk_tinggi TEXT,

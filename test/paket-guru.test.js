@@ -54,3 +54,33 @@ test('penulis ZIP menghasilkan arsip yang valid', { skip: !fs.existsSync('/usr/b
   execFileSync('unzip', ['-tq', zip]);
   assert.strictEqual(execFileSync('unzip', ['-p', zip, 'folder/data/b.json']).toString(), '{"x":1}');
 });
+
+test('aplikasi guru tidak meminta aktivasi: langsung ke halaman login, akun admin tidak bisa dibuat', () => {
+  const admin = fs.mkdtempSync(path.join(os.tmpdir(), 'rapor-admin-'));
+  const guru = fs.mkdtempSync(path.join(os.tmpdir(), 'rapor-guru-'));
+  execFileSync(process.execPath, ['src/seed-demo.js'], { cwd: ROOT, env: { ...process.env, DATA_DIR: admin } });
+  run(admin, `const { db } = require('./src/db');
+    const { exportPaketGuru } = require('./src/lib/paket');
+    const id = db.prepare("SELECT id FROM users WHERE username = 'guru4a'").get().id;
+    require('fs').writeFileSync(${JSON.stringify(path.join(guru, 'paket-awal.rapor.json'))}, JSON.stringify(exportPaketGuru([id])));`);
+  const out = JSON.parse(execFileSync(process.execPath, ['-e', `
+    require('./src/lib/paket-otomatis').pasangJikaAda();
+    const app = require('./server');
+    const srv = app.listen(0, '127.0.0.1', async () => {
+      const url = 'http://127.0.0.1:' + srv.address().port;
+      const lokasi = async (p, opt) => (await fetch(url + p, { redirect: 'manual', ...opt })).headers.get('location');
+      const hasil = {
+        app: await lokasi('/app'),
+        aktivasi: await lokasi('/aktivasi'),
+        akun: await lokasi('/aktivasi/akun', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded', origin: url },
+          body: 'nama=X&username=penyusup&password=rahasia123&password2=rahasia123' }),
+      };
+      const { db } = require('./src/db');
+      hasil.admin = db.prepare("SELECT COUNT(*) n FROM users WHERE role = 'admin'").get().n;
+      process.stdout.write('\\n' + JSON.stringify(hasil)); srv.close(); process.exit(0);
+    });`], { cwd: ROOT, env: { ...process.env, DATA_DIR: guru, LISENSI_WAJIB: '1' }, encoding: 'utf8' }).split('\n').pop());
+  assert.match(out.app, /login/);
+  assert.strictEqual(out.aktivasi, '/app');
+  assert.strictEqual(out.akun, '/app');
+  assert.strictEqual(out.admin, 0);
+});

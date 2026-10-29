@@ -5,7 +5,7 @@ const express = require('express');
 const { db } = require('../../db');
 const { requireAdmin, allowedClasses } = require('../../lib/auth');
 const { exportPaket, parsePaket, ringkas, importPaket, exportPaketGuru } = require('../../lib/paket');
-const { writeZip, listFiles, tambahkanKeZip } = require('../../lib/zip');
+const { writeZip, listFiles, tambahkanKeZip, periksaZip } = require('../../lib/zip');
 const { NAMA: NAMA_PAKET_AWAL } = require('../../lib/paket-otomatis');
 
 const router = express.Router();
@@ -75,7 +75,13 @@ router.get('/paket/guru', requireAdmin, (req, res, next) => {
   }
   if (!paketWindowsTersedia()) {
     if (!zipDasarTersedia()) {
-      req.flash('error', 'Berkas aplikasi Windows (E-Rapor-SD-Windows.zip) belum ada di server ini. Letakkan di folder dist, atau unduh file paketnya saja.');
+      req.flash('error', res.locals.multi
+        ? 'ZIP aplikasi Windows belum diunggah ke server. Minta superadmin mengunggah E-Rapor-SD-Windows.zip di panel superadmin (bagian Sekolah versi offline), atau klik "Unduh paketnya saja".'
+        : 'Berkas aplikasi Windows (E-Rapor-SD-Windows.zip) belum ada di folder dist server ini. Letakkan file itu di sana, atau klik "Unduh paketnya saja".');
+      return res.redirect('/app/paket#bagikan');
+    }
+    if (!periksaZip(ZIP_DASAR).nama.some((name) => /(?:^|\/)Pasang-E-Rapor-SD\.exe$/i.test(name))) {
+      req.flash('error', 'ZIP dasar aplikasi belum berisi Pasang-E-Rapor-SD.exe. Buat ulang ZIP dengan NSIS terpasang, lalu unggah kembali ke server.');
       return res.redirect('/app/paket#bagikan');
     }
     try {
@@ -84,6 +90,10 @@ router.get('/paket/guru', requireAdmin, (req, res, next) => {
       tambahkanKeZip(ZIP_DASAR, tmp, [{ name: `data/${NAMA_PAKET_AWAL}`, data: JSON.stringify(pkg) }]);
       return res.download(tmp, `E-Rapor-SD-${label}.zip`, () => fs.unlink(tmp, () => {}));
     } catch (e) { return next(e); }
+  }
+  if (!fs.existsSync(path.join(ROOT, 'Pasang-E-Rapor-SD.exe'))) {
+    req.flash('error', 'Pasang-E-Rapor-SD.exe belum ada. Buat ulang paket Windows dengan NSIS terpasang sebelum membagikan ZIP ke guru.');
+    return res.redirect('/app/paket#bagikan');
   }
   try {
     const folder = `E-Rapor-SD-${label}`;

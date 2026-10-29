@@ -9,8 +9,9 @@ const { rateLimit } = require('../lib/rate-limit');
 const router = express.Router();
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
 
+// aplikasi guru tidak punya halaman aktivasi: akun admin tidak boleh dibuat di laptop guru
 function sudahAktif(res) {
-  return !!res.locals.settings.lisensi;
+  return !!res.locals.settings.lisensi || res.locals.settings._instalasi_guru === '1';
 }
 
 // ZIP khusus sekolah membawa data/kode-aktivasi.txt: aplikasi langsung dikenali sebagai milik sekolah itu

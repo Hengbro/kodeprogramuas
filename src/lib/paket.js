@@ -87,7 +87,7 @@ function exportKelas(classId, { denganNilai }) {
     if (denganNilai && siswaRows.length) {
       const inIds = `(${siswaRows.map((s) => s.id).join(',')})`;
       blok.akhir = db.prepare(`SELECT * FROM nilai_akhir WHERE period_id = ? AND student_id IN ${inIds}`).all(p.id)
-        .map((a) => ({ siswa: key.get(a.student_id), mapel: subj.get(a.subject_id).kode, ...pick(a, ['sas_nontes', 'sas_tes', 'desk_tinggi', 'desk_rendah']) }));
+        .map((a) => ({ siswa: key.get(a.student_id), mapel: subj.get(a.subject_id).kode, ...pick(a, ['sts', 'sas_nontes', 'sas_tes', 'desk_tinggi', 'desk_rendah']) }));
       blok.rapor = db.prepare(`SELECT * FROM rapor_siswa WHERE period_id = ? AND student_id IN ${inIds} AND (class_id = ? OR class_id IS NULL)`).all(p.id, classId)
         .map((r) => ({ siswa: key.get(r.student_id), ...pick(r, ['sakit', 'izin', 'alpa', 'catatan', 'naik', 'tinggi', 'berat']) }));
       const diKelas = new Set(blok.rapor.map((r) => r.siswa));
@@ -279,8 +279,8 @@ function importKelas(k, hasil) {
     }
     for (const a of d.akhir) {
       if (!stId[a.siswa]) continue;
-      db.prepare(`INSERT OR REPLACE INTO nilai_akhir (period_id, subject_id, student_id, sas_nontes, sas_tes, desk_tinggi, desk_rendah)
-        VALUES (?, ?, ?, ?, ?, ?, ?)`).run(pid, subj(a.mapel), stId[a.siswa], a.sas_nontes ?? null, a.sas_tes ?? null, a.desk_tinggi || null, a.desk_rendah || null);
+      db.prepare(`INSERT OR REPLACE INTO nilai_akhir (period_id, subject_id, student_id, sts, sas_nontes, sas_tes, desk_tinggi, desk_rendah)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(pid, subj(a.mapel), stId[a.siswa], a.sts ?? null, a.sas_nontes ?? null, a.sas_tes ?? null, a.desk_tinggi || null, a.desk_rendah || null);
     }
     for (const r of d.rapor) {
       if (!stId[r.siswa]) continue;
