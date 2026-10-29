@@ -23,18 +23,21 @@
   <form method="get" action="/app/paket/guru" class="grid" style="grid-template-columns:minmax(0,1fr) auto auto;gap:.6rem;align-items:end">
     <div class="field" style="margin:0"><label for="guru">Untuk guru</label>
       <select id="guru" name="guru">
-        <% gurus.forEach(g => { %><option value="<%= g.id %>"><%= g.nama %> (<%= g.username %>) — <%= g.kelas ? 'Kelas ' + g.kelas : 'belum punya kelas' %></option><% }) %>
-        <option value="semua">Semua guru (untuk satu komputer bersama)</option>
-      </select></div>
-    <button class="btn btn-primary" name="bentuk" value="zip" <%= windows ? '' : 'disabled title="Berkas aplikasi Windows belum ada di server ini"' %>><%- h.icon('download') %> Unduh aplikasi (ZIP)</button>
+        <option value="semua">Semua guru (<%= gurus.length %> akun) — satu ZIP, tiap guru login dengan akunnya sendiri</option>
+        <% gurus.forEach(g => { %><option value="<%= g.id %>">Hanya <%= g.nama %> (<%= g.username %>) — <%= g.kelas ? 'Kelas ' + g.kelas : 'belum punya kelas' %></option><% }) %>
+      </select>
+      <div class="hint">ZIP <b>semua guru</b> bisa dibagikan ke semua guru: setiap guru hanya bisa membuka kelasnya sendiri. Pilih satu guru bila data siswa kelas lain tidak boleh ikut tersimpan di laptopnya.</div></div>
+    <button class="btn btn-primary" name="bentuk" value="zip"><%- h.icon('download') %> Unduh aplikasi (ZIP)</button>
     <button class="btn" name="bentuk" value="json" title="File data saja, untuk diletakkan di folder data salinan aplikasi">Unduh paketnya saja</button>
   </form>
-  <% if (!windows) { %><p class="hint muted" style="margin-top:.5rem">Tombol ZIP aktif bila berkas <code>E-Rapor-SD-Windows.zip</code> ada di folder <code>dist</code> server ini. Alternatif: klik <b>Unduh paketnya saja</b>, lalu taruh file itu di folder <code>data</code> pada salinan baru E-Rapor-SD-Windows sebelum dijalankan pertama kali.</p><% } %>
+  <% if (!windows) { %><div class="alert alert-error" style="margin:.75rem 0 0"><b>ZIP aplikasi Windows belum ada di server ini</b>, jadi tombol <b>Unduh aplikasi (ZIP)</b> belum bisa membuat aplikasi.
+    <% if (multi) { %>Minta superadmin mengunggah <code>E-Rapor-SD-Windows.zip</code> di panel superadmin (bagian <b>Sekolah versi offline</b>), sekali saja.<% } else { %>Letakkan berkas <code>E-Rapor-SD-Windows.zip</code> di folder <code>dist</code> server ini.<% } %>
+    Sementara itu: klik <b>Unduh paketnya saja</b>, lalu taruh file itu di folder <code>data</code> pada salinan baru E-Rapor-SD-Windows sebelum dijalankan pertama kali.</div><% } %>
   <div class="alert alert-info" style="margin:1rem 0 0">
     Klik <b>Unduh aplikasi (ZIP)</b> lalu berikan ZIP itu ke guru bersama <b>Panduan-Guru.pdf</b>. Guru mengekstrak ZIP, membuka
     <b>Pasang-E-Rapor-SD.exe</b> (atau <b>Jalankan-Rapor.bat</b> jika pemasang gagal), lalu masuk dengan akun dari Anda —
     pengaturan sekolah, kelas, siswa, dan akunnya sudah terpasang.<br><br>
-    Pembuatan ZIP butuh beberapa detik (± 35 MB). Kirim ZIP hanya ke guru yang bersangkutan, karena berisi data siswa kelasnya.
+    Pembuatan ZIP butuh beberapa detik (± 35 MB). ZIP satu guru hanya berisi data siswa kelasnya; ZIP semua guru berisi data siswa semua kelas (tetap hanya bisa dibuka sesuai akun masing-masing).
     Di laptop guru, pengaturan sekolah <b>terkunci</b>: guru hanya bisa mengisi data kelasnya, lalu mengirim hasilnya kembali lewat menu <b>Kirim Data ke Admin</b>.
   </div>
   <% } %>

@@ -43,8 +43,7 @@ cp "$ROOT/docs/Panduan-Admin-Sekolah.pdf" "$ROOT/docs/Panduan-Guru.pdf" "$STAGE/
 # baris CRLF agar Notepad & cmd.exe membaca dengan benar
 for f in "$STAGE"/*.bat "$STAGE"/BACA-SAYA.txt; do awk '{ sub(/\r$/, ""); printf "%s\r\n", $0 }' "$f" > "$f.tmp" && mv "$f.tmp" "$f"; done
 
-# Pemasang kecil (NSIS) di dalam paket: menyalin isi folder ini ke komputer + ikon desktop.
-# Bila pemasang gagal, Jalankan-Rapor.bat di folder yang sama tetap bisa dipakai.
+# Pemasang NSIS di dalam paket: menyalin isi folder ini ke komputer + ikon desktop.
 rm -f "$OUT/Pasang-E-Rapor-SD.exe" "$OUT/E-Rapor-SD-Pemasang.zip"; rm -rf "$OUT/E-Rapor-SD-Pemasang"
 if command -v makensis >/dev/null; then
   VERSI="$(node -p "require('$ROOT/package.json').version")"
@@ -57,8 +56,9 @@ elif [ -f "$CACHE/Pasang-E-Rapor-SD.exe" ]; then
 elif [ -n "${PEMASANG_EXE:-}" ] && [ -f "$PEMASANG_EXE" ]; then
   cp "$PEMASANG_EXE" "$STAGE/Pasang-E-Rapor-SD.exe"
 else
-  echo "PERINGATAN: makensis (NSIS) tidak ada, paket dibuat tanpa Pasang-E-Rapor-SD.exe."
+  echo "ERROR: makensis (NSIS) tidak ada dan tidak ada Pasang-E-Rapor-SD.exe tersimpan."
   echo "  Letakkan Pasang-E-Rapor-SD.exe di $CACHE (atau set PEMASANG_EXE=/jalur/Pasang-E-Rapor-SD.exe), lalu jalankan ulang."
 fi
+test -s "$STAGE/Pasang-E-Rapor-SD.exe" || { echo "ERROR: Pasang-E-Rapor-SD.exe tidak ada, sehingga ZIP tidak dibuat (ZIP tanpa pemasang membingungkan sekolah)." >&2; exit 1; }
 (cd "$OUT" && rm -f "$NAME.zip" && zip -qr "$NAME.zip" "$NAME")
 echo "Selesai: $OUT/$NAME.zip ($(du -h "$OUT/$NAME.zip" | cut -f1))"

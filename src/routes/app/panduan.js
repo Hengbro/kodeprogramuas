@@ -59,7 +59,7 @@ const ISTILAH = [
   ['Simpan file sebagai arsip semester', 'Semua semester tersimpan otomatis; pilih periode di halaman Cetak Rapor'],
   ['Atur halaman & sembunyikan baris lalu Print', 'Tekan Cetak / Simpan PDF; baris kosong otomatis tidak dicetak'],
   ['Kirim file Excel ke operator', 'Operator/admin bisa langsung melihat semua kelas'],
-  ['Rumus NA = (1×F + 2×S + 2×AS) / 5', 'Sama persis; bobot bisa diubah di Pengaturan Nilai'],
+  ['Rumus NA = (1×F + 2×S + 2×AS) / 5', 'Sama, ditambah nilai STS (bobot bawaan 1, dihitung bila diisi); semua bobot bisa diubah di Pengaturan Nilai'],
   ['Pilihan “Deskripsi dengan/tanpa nama panggilan”', 'Pengaturan Nilai › Format deskripsi rapor'],
   ['Pilihan kalimat awal deskripsi (Menunjukkan penguasaan dalam, Perlu bimbingan dalam, …)', 'Pengaturan Nilai › Kalimat capaian tertinggi/terendah (pilihan sama dengan Excel)'],
 ];

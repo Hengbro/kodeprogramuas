@@ -169,6 +169,8 @@ app.use((req, res, next) => {
 
 // Wajib aktivasi (versi offline yang dijual ke sekolah): semua halaman diarahkan ke /aktivasi
 app.use((req, res, next) => {
+  // Aplikasi guru (ZIP "Bagikan ke guru") membawa lisensi sekolahnya di dalam paket, jadi langsung ke halaman login.
+  // Sengaja TIDAK ada pengecualian tanpa lisensi: berkas paket yang dibuat sendiri tidak boleh melewati aktivasi.
   if (!lisensi.wajib() || res.locals.settings.lisensi || req.path.startsWith('/aktivasi')) return next();
   return res.redirect('/aktivasi');
 });

@@ -9,7 +9,7 @@
       <% subjects.forEach(s => { %><option value="<%= s.id %>" <%= s.id === subject.id ? 'selected' : '' %>><%= s.nama %></option><% }) %>
     </select>
     <a class="btn" href="/app/kelas/<%= cls.id %>/tp/<%= subject.id %>"><%- h.icon('clipboard') %> Ubah TP</a>
-    <a class="btn" href="/app/kelas/<%= cls.id %>/sas<%= period.is_active ? '' : '?period=' + period.id %>"><%- h.icon('users') %> SAS semua mapel</a>
+    <a class="btn" href="/app/kelas/<%= cls.id %>/sas<%= period.is_active ? '' : '?period=' + period.id %>"><%- h.icon('users') %> STS &amp; SAS semua mapel</a>
   </div>
 </div>
 
@@ -40,6 +40,7 @@
         <th rowspan="2" class="sticky-col" style="left:38px">Nama siswa</th>
         <th colspan="<%= tp.length %>" class="group-f">Formatif (per TP)</th>
         <% if (lm.length) { %><th colspan="<%= lm.length %>" class="group-s">Sumatif Lingkup Materi</th><% } %>
+        <th rowspan="2" class="group-sts" title="Sumatif Tengah Semester">STS</th>
         <th colspan="2" class="group-as">Sumatif Akhir Semester</th>
         <th colspan="5">Hasil</th>
         <th rowspan="2" style="min-width:360px">Deskripsi capaian kompetensi</th>
@@ -58,6 +59,7 @@
         <td class="sticky-col" style="left:38px"><b><%= st.nama %></b></td>
         <% r.tps.forEach(t => { %><td class="group-f"><input name="f_<%= t.id %>_<%= st.id %>" value="<%= t.nilai ?? '' %>" inputmode="decimal" data-kind="f" data-tp="<%= t.id %>" autocomplete="off"></td><% }) %>
         <% lm.forEach((l, i) => { %><td class="group-s"><input name="s_<%= l.id %>_<%= st.id %>" value="<%= r.lms[i] ?? '' %>" inputmode="decimal" data-kind="s" autocomplete="off"></td><% }) %>
+        <td class="group-sts"><input name="sts_<%= st.id %>" value="<%= r.akhir.sts ?? '' %>" inputmode="decimal" data-kind="sts" autocomplete="off" title="Sumatif Tengah Semester"></td>
         <td class="group-as"><input name="nt_<%= st.id %>" value="<%= r.akhir.sas_nontes ?? '' %>" inputmode="decimal" data-kind="as" autocomplete="off"></td>
         <td class="group-as"><input name="t_<%= st.id %>" value="<%= r.akhir.sas_tes ?? '' %>" inputmode="decimal" data-kind="as" autocomplete="off"></td>
         <td class="calc" data-out="f"><%= h.angka(r.hasil.naF, 1) %></td>

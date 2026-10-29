@@ -19,7 +19,7 @@ process.env.SUPERADMIN_PASSWORD = 'rahasia-super';
   process.env.LISENSI_PRIVAT = path.join(dir, 'kunci', 'rahasia.pem');
   process.env.LISENSI_PUBLIK = path.join(dir, 'kunci', 'publik.pem');
   // ZIP dasar aplikasi Windows tiruan (kecil, tetapi berbentuk paket yang sah)
-  require('../src/lib/zip').writeZip(path.join(dir, 'app.zip'), [{ name: 'E-Rapor-SD-Windows/Jalankan-Rapor.bat', data: '@echo off' }, { name: 'E-Rapor-SD-Windows/node/node.exe', data: 'MZ' }, { name: 'E-Rapor-SD-Windows/data/', data: '' }]);
+  require('../src/lib/zip').writeZip(path.join(dir, 'app.zip'), [{ name: 'E-Rapor-SD-Windows/Jalankan-Rapor.bat', data: '@echo off' }, { name: 'E-Rapor-SD-Windows/Pasang-E-Rapor-SD.exe', data: 'MZ' }, { name: 'E-Rapor-SD-Windows/node/node.exe', data: 'MZ' }, { name: 'E-Rapor-SD-Windows/data/', data: '' }]);
   process.env.ZIP_WINDOWS = path.join(dir, 'app.zip');
 }
 // database satu sekolah lama sudah berisi data → harus menjadi sekolah pertama
@@ -359,12 +359,12 @@ test('superadmin mengunggah ZIP aplikasi Windows dari panel (hanya ZIP paket yan
   assert.deepStrictEqual(fs.readFileSync(process.env.ZIP_WINDOWS), asli);
   // paket yang sah → tersimpan dan halaman panel menampilkannya
   const sah = path.join(dir, 'sah.zip');
-  writeZip(sah, [{ name: 'E-Rapor-SD-Windows/Jalankan-Rapor.bat', data: '@echo off' }, { name: 'E-Rapor-SD-Windows/node/node.exe', data: 'MZ' }]);
+  writeZip(sah, [{ name: 'E-Rapor-SD-Windows/Jalankan-Rapor.bat', data: '@echo off' }, { name: 'E-Rapor-SD-Windows/Pasang-E-Rapor-SD.exe', data: 'MZ' }, { name: 'E-Rapor-SD-Windows/node/node.exe', data: 'MZ' }]);
   r = await kirim(fs.readFileSync(sah));
   const j = await r.json();
   assert.strictEqual(r.status, 200); assert.ok(j.ok);
   assert.deepStrictEqual(fs.readFileSync(process.env.ZIP_WINDOWS), fs.readFileSync(sah));
-  assert.ok(!fs.existsSync(`${process.env.ZIP_WINDOWS}.unggah`));
+  assert.deepStrictEqual(fs.readdirSync(path.dirname(process.env.ZIP_WINDOWS)).filter((f) => f.endsWith('.unggah')), [], 'tidak ada berkas sementara tersisa');
   assert.match((await su('GET', '/super')).text, /Ganti ZIP aplikasi Windows/);
   // tanpa login superadmin → tidak boleh
   r = await kirim(fs.readFileSync(sah), '');

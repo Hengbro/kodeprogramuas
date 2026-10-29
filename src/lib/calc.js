@@ -1,8 +1,9 @@
 // Perhitungan nilai rapor — meniru rumus pada file Excel RAPOR SAH Kurikulum Merdeka:
 //   NA Formatif (F)  = rata-rata nilai formatif per TP
 //   NA Sumatif  (S)  = rata-rata sumatif lingkup materi
+//   NA STS    (STS)  = nilai sumatif tengah semester
 //   NA SAS     (AS)  = rata-rata sumatif akhir semester (non-tes & tes)
-//   NA Rapor         = (bF*F + bS*S + bAS*AS) / (jumlah bobot komponen yang terisi), dibulatkan
+//   NA Rapor         = (bF*F + bS*S + bSTS*STS + bAS*AS) / (jumlah bobot komponen yang terisi), dibulatkan
 // Deskripsi capaian diambil dari TP dengan nilai formatif tertinggi & terendah.
 
 function isNum(v) {
@@ -29,17 +30,20 @@ function predikatFor(nilai, predikat) {
  * @param {object} input
  * @param {{id:number, urutan:number, deskripsi:string, nilai:number|null}[]} input.tp
  * @param {(number|null)[]} input.lm  nilai sumatif lingkup materi
+ * @param {number|null} [input.sts] nilai sumatif tengah semester
  * @param {(number|null)[]} input.sas nilai SAS (non-tes, tes)
- * @param {{f:number, s:number, as:number}} input.bobot
+ * @param {{f:number, s:number, sts?:number, as:number}} input.bobot
  */
-function hitungMapel({ tp, lm, sas, bobot }) {
+function hitungMapel({ tp, lm, sts = null, sas, bobot }) {
   const naF = avg(tp.map((t) => t.nilai));
   const naS = avg(lm);
+  const naSTS = avg([sts]);
   const naAS = avg(sas);
   let total = 0;
   let pembagi = 0;
   if (naF != null) { total += bobot.f * naF; pembagi += bobot.f; }
   if (naS != null) { total += bobot.s * naS; pembagi += bobot.s; }
+  if (naSTS != null) { total += (bobot.sts || 0) * naSTS; pembagi += bobot.sts || 0; }
   if (naAS != null) { total += bobot.as * naAS; pembagi += bobot.as; }
   const na = pembagi ? round(total / pembagi) : null;
 
@@ -50,7 +54,7 @@ function hitungMapel({ tp, lm, sas, bobot }) {
     if (!tinggi || t.nilai > tinggi.nilai) tinggi = t;
     if (!rendah || t.nilai < rendah.nilai) rendah = t;
   }
-  return { naF, naS, naAS, na, tinggi, rendah };
+  return { naF, naS, naSTS, naAS, na, tinggi, rendah };
 }
 
 function lcFirst(s) {

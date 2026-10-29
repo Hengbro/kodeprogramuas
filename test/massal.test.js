@@ -11,7 +11,7 @@ process.env.DATA_DIR = dir;
 execFileSync(process.execPath, [path.join(__dirname, '..', 'src', 'seed-demo.js')], { env: { ...process.env, DATA_DIR: dir } });
 // ZIP aplikasi Windows tiruan (kecil) sebagai dasar tombol "Unduh aplikasi (ZIP)" di server biasa
 const zipDasar = path.join(dir, 'E-Rapor-SD-Windows.zip');
-require('../src/lib/zip').writeZip(zipDasar, [{ name: 'E-Rapor-SD-Windows/Jalankan-Rapor.bat', data: '@echo off' }, { name: 'E-Rapor-SD-Windows/data/', data: '' }]);
+require('../src/lib/zip').writeZip(zipDasar, [{ name: 'E-Rapor-SD-Windows/Jalankan-Rapor.bat', data: '@echo off' }, { name: 'E-Rapor-SD-Windows/Pasang-E-Rapor-SD.exe', data: 'MZ' }, { name: 'E-Rapor-SD-Windows/data/', data: '' }]);
 process.env.ZIP_WINDOWS = zipDasar;
 const app = require('../server');
 const { db } = require('../src/db');

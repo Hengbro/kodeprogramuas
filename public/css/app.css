@@ -147,6 +147,7 @@ table.sheet { border-collapse: separate; border-spacing: 0; font-size: .84rem; m
 .sheet input.low { color: var(--danger); font-weight: 700; }
 .sheet .group-f { background: #f5f9ff; }
 .sheet .group-s { background: #f6fbf7; }
+.sheet .group-sts { background: #f7f5ff; }
 .sheet .group-as { background: #fffaf2; }
 .sheet .calc { background: #f8fafc; font-weight: 700; padding: .35rem .5rem; min-width: 52px; font-variant-numeric: tabular-nums; }
 .sheet .calc.na { background: #eef3ff; color: var(--primary); }

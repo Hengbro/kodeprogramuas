@@ -337,18 +337,20 @@
 
   function recalc(tr) {
     if (!cfg || !tr.dataset.student) return;
-    var f = []; var s = []; var as = []; var tps = [];
+    var f = []; var s = []; var sts = []; var as = []; var tps = [];
     tr.querySelectorAll('input[data-kind]').forEach(function (inp) {
       var v = val(inp);
       inp.classList.toggle('low', v !== null && v < kktp);
       if (inp.dataset.kind === 'f') { f.push(v); tps.push({ id: Number(inp.dataset.tp), nilai: v }); }
       else if (inp.dataset.kind === 's') s.push(v);
+      else if (inp.dataset.kind === 'sts') sts.push(v);
       else as.push(v);
     });
-    var F = avg(f); var S = avg(s); var AS = avg(as);
+    var F = avg(f); var S = avg(s); var STS = avg(sts); var AS = avg(as);
     var total = 0; var bagi = 0;
     if (F !== null) { total += cfg.bobot.f * F; bagi += cfg.bobot.f; }
     if (S !== null) { total += cfg.bobot.s * S; bagi += cfg.bobot.s; }
+    if (STS !== null) { total += (cfg.bobot.sts || 0) * STS; bagi += cfg.bobot.sts || 0; }
     if (AS !== null) { total += cfg.bobot.as * AS; bagi += cfg.bobot.as; }
     var NA = bagi ? Math.round(total / bagi + 1e-9) : null;
     var out = function (k) { return tr.querySelector('[data-out="' + k + '"]'); };

@@ -32,6 +32,10 @@ function migrasi(d) {
   if (!d.prepare('PRAGMA table_info(tujuan_pembelajaran)').all().some((c) => c.name === 'lm_id')) {
     d.exec('ALTER TABLE tujuan_pembelajaran ADD COLUMN lm_id INTEGER REFERENCES lingkup_materi(id) ON DELETE SET NULL');
   }
+  // nilai Sumatif Tengah Semester (STS) per mapel
+  if (!d.prepare('PRAGMA table_info(nilai_akhir)').all().some((c) => c.name === 'sts')) {
+    d.exec('ALTER TABLE nilai_akhir ADD COLUMN sts REAL');
+  }
 }
 
 const DEFAULT_SETTINGS = {
@@ -57,6 +61,7 @@ const DEFAULT_SETTINGS = {
   kepsek_nip: '',
   bobot_f: '1',
   bobot_s: '2',
+  bobot_sts: '1',
   bobot_as: '2',
   predikat: JSON.stringify([
     { min: 88, label: 'Sangat Baik', kalimat: 'menunjukkan penguasaan yang sangat baik dalam' },

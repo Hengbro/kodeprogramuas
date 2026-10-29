@@ -107,7 +107,8 @@ router.post('/pembaruan', wajibSuper, (req, res) => {
 
 // Unggah ZIP aplikasi Windows (E-Rapor-SD-Windows.zip) langsung dari panel, tanpa harus menyalin ke folder dist
 router.post('/unggah-zip', wajibSuper, (req, res) => {
-  const tmp = `${master.ZIP_WINDOWS}.unggah`;
+  // nama unik per unggahan: penghapusan berkas gagal yang terlambat tidak boleh menghapus unggahan berikutnya
+  const tmp = `${master.ZIP_WINDOWS}.${Date.now()}-${Math.random().toString(36).slice(2, 8)}.unggah`;
   const gagal = (kode, pesan) => { fs.rm(tmp, { force: true }, () => {}); res.status(kode).json({ ok: false, pesan }); };
   try { fs.mkdirSync(path.dirname(master.ZIP_WINDOWS), { recursive: true }); } catch (e) { return gagal(500, e.message); }
   const out = fs.createWriteStream(tmp);

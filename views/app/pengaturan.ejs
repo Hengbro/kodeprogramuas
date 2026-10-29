@@ -3,10 +3,11 @@
 <form method="post" class="card" data-track>
   <input type="hidden" name="_csrf" value="<%= csrf %>">
   <h2>Bobot nilai rapor</h2>
-  <p class="muted">NA Rapor = (bobot F × Formatif + bobot S × Sumatif Lingkup Materi + bobot AS × Sumatif Akhir Semester) ÷ jumlah bobot komponen yang terisi.</p>
-  <div class="grid grid-3">
+  <p class="muted">NA Rapor = (bobot F × Formatif + bobot S × Sumatif Lingkup Materi + bobot STS × Sumatif Tengah Semester + bobot AS × Sumatif Akhir Semester) ÷ jumlah bobot komponen yang terisi. Isi bobot 0 bila suatu komponen tidak ingin dihitung.</p>
+  <div class="grid grid-4">
     <div class="field"><label>Formatif (F)</label><input type="number" min="0" step="0.5" name="bobot_f" value="<%= settings.bobot_f %>"></div>
     <div class="field"><label>Sumatif Lingkup Materi (S)</label><input type="number" min="0" step="0.5" name="bobot_s" value="<%= settings.bobot_s %>"></div>
+    <div class="field"><label>Sumatif Tengah Semester (STS)</label><input type="number" min="0" step="0.5" name="bobot_sts" value="<%= settings.bobot_sts %>"></div>
     <div class="field"><label>Sumatif Akhir Semester (AS)</label><input type="number" min="0" step="0.5" name="bobot_as" value="<%= settings.bobot_as %>"></div>
   </div>
   <hr>

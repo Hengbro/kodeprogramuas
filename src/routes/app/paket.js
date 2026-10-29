@@ -5,7 +5,7 @@ const express = require('express');
 const { db } = require('../../db');
 const { requireAdmin, allowedClasses } = require('../../lib/auth');
 const { exportPaket, parsePaket, ringkas, importPaket, exportPaketGuru } = require('../../lib/paket');
-const { writeZip, listFiles, buatZipDenganFolder } = require('../../lib/zip');
+const { writeZip, listFiles, buatZipDenganFolder, periksaZip } = require('../../lib/zip');
 const { NAMA: NAMA_PAKET_AWAL } = require('../../lib/paket-otomatis');
 
 const router = express.Router();
@@ -69,13 +69,27 @@ router.get('/paket/guru', requireAdmin, (req, res, next) => {
   const label = gurus.length === 1 ? gurus[0].username : 'semua-guru';
 
   if (req.query.bentuk !== 'zip') {
+    // paket yang dipasang manual di folder data juga harus membawa lisensi sekolah (bila ada), agar guru tidak diminta aktivasi
+    if (!pkg.lisensi) {
+      try {
+        const st = res.locals.settings || {};
+        const l = require('../../lib/master').lisensiSekolah({ sekolahKode: res.locals.sekolah && res.locals.sekolah.kode, npsn: st.npsn, sekolah: st.nama_sekolah, bolehBuat: false });
+        if (l) pkg.lisensi = l.kode;
+      } catch (e) { /* tanpa lisensi: paket tetap diberikan */ }
+    }
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${NAMA_PAKET_AWAL.replace('.rapor.json', '')}-${label}.rapor.json"`);
     return res.send(JSON.stringify(pkg));
   }
   if (!paketWindowsTersedia()) {
     if (!zipDasarTersedia()) {
-      req.flash('error', 'Berkas aplikasi Windows (E-Rapor-SD-Windows.zip) belum ada di server ini. Letakkan di folder dist, atau unduh file paketnya saja.');
+      req.flash('error', res.locals.multi
+        ? 'ZIP aplikasi Windows belum diunggah ke server. Minta superadmin mengunggah E-Rapor-SD-Windows.zip di panel superadmin (bagian Sekolah versi offline), atau klik "Unduh paketnya saja".'
+        : 'Berkas aplikasi Windows (E-Rapor-SD-Windows.zip) belum ada di folder dist server ini. Letakkan file itu di sana, atau klik "Unduh paketnya saja".');
+      return res.redirect('/app/paket#bagikan');
+    }
+    if (!periksaZip(ZIP_DASAR).nama.some((name) => /(?:^|\/)Pasang-E-Rapor-SD\.exe$/i.test(name))) {
+      req.flash('error', 'ZIP dasar aplikasi di server belum berisi Pasang-E-Rapor-SD.exe. Minta pengembang mengirim ZIP dasar yang lengkap (tidak perlu NSIS di komputer ini), lalu unggah di panel superadmin.');
       return res.redirect('/app/paket#bagikan');
     }
     try {
@@ -110,6 +124,10 @@ router.get('/paket/guru', requireAdmin, (req, res, next) => {
       ] });
       return res.download(tmp, `${dasar}.zip`, () => fs.unlink(tmp, () => {}));
     } catch (e) { return next(e); }
+  }
+  if (!fs.existsSync(path.join(ROOT, 'Pasang-E-Rapor-SD.exe'))) {
+    req.flash('error', 'Pasang-E-Rapor-SD.exe belum ada di paket ini. Minta pengembang mengirim paket Windows yang lengkap sebelum membagikan ZIP ke guru.');
+    return res.redirect('/app/paket#bagikan');
   }
   try {
     const folder = `E-Rapor-SD-${label}`;

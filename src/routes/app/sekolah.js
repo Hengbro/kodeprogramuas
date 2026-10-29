@@ -58,7 +58,7 @@ router.post('/pengaturan', requireAdmin, (req, res) => {
   });
   predikat.sort((x, y) => y.min - x.min);
   db.transaction(() => {
-    for (const k of ['bobot_f', 'bobot_s', 'bobot_as']) setSetting.run(k, String(Math.max(0, Number(b[k]) || 0)));
+    for (const k of ['bobot_f', 'bobot_s', 'bobot_sts', 'bobot_as']) setSetting.run(k, String(Math.max(0, Number(b[k]) || 0)));
     // predikat tidak boleh kosong (deskripsi rapor memakainya); bila tidak dikirim, pakai yang lama
     if (predikat.length) setSetting.run('predikat', JSON.stringify(predikat));
     setSetting.run('desk_mode', b.desk_mode === 'sederhana' ? 'sederhana' : 'predikat');

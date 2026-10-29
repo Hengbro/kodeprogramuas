@@ -9,6 +9,8 @@ const { rateLimit } = require('../lib/rate-limit');
 const router = express.Router();
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
 
+// aplikasi yang sudah berlisensi (termasuk aplikasi guru, yang membawa lisensi sekolah) tidak punya halaman aktivasi:
+// akun admin tidak bisa dibuat di laptop guru
 function sudahAktif(res) {
   return !!res.locals.settings.lisensi;
 }
