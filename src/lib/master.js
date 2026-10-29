@@ -173,7 +173,10 @@ function buatZipSekolah(l) {
   const os = require('os');
   const dasar = namaPaketSekolah(l);
   const file = path.join(os.tmpdir(), `${dasar}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.zip`);
-  buatZipDenganFolder(ZIP_WINDOWS, file, { folder: dasar, entries: [{ name: 'data/kode-aktivasi.txt', data: l.kode }] });
+  // kode aplikasi di ZIP selalu versi terbaru dari server ini (tanpa perlu membangun ulang ZIP dasar)
+  const { kodeTerbaru } = require('./segarkan-zip');
+  const baru = kodeTerbaru();
+  buatZipDenganFolder(ZIP_WINDOWS, file, { folder: dasar, hapus: baru.hapus, entries: [...baru.entries, { name: 'data/kode-aktivasi.txt', data: l.kode }] });
   return { file, nama: `${dasar}.zip` };
 }
 

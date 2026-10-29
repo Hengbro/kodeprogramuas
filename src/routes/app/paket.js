@@ -102,7 +102,9 @@ router.get('/paket/guru', requireAdmin, (req, res, next) => {
       const info = periksaKode(lisensi) || {};
       const dasar = `${master.namaPaketSekolah({ sekolah: info.sekolah || (res.locals.settings || {}).nama_sekolah, npsn: info.npsn || (res.locals.settings || {}).npsn })}-GURU-${label}`.replace(/[^A-Za-z0-9._-]/g, '-');
       const tmp = path.join(os.tmpdir(), `${dasar}-${Date.now()}.zip`);
-      buatZipDenganFolder(ZIP_DASAR, tmp, { folder: dasar, entries: [
+      const baru = require('../../lib/segarkan-zip').kodeTerbaru(); // kode aplikasi terbaru dari server ini
+      buatZipDenganFolder(ZIP_DASAR, tmp, { folder: dasar, hapus: baru.hapus, entries: [
+        ...baru.entries,
         { name: `data/${NAMA_PAKET_AWAL}`, data: JSON.stringify(pkg) },
         { name: 'data/kode-aktivasi.txt', data: lisensi },
       ] });

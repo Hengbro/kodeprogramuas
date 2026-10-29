@@ -49,8 +49,16 @@ rm -f "$OUT/Pasang-E-Rapor-SD.exe" "$OUT/E-Rapor-SD-Pemasang.zip"; rm -rf "$OUT/
 if command -v makensis >/dev/null; then
   VERSI="$(node -p "require('$ROOT/package.json').version")"
   makensis -V2 -DSRC="$STAGE" -DOUT="$STAGE/Pasang-E-Rapor-SD.exe" -DVERSI="$VERSI" "$ROOT/windows/pemasang.nsi"
+  cp "$STAGE/Pasang-E-Rapor-SD.exe" "$CACHE/Pasang-E-Rapor-SD.exe"   # disimpan agar bisa dipakai di komputer tanpa NSIS
+elif [ -f "$CACHE/Pasang-E-Rapor-SD.exe" ]; then
+  # Pemasang tidak berisi kode aplikasi (hanya menyalin isi folder), jadi salinan lama tetap dipakai.
+  cp "$CACHE/Pasang-E-Rapor-SD.exe" "$STAGE/Pasang-E-Rapor-SD.exe"
+  echo "makensis tidak ada: memakai Pasang-E-Rapor-SD.exe yang tersimpan di $CACHE"
+elif [ -n "${PEMASANG_EXE:-}" ] && [ -f "$PEMASANG_EXE" ]; then
+  cp "$PEMASANG_EXE" "$STAGE/Pasang-E-Rapor-SD.exe"
 else
-  echo "PERINGATAN: makensis (NSIS) tidak ada, paket dibuat tanpa Pasang-E-Rapor-SD.exe (apt install nsis)."
+  echo "PERINGATAN: makensis (NSIS) tidak ada, paket dibuat tanpa Pasang-E-Rapor-SD.exe."
+  echo "  Letakkan Pasang-E-Rapor-SD.exe di $CACHE (atau set PEMASANG_EXE=/jalur/Pasang-E-Rapor-SD.exe), lalu jalankan ulang."
 fi
 (cd "$OUT" && rm -f "$NAME.zip" && zip -qr "$NAME.zip" "$NAME")
 echo "Selesai: $OUT/$NAME.zip ($(du -h "$OUT/$NAME.zip" | cut -f1))"

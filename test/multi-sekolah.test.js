@@ -404,3 +404,38 @@ test('ZIP guru dari sekolah di server: lisensi offline ikut (dibuat otomatis ole
   assert.strictEqual(res.status, 200);
   assert.strictEqual(master.m().prepare("SELECT COUNT(*) n FROM lisensi_offline WHERE sekolah_kode = 'guru-zip'").get().n, 1);
 });
+
+test('ZIP sekolah memakai kode aplikasi TERBARU dari server (tanpa NSIS): kode lama diganti, node_modules dan pemasang tetap dari ZIP dasar', async () => {
+  const { execFileSync } = require('child_process');
+  const { writeZip } = require('../src/lib/zip');
+  const dasar = path.join(dir, 'dasar-basi.zip');
+  writeZip(dasar, [
+    { name: 'E-Rapor-SD-Windows/Pasang-E-Rapor-SD.exe', data: 'EXE-LAMA' },
+    { name: 'E-Rapor-SD-Windows/node/node.exe', data: 'MZ' },
+    { name: 'E-Rapor-SD-Windows/Jalankan-Rapor.bat', data: '@echo lama' },
+    { name: 'E-Rapor-SD-Windows/app/', data: '' },
+    { name: 'E-Rapor-SD-Windows/app/server.js', data: '// kode LAMA' },
+    { name: 'E-Rapor-SD-Windows/app/src/berkas-yang-sudah-dihapus.js', data: 'x' },
+    { name: 'E-Rapor-SD-Windows/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node', data: 'BINARI-WINDOWS' },
+  ]);
+  const asli = process.env.ZIP_WINDOWS;
+  const master2 = require('../src/lib/master');
+  const l = master2.buatLisensiOffline({ npsn: '60107777', sekolah: 'SD Segar' });
+  // ZIP_WINDOWS dibaca saat modul dimuat; ganti isi berkas dasar yang dipakai
+  fs.copyFileSync(dasar, asli);
+  const z = master2.buatZipSekolah(l);
+  try {
+    const nama = execFileSync('unzip', ['-Z1', z.file]).toString().trim().split('\n');
+    const folder = 'E-Rapor-SD-SEGAR-60107777';
+    const ada = (rel) => nama.includes(`${folder}/${rel}`);
+    assert.ok(nama.every((n) => n.startsWith(`${folder}/`)));
+    assert.ok(!ada('app/src/berkas-yang-sudah-dihapus.js'), 'kode lama dibuang');
+    assert.ok(ada('app/src/lib/zip.js') && ada('app/views/aktivasi.ejs') && ada('app/package.json'), 'kode terbaru dari server ikut');
+    assert.ok(ada('app/node_modules/better-sqlite3/build/Release/better_sqlite3.node'), 'node_modules dari ZIP dasar tetap');
+    assert.ok(ada('Pasang-E-Rapor-SD.exe') && ada('node/node.exe'), 'pemasang & node dari ZIP dasar tetap');
+    assert.strictEqual(execFileSync('unzip', ['-p', z.file, `${folder}/app/server.js`]).toString(), fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8'));
+    assert.match(execFileSync('unzip', ['-p', z.file, `${folder}/Jalankan-Rapor.bat`]).toString(), /\r\n/, 'peluncur memakai CRLF');
+    assert.strictEqual(execFileSync('unzip', ['-p', z.file, `${folder}/data/kode-aktivasi.txt`]).toString(), l.kode);
+    execFileSync('unzip', ['-tq', z.file]);
+  } finally { fs.rmSync(z.file, { force: true }); }
+});

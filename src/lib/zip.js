@@ -177,9 +177,10 @@ function periksaZip(file) {
  * Isi lama disalin tanpa dikompres ulang (cepat). Dipakai untuk ZIP khusus satu sekolah.
  * @param {string} sumber ZIP dasar (bukan ZIP64)
  * @param {string} target ZIP hasil
- * @param {{ folder: string, entries: { name: string, data: Buffer|string }[] }} opsi nama relatif terhadap folder baru
+ * @param {{ folder: string, entries: { name: string, data: Buffer|string }[], hapus?: (relatif: string) => boolean }} opsi
+ *   nama relatif terhadap folder baru; `hapus` membuang berkas lama (mis. kode aplikasi yang akan diganti versi terbaru)
  */
-function buatZipDenganFolder(sumber, target, { folder, entries = [] }) {
+function buatZipDenganFolder(sumber, target, { folder, entries = [], hapus = null }) {
   const zip = fs.readFileSync(sumber);
   let eocd = -1;
   for (let i = zip.length - 22; i >= Math.max(0, zip.length - 22 - 65535); i -= 1) {
@@ -196,12 +197,14 @@ function buatZipDenganFolder(sumber, target, { folder, entries = [] }) {
     pos += lama[lama.length - 1].total;
   }
   const folderLama = lama[0] && lama[0].name.includes('/') ? lama[0].name.slice(0, lama[0].name.indexOf('/')) : '';
+  const relatif = (nama) => (folderLama && nama.startsWith(`${folderLama}/`) ? nama.slice(folderLama.length + 1) : nama);
+  const dipakai = hapus ? lama.filter((e) => !hapus(relatif(e.name))) : lama;
   const { time, date } = dosTime(new Date());
   const fd = fs.openSync(target, 'w');
   const central = []; let offset = 0;
   const tulis = (b) => { fs.writeSync(fd, b); offset += b.length; };
   try {
-    for (const e of lama) {
+    for (const e of dipakai) {
       const c = e.c;
       const baru = Buffer.from(folderLama && e.name.startsWith(`${folderLama}/`) ? `${folder}/${e.name.slice(folderLama.length + 1)}` : `${folder}/${e.name}`, 'utf8');
       const comp = zip.readUInt32LE(c + 20);
@@ -240,10 +243,35 @@ function buatZipDenganFolder(sumber, target, { folder, entries = [] }) {
     for (const b of central) tulis(b);
     const end = Buffer.alloc(22);
     end.writeUInt32LE(0x06054b50, 0);
-    end.writeUInt16LE(jumlah + entries.length, 8); end.writeUInt16LE(jumlah + entries.length, 10);
+    end.writeUInt16LE(dipakai.length + entries.length, 8); end.writeUInt16LE(dipakai.length + entries.length, 10);
     end.writeUInt32LE(offset - cdStart, 12); end.writeUInt32LE(cdStart, 16);
     tulis(end);
   } finally { fs.closeSync(fd); }
 }
 
-module.exports = { writeZip, listFiles, tambahkanKeZip, periksaZip, buatZipDenganFolder };
+/** Isi satu berkas di dalam ZIP (nama relatif terhadap folder utama), atau null bila tidak ada. */
+function bacaEntriZip(file, relatif) {
+  const zip = fs.readFileSync(file);
+  let eocd = -1;
+  for (let i = zip.length - 22; i >= Math.max(0, zip.length - 22 - 65535); i -= 1) {
+    if (zip.readUInt32LE(i) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) return null;
+  const jumlah = zip.readUInt16LE(eocd + 10);
+  let pos = zip.readUInt32LE(eocd + 16);
+  for (let n = 0; n < jumlah; n += 1) {
+    const len = zip.readUInt16LE(pos + 28);
+    const nama = zip.toString('utf8', pos + 46, pos + 46 + len);
+    const rel = nama.includes('/') ? nama.slice(nama.indexOf('/') + 1) : nama;
+    if (rel === relatif) {
+      const metode = zip.readUInt16LE(pos + 10); const comp = zip.readUInt32LE(pos + 20); const lo = zip.readUInt32LE(pos + 42);
+      const awal = lo + 30 + zip.readUInt16LE(lo + 26) + zip.readUInt16LE(lo + 28);
+      const data = zip.subarray(awal, awal + comp);
+      return metode === 8 ? zlib.inflateRawSync(data) : Buffer.from(data);
+    }
+    pos += 46 + len + zip.readUInt16LE(pos + 30) + zip.readUInt16LE(pos + 32);
+  }
+  return null;
+}
+
+module.exports = { writeZip, listFiles, tambahkanKeZip, periksaZip, buatZipDenganFolder, bacaEntriZip };

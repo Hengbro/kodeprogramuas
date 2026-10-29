@@ -65,6 +65,7 @@ router.post('/keluar', (req, res) => {
 router.get('/', wajibSuper, (req, res) => {
   const offline = master.infoOffline();
   const daftar = master.daftar().map((s) => ({ ...s, stat: master.statistik(s), lisensi: offline.daftar.filter((l) => l.sekolah_kode === s.kode) }));
+  offline.depsBerbeda = !!offline.zip && require('../lib/segarkan-zip').dependensiBerbeda(master.ZIP_WINDOWS);
   offline.saja = offline.daftar.filter((l) => !l.sekolah_kode || !daftar.some((s) => s.kode === l.sekolah_kode));
   res.render('super/panel', { title: 'Panel Superadmin', daftar, hasil: null, offline });
 });
@@ -122,7 +123,8 @@ router.post('/unggah-zip', wajibSuper, (req, res) => {
         return gagal(400, 'ZIP ini bukan paket aplikasi Windows E-Rapor SD (Jalankan-Rapor.bat / node.exe tidak ditemukan).');
       }
       fs.renameSync(tmp, master.ZIP_WINDOWS);
-      res.json({ ok: true, ukuran, pesan: `ZIP aplikasi Windows tersimpan (${(ukuran / 1024 / 1024).toFixed(1)} MB, ${info.jumlah} berkas).` });
+      const tanpaPemasang = !info.nama.some((n) => /Pasang-E-Rapor-SD\.exe$/i.test(n));
+      res.json({ ok: true, ukuran, pesan: `ZIP aplikasi Windows tersimpan (${(ukuran / 1024 / 1024).toFixed(1)} MB, ${info.jumlah} berkas).${tanpaPemasang ? ' Catatan: ZIP ini tidak berisi Pasang-E-Rapor-SD.exe, sekolah memakai Jalankan-Rapor.bat.' : ''}` });
     } catch (e) { gagal(400, e.message); }
   });
 });
