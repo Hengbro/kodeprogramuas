@@ -216,8 +216,18 @@ function buatZipSekolah(l) {
   // kode aplikasi di ZIP selalu versi terbaru dari server ini (tanpa perlu membangun ulang ZIP dasar)
   const { kodeTerbaru } = require('./segarkan-zip');
   const baru = kodeTerbaru();
-  buatZipDenganFolder(ZIP_WINDOWS, file, { folder: folderPaketSekolah(l), hapus: baru.hapus, entries: [...baru.entries, { name: 'data/kode-aktivasi.txt', data: l.kode }] });
-  periksaHasilZip(file, [...BERKAS_INTI_ZIP, 'data/kode-aktivasi.txt']);
+  // Sekolah yang juga ada di server: ZIP membawa data & SEMUA akun sekolah itu (username/sandi sama seperti online)
+  const entri = [...baru.entries, { name: 'data/kode-aktivasi.txt', data: l.kode }];
+  const s = l.sekolah_kode ? cari(l.sekolah_kode) : null;
+  if (s) {
+    const { konteks } = require('../db');
+    const { exportPaketSekolah } = require('./paket');
+    const pkg = konteks.run({ db: dbSekolah(s), sekolah: s }, () => exportPaketSekolah());
+    pkg.lisensi = l.kode;
+    entri.push({ name: 'data/paket-awal.rapor.json', data: JSON.stringify(pkg) });
+  }
+  buatZipDenganFolder(ZIP_WINDOWS, file, { folder: folderPaketSekolah(l), hapus: baru.hapus, entries: entri });
+  periksaHasilZip(file, [...BERKAS_INTI_ZIP, 'data/kode-aktivasi.txt', ...(s ? ['data/paket-awal.rapor.json'] : [])]);
   return { file, nama: `${dasar}.zip` };
 }
 

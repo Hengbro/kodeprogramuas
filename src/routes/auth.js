@@ -19,6 +19,15 @@ function sekolahTidakAda(res, username) {
   return res.status(404).render('login', { title: 'Masuk', error: 'Kode sekolah tidak ditemukan atau sedang dinonaktifkan. Tanyakan kode sekolah kepada penyedia aplikasi.', username });
 }
 
+/** Pesan gagal masuk yang bisa dipahami pengguna awam: nama pengguna tidak ada, atau kata sandinya yang salah. */
+function pesanGagalMasuk(res, username, user) {
+  if (!username) return 'Nama pengguna belum diisi.';
+  if (user) return `Kata sandi untuk "${username}" salah. Perhatikan huruf besar/kecil. Lupa? Minta admin sekolah atau penyedia aplikasi mengatur ulang.`;
+  return res.locals.multi
+    ? `Nama pengguna "${username}" tidak ada di sekolah ini. Periksa ejaannya, atau pastikan alamat (kode sekolah) yang dibuka benar.`
+    : `Nama pengguna "${username}" tidak ada di aplikasi ini. Jika akun baru dibuat atau diganti di server, unduh ZIP terbaru lalu pasang lagi (data rapor di komputer ini tetap aman).`;
+}
+
 router.get('/login', (req, res) => {
   if (res.locals.user) return res.redirect('/app');
   res.render('login', { title: 'Masuk', error: req.query.salah ? 'Kode sekolah tidak ditemukan atau sedang dinonaktifkan.' : null, username: '' });
@@ -29,7 +38,7 @@ router.post('/login', loginLimiter, (req, res) => {
   const username = String(req.body.username || '').trim();
   const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
   if (!user || !verifyPassword(req.body.password || '', user.password_hash)) {
-    return res.status(401).render('login', { title: 'Masuk', error: 'Nama pengguna atau kata sandi salah.', username });
+    return res.status(401).render('login', { title: 'Masuk', error: pesanGagalMasuk(res, username, user), username });
   }
   const returnTo = req.session.returnTo;
   pakaiSekolah(req, res);
@@ -50,7 +59,7 @@ router.post('/lanjutkan', loginLimiter, (req, res) => {
   const username = String(req.body.username || '').trim();
   const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
   if (!user || !verifyPassword(req.body.password || '', user.password_hash)) {
-    return res.status(401).render('sesi-habis', { title: 'Sesi berakhir', tujuan, data: JSON.stringify(data), error: 'Nama pengguna atau kata sandi salah.', username });
+    return res.status(401).render('sesi-habis', { title: 'Sesi berakhir', tujuan, data: JSON.stringify(data), error: pesanGagalMasuk(res, username, user), username });
   }
   pakaiSekolah(req, res);
   req.session.userId = user.id;

@@ -89,8 +89,16 @@ Section "E-Rapor SD"
   CreateDirectory "$INSTDIR\data"
   ; isi folder data dari ZIP ikut dipindah bila komputer ini belum punya data:
   ; paket dari admin sekolah (paket-awal.rapor.json) atau data yang sempat diisi lewat Jalankan-Rapor.bat
-  IfFileExists "$INSTDIR\data\rapor.sqlite" ikon 0
+  IfFileExists "$INSTDIR\data\rapor.sqlite" data_lama 0
     CopyFiles /SILENT "$EXEDIR\data\*.*" "$INSTDIR\data"
+    Goto ikon
+  data_lama:
+  ; sudah ada data rapor di komputer ini: database TIDAK ditimpa, tetapi paket akun & kode aktivasi terbaru tetap disalin,
+  ; agar username/sandi yang diganti di server berlaku di sini (disamakan otomatis saat aplikasi dibuka)
+  IfFileExists "$EXEDIR\data\paket-awal.rapor.json" 0 +2
+    CopyFiles /SILENT "$EXEDIR\data\paket-awal.rapor.json" "$INSTDIR\data"
+  IfFileExists "$EXEDIR\data\kode-aktivasi.txt" 0 +2
+    CopyFiles /SILENT "$EXEDIR\data\kode-aktivasi.txt" "$INSTDIR\data"
   ikon:
   ; ZIP dari internet membawa tanda "Mark of the Web" yang ikut tersalin; Smart App Control / SmartScreen Windows 11
   ; memblokir berkas bertanda itu. Hapus tandanya dari folder aplikasi yang baru dipasang.

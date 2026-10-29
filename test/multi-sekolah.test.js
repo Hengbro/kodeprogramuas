@@ -540,3 +540,51 @@ test('superadmin bisa melihat sandi akun (tersimpan terenkripsi, hanya superadmi
   const pkg = JSON.stringify(konteks.run({ db: d, sekolah: sek }, () => require('../src/lib/paket').exportPaketGuru([idBaru])));
   assert.ok(!pkg.includes('sandi_enc') && !pkg.includes('sandi-ganti-88') && pkg.includes('password_hash'));
 });
+
+test('ZIP sekolah (admin) dari sekolah online membawa SEMUA akun: admin bisa masuk di laptop dengan username & sandi yang sama seperti online', async () => {
+  const { execFileSync } = require('child_process');
+  const su = klien();
+  await su('POST', '/super/login', { _csrf: await su.token('/super/login'), username: 'superadmin', password: 'rahasia-super' });
+  const tok = await su.token('/super');
+  await su('POST', '/super/sekolah', { _csrf: tok, online: '1', offline: '1', nama: 'SD NEGERI AKUN SAMA', npsn: '60108888', kode: 'akun-sama', admin_username: 'bungalansinurat@1979', admin_password: 'Sandi-Online-1' });
+  const sek = master.cari('akun-sama');
+  const l = master.m().prepare("SELECT * FROM lisensi_offline WHERE sekolah_kode = 'akun-sama'").get();
+  assert.ok(l, 'lisensi offline dibuat bersama sekolah');
+  // admin mengganti sandinya di online, lalu ZIP diunduh
+  const kepsek = await masuk('akun-sama', 'bungalansinurat@1979', 'Sandi-Online-1');
+  const t2 = /name="_csrf" value="([^"]+)"/.exec((await kepsek.req('GET', kepsek.s('/app/akun'))).text)[1];
+  await kepsek.req('POST', kepsek.s('/app/akun'), { _csrf: t2, nama: 'Bunga', old_password: 'Sandi-Online-1', new_password: 'Sandi-Baru-22' });
+  const z = master.buatZipSekolah(l);
+  try {
+    const folder = 'E-Rapor-60108888';
+    const pkg = JSON.parse(execFileSync('unzip', ['-p', z.file, `${folder}/data/paket-awal.rapor.json`]).toString());
+    assert.strictEqual(pkg.jenis, 'sekolah');
+    assert.strictEqual(pkg.lisensi, l.kode);
+    const a = pkg.akun.find((x) => x.username === 'bungalansinurat@1979');
+    assert.ok(a && a.role === 'admin' && a.uid);
+    // laptop sekolah: paket dipasang pada database baru (seperti saat aplikasi pertama dibuka), lalu login dengan sandi BARU
+    const laptop = fs.mkdtempSync(path.join(os.tmpdir(), 'rapor-laptop-admin-'));
+    execFileSync('unzip', ['-p', z.file, `${folder}/data/paket-awal.rapor.json`], { maxBuffer: 1 << 26 });
+    fs.writeFileSync(path.join(laptop, 'paket-awal.rapor.json'), execFileSync('unzip', ['-p', z.file, `${folder}/data/paket-awal.rapor.json`], { maxBuffer: 1 << 26 }));
+    const out = execFileSync(process.execPath, ['-e', `
+      require('./src/lib/paket-otomatis').pasangJikaAda();
+      const { db } = require('./src/db');
+      const { verifyPassword } = require('./src/lib/password');
+      const u = db.prepare("SELECT * FROM users WHERE username = 'bungalansinurat@1979'").get();
+      process.stdout.write('\\n' + JSON.stringify({ ada: !!u, role: u && u.role, baru: !!u && verifyPassword('Sandi-Baru-22', u.password_hash), lama: !!u && verifyPassword('Sandi-Online-1', u.password_hash),
+        instalasiGuru: !!db.prepare("SELECT 1 FROM settings WHERE key = '_instalasi_guru'").get(), lisensi: !!db.prepare("SELECT 1 FROM settings WHERE key = '_lisensi'").get(),
+        adminBawaan: db.prepare("SELECT COUNT(*) n FROM users WHERE username = 'admin'").get().n }));`],
+    { cwd: path.join(__dirname, '..'), env: { ...process.env, DATA_DIR: laptop, MULTI_SEKOLAH: '' }, encoding: 'utf8' }).split('\n').pop();
+    assert.deepStrictEqual(JSON.parse(out), { ada: true, role: 'admin', baru: true, lama: false, instalasiGuru: false, lisensi: true, adminBawaan: 0 });
+  } finally { fs.rmSync(z.file, { force: true }); }
+  void sek;
+});
+
+test('pesan gagal masuk membedakan nama pengguna yang tidak ada dan kata sandi yang salah', async () => {
+  const k = klien();
+  const t = await k.token('/sekolah/akun-sama/login');
+  let r = await k('POST', '/sekolah/akun-sama/login', { _csrf: t, username: 'tidak.ada', password: 'x' });
+  assert.match(r.text, /Nama pengguna &#34;tidak.ada&#34; tidak ada di sekolah ini|Nama pengguna "tidak.ada" tidak ada di sekolah ini/);
+  r = await k('POST', '/sekolah/akun-sama/login', { _csrf: t, username: 'bungalansinurat@1979', password: 'salah' });
+  assert.match(r.text, /Kata sandi untuk/);
+});

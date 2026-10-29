@@ -27,7 +27,7 @@ function addColumns(d, table, cols) {
 
 function migrasi(d) {
   addColumns(d, 'students', BUKU_INDUK_FIELDS);
-  addColumns(d, 'users', ['sandi_enc']); // salinan sandi terenkripsi untuk superadmin (mode banyak sekolah)
+  addColumns(d, 'users', ['sandi_enc', 'uid']); // uid: kunci tetap akun agar ganti username di server ikut ke laptop // salinan sandi terenkripsi untuk superadmin (mode banyak sekolah)
   addColumns(d, 'rapor_siswa', ['tinggi', 'berat']);
   // TP boleh dikaitkan ke satu lingkup materi (LM 1 = Bab 1 berisi beberapa TP)
   if (!d.prepare('PRAGMA table_info(tujuan_pembelajaran)').all().some((c) => c.name === 'lm_id')) {

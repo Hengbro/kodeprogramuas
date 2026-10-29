@@ -319,45 +319,95 @@ function importPaket(pkg, opts = {}) {
   return hasil;
 }
 
-// ===================== PAKET APLIKASI GURU =====================
+// ===================== PAKET APLIKASI GURU / SEKOLAH =====================
+
+/** Akun untuk dibawa ke laptop (hash sandi, bukan sandi). Tiap akun diberi uid tetap agar perubahan username ikut tersinkron. */
+function akunUntukPaket(ids) {
+  const isiUid = db.prepare('UPDATE users SET uid = ? WHERE id = ? AND uid IS NULL');
+  const ambil = db.prepare('SELECT id, uid, username, password_hash, nama, nip, role FROM users WHERE id = ?');
+  return ids.map((id) => {
+    let u = ambil.get(id);
+    if (!u) return null;
+    if (!u.uid) { isiUid.run(crypto.randomUUID(), u.id); u = ambil.get(id); }
+    return { uid: u.uid, username: u.username, password_hash: u.password_hash, nama: u.nama, nip: u.nip, role: u.role === 'admin' ? 'admin' : 'guru' };
+  }).filter(Boolean);
+}
 
 /**
  * Paket untuk dipasang di komputer guru: lisensi sekolah + pengaturan sekolah + kelas guru + akun guru.
+ * Akun ADMIN sekolah selalu ikut, agar admin/kepala sekolah juga bisa masuk di laptop guru dengan akun yang sama seperti online.
  * @param {number[]} userIds guru yang disertakan
  */
 function exportPaketGuru(userIds) {
-  const users = userIds.map((id) => db.prepare('SELECT id, username, password_hash, nama, nip FROM users WHERE id = ?').get(id)).filter(Boolean);
+  const users = userIds.map((id) => db.prepare('SELECT id FROM users WHERE id = ?').get(id)).filter(Boolean);
   const kelas = [];
   for (const u of users) for (const c of db.prepare('SELECT id FROM classes WHERE guru_id = ? ORDER BY tingkat, nama').all(u.id)) kelas.push(c.id);
+  const admin = db.prepare("SELECT id FROM users WHERE role = 'admin' ORDER BY id").all().map((r) => r.id);
   const lis = db.prepare("SELECT value FROM settings WHERE key = '_lisensi'").get();
   const pkg = exportPaket({ sekolah: true, kelas, denganNilai: true });
   pkg.jenis = 'guru';
   pkg.lisensi = lis ? lis.value : null;
-  pkg.akun = users.map((u) => ({ username: u.username, password_hash: u.password_hash, nama: u.nama, nip: u.nip }));
+  pkg.akun = akunUntukPaket([...new Set([...users.map((u) => u.id), ...admin])]);
+  return pkg;
+}
+
+/** Paket LENGKAP satu sekolah (untuk ZIP sekolah/admin): semua kelas, siswa, nilai, dan SEMUA akun dengan peran masing-masing. */
+function exportPaketSekolah() {
+  const kelas = db.prepare('SELECT id FROM classes ORDER BY tingkat, nama').all().map((r) => r.id);
+  const lis = db.prepare("SELECT value FROM settings WHERE key = '_lisensi'").get();
+  const pkg = exportPaket({ sekolah: true, kelas, denganNilai: true });
+  pkg.jenis = 'sekolah';
+  pkg.lisensi = lis ? lis.value : null;
+  pkg.akun = akunUntukPaket(db.prepare('SELECT id FROM users ORDER BY id').all().map((r) => r.id));
   return pkg;
 }
 
 /**
- * Memasang paket guru di database yang masih baru (dipanggil saat aplikasi guru pertama kali jalan).
- * Akun guru dibuat lebih dulu agar kelas langsung terhubung ke gurunya (dicocokkan lewat nama).
+ * Menyamakan akun di komputer ini dengan akun dari paket (dari server): username, hash sandi, nama, NIP, peran.
+ * Dicocokkan lewat uid dulu (agar username yang diganti di server ikut berganti), lalu lewat username.
+ * Akun yang hanya ada di komputer ini tidak dihapus. Data nilai tidak disentuh.
+ */
+function sinkronAkun(akun) {
+  const hasil = { baru: 0, diperbarui: 0 };
+  for (const a of akun || []) {
+    if (!a || !a.username || !a.password_hash) continue;
+    const role = a.role === 'admin' ? 'admin' : 'guru';
+    let u = a.uid ? db.prepare('SELECT id, username FROM users WHERE uid = ?').get(a.uid) : null;
+    if (!u) u = db.prepare('SELECT id, username FROM users WHERE username = ? COLLATE NOCASE').get(a.username);
+    if (u) {
+      // username baru dipakai akun lain di komputer ini → akun lain itu yang tertimpa namanya tidak boleh; lewati penggantian nama
+      const bentrok = db.prepare('SELECT id FROM users WHERE username = ? COLLATE NOCASE AND id != ?').get(a.username, u.id);
+      db.prepare('UPDATE users SET username = ?, password_hash = ?, sandi_enc = NULL, nama = ?, nip = ?, role = ?, uid = ? WHERE id = ?')
+        .run(bentrok ? u.username : a.username, a.password_hash, a.nama || a.username, a.nip || null, role, a.uid || null, u.id);
+      hasil.diperbarui += 1;
+    } else {
+      db.prepare('INSERT INTO users (username, password_hash, nama, nip, role, uid) VALUES (?, ?, ?, ?, ?, ?)')
+        .run(a.username, a.password_hash, a.nama || a.username, a.nip || null, role, a.uid || null);
+      hasil.baru += 1;
+    }
+  }
+  return hasil;
+}
+
+/**
+ * Memasang paket di database yang masih baru (dipanggil saat aplikasi pertama kali jalan).
+ * Paket guru mengunci pengaturan sekolah di laptop guru; paket sekolah (admin) tidak.
  */
 function pasangPaketGuru(pkg) {
   const hasil = { pesan: [], akunBaru: [] };
   db.transaction(() => {
     const set = db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value');
-    for (const a of pkg.akun || []) {
-      const ada = db.prepare('SELECT id FROM users WHERE username = ? COLLATE NOCASE').get(a.username);
-      if (ada) db.prepare("UPDATE users SET password_hash = ?, sandi_enc = NULL, nama = ?, nip = ?, role = 'guru' WHERE id = ?").run(a.password_hash, a.nama, a.nip || null, ada.id);
-      else db.prepare("INSERT INTO users (username, password_hash, nama, nip, role) VALUES (?, ?, ?, ?, 'guru')").run(a.username, a.password_hash, a.nama, a.nip || null);
+    sinkronAkun(pkg.akun);
+    // akun bawaan admin/admin123 dihapus bila paket membawa akun (kecuali paket memang memuat akun bernama admin)
+    if ((pkg.akun || []).length && !(pkg.akun || []).some((a) => String(a.username).toLowerCase() === 'admin')) {
+      db.prepare("DELETE FROM users WHERE username = 'admin' AND role = 'admin' AND uid IS NULL").run();
     }
-    // akun bawaan admin/admin123 dihapus: pengaturan sekolah dikelola admin di komputer sekolah
-    if ((pkg.akun || []).length) db.prepare("DELETE FROM users WHERE username = 'admin' AND role = 'admin'").run();
     if (pkg.lisensi) set.run('_lisensi', pkg.lisensi);
-    set.run('_instalasi_guru', '1');
+    if (pkg.jenis !== 'sekolah') set.run('_instalasi_guru', '1');
     if (pkg.sekolah) importSekolah(pkg.sekolah, { aktifkanPeriode: true }, hasil);
     for (const k of pkg.kelas || []) importKelas(k, hasil);
   })();
   return hasil;
 }
 
-module.exports = { exportPaket, parsePaket, ringkas, importPaket, exportPaketGuru, pasangPaketGuru };
+module.exports = { exportPaket, parsePaket, ringkas, importPaket, exportPaketGuru, exportPaketSekolah, pasangPaketGuru, sinkronAkun };
