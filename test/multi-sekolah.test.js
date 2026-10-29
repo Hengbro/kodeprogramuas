@@ -464,3 +464,35 @@ test('ZIP yang dibagikan: berkas inti ditulis lebih dulu, jalur pendek, dan peme
   const potong = path.join(dir, 'potong.zip'); fs.writeFileSync(potong, fs.readFileSync(hasil).subarray(0, 120));
   assert.throws(() => verifikasiZip(potong), /tidak utuh|rusak/);
 });
+
+test('superadmin mencari akun di semua sekolah dan mereset sandi guru (sandi lama tidak berlaku, sandi baru bisa dipakai)', async () => {
+  const { hashPassword } = require('../src/lib/password');
+  const su = klien();
+  await su('POST', '/super/login', { _csrf: await su.token('/super/login'), username: 'superadmin', password: 'rahasia-super' });
+  const sek = master.cari('guru-zip');
+  const d = master.dbSekolah(sek);
+  const id = d.prepare("INSERT INTO users (username, password_hash, nama, role) VALUES ('lupa.sandi@guru', ?, 'Bu Lupa Sandi', 'guru')").run(hashPassword('sandi-lama-1')).lastInsertRowid;
+  // pencarian lintas sekolah (username atau nama), dan hanya untuk superadmin
+  let r = await su('GET', '/super/pengguna?q=lupa.sandi');
+  assert.match(r.text, /lupa\.sandi@guru/);
+  assert.match(r.text, /SD NEGERI GURU ZIP/);
+  r = await su('GET', '/super/pengguna?q=Bu%20Lupa');
+  assert.match(r.text, /Bu Lupa Sandi/);
+  r = await su('GET', '/super/pengguna?q=tidak-ada-orang-ini');
+  assert.match(r.text, /Tidak ada akun yang cocok/);
+  r = await klien()('GET', '/super/pengguna?q=lupa');
+  assert.strictEqual(r.location, '/super/login');
+  // daftar akun di detail sekolah memuat guru, bukan hanya admin
+  r = await su('GET', '/super/sekolah/guru-zip');
+  assert.match(r.text, /lupa\.sandi@guru/);
+  // reset: sandi baru tampil sekali dan berlaku; yang lama tidak
+  r = await su('POST', '/super/sekolah/guru-zip/reset', { _csrf: await su.token('/super'), user_id: String(id) });
+  assert.strictEqual(r.status, 200);
+  const baru = /<th>Kata sandi<\/th><td><code>([^<]+)<\/code>/.exec(r.text)[1];
+  assert.ok(baru.length >= 10);
+  assert.match(r.text, /lupa\.sandi@guru/);
+  const lama = await masuk('guru-zip', 'lupa.sandi@guru', 'sandi-lama-1');
+  assert.strictEqual(lama.r.status, 401);
+  const ok = await masuk('guru-zip', 'lupa.sandi@guru', baru);
+  assert.match(ok.r.location || '', /\/app/);
+});

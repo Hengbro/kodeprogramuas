@@ -88,6 +88,12 @@ router.get('/offline/:id', wajibSuper, (req, res) => {
   res.render('super/offline-hasil', { title: 'Kode aktivasi offline', l, offline: master.infoOffline() });
 });
 
+// ===== Cari akun di semua sekolah (guru lupa sandi: cari, lalu Reset → sandi baru siap kirim) =====
+router.get('/pengguna', wajibSuper, (req, res) => {
+  const q = String(req.query.q || '').trim();
+  res.render('super/pengguna', { title: 'Cari akun', q, hasil: q ? master.cariPengguna(q) : null });
+});
+
 // ===== Pembaruan aplikasi dari GitHub =====
 router.get('/pembaruan', wajibSuper, (req, res) => {
   res.render('super/pembaruan', { title: 'Pembaruan aplikasi', st: pembaruan.status(), hasil: null });

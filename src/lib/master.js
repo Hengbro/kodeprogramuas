@@ -128,6 +128,22 @@ function siapkan() {
 }
 
 /** Ringkasan isi database sekolah untuk panel superadmin. */
+/** Mencari akun (username atau nama) di semua sekolah; hasil maksimal 60 baris. */
+function cariPengguna(q) {
+  const kata = `%${String(q || '').trim().replace(/[%_]/g, '')}%`;
+  if (kata === '%%') return [];
+  const hasil = [];
+  for (const s of daftar()) {
+    try {
+      const baris = dbSekolah(s).prepare(`SELECT u.id, u.username, u.nama, u.role, (SELECT GROUP_CONCAT(nama, ', ') FROM classes WHERE guru_id = u.id) AS kelas
+        FROM users u WHERE u.username LIKE ? OR u.nama LIKE ? ORDER BY u.nama LIMIT 60`).all(kata, kata);
+      for (const b of baris) hasil.push({ sekolah: s, ...b });
+    } catch (e) { /* sekolah tidak bisa dibuka: lewati */ }
+    if (hasil.length >= 60) break;
+  }
+  return hasil.slice(0, 60);
+}
+
 function statistik(s) {
   try {
     const d = dbSekolah(s);
@@ -137,6 +153,8 @@ function statistik(s) {
       kelas: n('SELECT COUNT(*) n FROM classes'),
       guru: n("SELECT COUNT(*) n FROM users WHERE role = 'guru'"),
       admin: d.prepare("SELECT id, username, nama FROM users WHERE role = 'admin' ORDER BY id").all(),
+      pengguna: d.prepare(`SELECT u.id, u.username, u.nama, u.role, (SELECT GROUP_CONCAT(nama, ', ') FROM classes WHERE guru_id = u.id) AS kelas
+        FROM users u ORDER BY CASE u.role WHEN 'admin' THEN 0 ELSE 1 END, u.nama`).all(),
       ukuran: fs.statSync(path.resolve(DATA_DIR, s.file)).size,
     };
   } catch (e) {
@@ -250,4 +268,4 @@ function buatLisensiOffline({ npsn, sekolah, catatan, sekolahKode }) {
   return m().prepare('SELECT * FROM lisensi_offline WHERE token = ?').get(token);
 }
 
-module.exports = { lisensiSekolah, namaPaketSekolah, folderPaketSekolah, periksaHasilZip, BERKAS_INTI_ZIP, buatZipSekolah, m, daftar, cari, dbSekolah, buatSekolah, siapkan, statistik, pengaturan, sandiAcak, slug, tutup, KODE_RE, MASTER_PATH, infoOffline, buatLisensiOffline, cekLisensiOffline, ZIP_WINDOWS, SETUP_WINDOWS, PANDUAN_PDF, PANDUAN_GURU_PDF };
+module.exports = { cariPengguna, lisensiSekolah, namaPaketSekolah, folderPaketSekolah, periksaHasilZip, BERKAS_INTI_ZIP, buatZipSekolah, m, daftar, cari, dbSekolah, buatSekolah, siapkan, statistik, pengaturan, sandiAcak, slug, tutup, KODE_RE, MASTER_PATH, infoOffline, buatLisensiOffline, cekLisensiOffline, ZIP_WINDOWS, SETUP_WINDOWS, PANDUAN_PDF, PANDUAN_GURU_PDF };

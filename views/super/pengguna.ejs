@@ -1,0 +1,24 @@
+<%- include('_top') %>
+<div class="card" style="max-width:860px;margin:0 auto">
+  <h1>Cari akun</h1>
+  <p class="muted">Cari guru atau admin di <b>semua sekolah</b> lewat username atau nama. Kata sandi tidak bisa dilihat (disimpan sebagai sidik jari demi keamanan), tetapi Anda bisa <b>Reset sandi</b>: sandi baru langsung ditampilkan beserta pesan siap kirim.</p>
+  <form method="get" action="/super/pengguna" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+    <input name="q" value="<%= q %>" placeholder="username atau nama (mis. finsen)" autofocus style="flex:1;min-width:200px" autocomplete="off" autocapitalize="none">
+    <button class="btn btn-primary"><%- h.icon('search') %> Cari</button>
+  </form>
+  <% if (hasil && !hasil.length) { %><div class="alert alert-info">Tidak ada akun yang cocok dengan “<%= q %>”. Akun di aplikasi offline (laptop guru) tidak terdaftar di server ini.</div><% } %>
+  <% if (hasil && hasil.length) { %>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Akun</th><th>Sekolah</th><th>Peran</th><th class="actions"></th></tr></thead>
+    <tbody>
+    <% hasil.forEach(a => { %><tr>
+      <td><b><%= a.username %></b><br><small class="muted"><%= a.nama %><%= a.kelas ? ' · Kelas ' + a.kelas : '' %></small></td>
+      <td><a href="/super/sekolah/<%= a.sekolah.kode %>"><%= a.sekolah.nama %></a></td>
+      <td><span class="badge <%= a.role === 'admin' ? 'badge-primary' : '' %>"><%= a.role === 'admin' ? 'Admin' : 'Guru' %></span></td>
+      <td class="actions"><form method="post" action="/super/sekolah/<%= a.sekolah.kode %>/reset" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="user_id" value="<%= a.id %>"><input type="hidden" name="kembali" value="/super/pengguna?q=<%= encodeURIComponent(q) %>"><button class="btn btn-sm" data-confirm="Buat kata sandi baru untuk <%= a.username %> (<%= a.sekolah.nama %>)? Sandi lama tidak berlaku lagi.">Reset sandi</button></form></td>
+    </tr><% }) %>
+    </tbody>
+  </table></div>
+  <% } %>
+</div>
+<%- include('_bottom') %>
