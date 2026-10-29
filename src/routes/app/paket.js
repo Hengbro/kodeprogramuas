@@ -114,14 +114,17 @@ router.get('/paket/guru', requireAdmin, (req, res, next) => {
       const master = require('../../lib/master');
       const { periksaKode } = require('../../lib/lisensi');
       const info = periksaKode(lisensi) || {};
-      const dasar = `${master.namaPaketSekolah({ sekolah: info.sekolah || (res.locals.settings || {}).nama_sekolah, npsn: info.npsn || (res.locals.settings || {}).npsn })}-GURU-${label}`.replace(/[^A-Za-z0-9._-]/g, '-');
+      const sekolahInfo = { sekolah: info.sekolah || (res.locals.settings || {}).nama_sekolah, npsn: info.npsn || (res.locals.settings || {}).npsn };
+      // nama berkas ZIP memuat sekolah + guru; folder DI DALAM ZIP pendek agar jalur di Windows tidak melewati 260 karakter
+      const dasar = `${master.namaPaketSekolah(sekolahInfo)}-GURU-${String(label).replace(/[^A-Za-z0-9]/g, '').slice(0, 14) || 'guru'}`;
       const tmp = path.join(os.tmpdir(), `${dasar}-${Date.now()}.zip`);
       const baru = require('../../lib/segarkan-zip').kodeTerbaru(); // kode aplikasi terbaru dari server ini
-      buatZipDenganFolder(ZIP_DASAR, tmp, { folder: dasar, hapus: baru.hapus, entries: [
+      buatZipDenganFolder(ZIP_DASAR, tmp, { folder: `${master.folderPaketSekolah(sekolahInfo)}-GURU`, hapus: baru.hapus, entries: [
         ...baru.entries,
         { name: `data/${NAMA_PAKET_AWAL}`, data: JSON.stringify(pkg) },
         { name: 'data/kode-aktivasi.txt', data: lisensi },
       ] });
+      master.periksaHasilZip(tmp, [...master.BERKAS_INTI_ZIP, `data/${NAMA_PAKET_AWAL}`, 'data/kode-aktivasi.txt']);
       return res.download(tmp, `${dasar}.zip`, () => fs.unlink(tmp, () => {}));
     } catch (e) { return next(e); }
   }

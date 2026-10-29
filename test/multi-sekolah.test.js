@@ -227,9 +227,9 @@ test('superadmin membuat kode aktivasi offline dan tautan unduhan untuk sekolah'
   fs.writeFileSync(berkas, Buffer.from(await unduh.arrayBuffer()));
   execFileSync('unzip', ['-tq', berkas]);
   const daftar = execFileSync('unzip', ['-Z1', berkas]).toString().trim().split('\n');
-  assert.ok(daftar.every((n) => n.startsWith('E-Rapor-SD-NEGERI-9-SAUMLAKI-60109999/')), daftar.join(','));
-  assert.ok(daftar.includes('E-Rapor-SD-NEGERI-9-SAUMLAKI-60109999/Jalankan-Rapor.bat'));
-  assert.strictEqual(execFileSync('unzip', ['-p', berkas, 'E-Rapor-SD-NEGERI-9-SAUMLAKI-60109999/data/kode-aktivasi.txt']).toString(), kode);
+  assert.ok(daftar.every((n) => n.startsWith('E-Rapor-60109999/')), daftar.join(','));
+  assert.ok(daftar.includes('E-Rapor-60109999/Jalankan-Rapor.bat'));
+  assert.strictEqual(execFileSync('unzip', ['-p', berkas, 'E-Rapor-60109999/data/kode-aktivasi.txt']).toString(), kode);
   assert.strictEqual(master.m().prepare('SELECT unduhan FROM lisensi_offline WHERE token = ?').get(link).unduhan, 1);
   r = await tamu('GET', '/unduh/offline/salah');
   assert.strictEqual(r.status, 404);
@@ -392,11 +392,11 @@ test('ZIP guru dari sekolah di server: lisensi offline ikut (dibuat otomatis ole
   assert.strictEqual(res.status, 200);
   const l = master.m().prepare("SELECT * FROM lisensi_offline WHERE sekolah_kode = 'guru-zip'").get();
   assert.ok(l); assert.strictEqual(l.npsn, '60105555'); assert.match(l.catatan, /otomatis/);
-  assert.match(res.headers.get('content-disposition'), /E-Rapor-SD-NEGERI-GURU-ZIP-60105555-GURU-bu\.guru\.zip/);
+  assert.match(res.headers.get('content-disposition'), /E-Rapor-SD-NEGERI-GURU-ZIP-60105555-GURU-buguru\.zip/);
   const berkas = path.join(dir, 'guru-zip.zip');
   fs.writeFileSync(berkas, Buffer.from(await res.arrayBuffer()));
   execFileSync('unzip', ['-tq', berkas]);
-  const folder = 'E-Rapor-SD-NEGERI-GURU-ZIP-60105555-GURU-bu.guru';
+  const folder = 'E-Rapor-60105555-GURU';
   assert.strictEqual(execFileSync('unzip', ['-p', berkas, `${folder}/data/kode-aktivasi.txt`]).toString(), l.kode);
   assert.strictEqual(JSON.parse(execFileSync('unzip', ['-p', berkas, `${folder}/data/paket-awal.rapor.json`]).toString()).lisensi, l.kode);
   // permintaan berikutnya memakai lisensi yang sama (tidak membuat lisensi baru), juga oleh admin sekolah
@@ -426,7 +426,7 @@ test('ZIP sekolah memakai kode aplikasi TERBARU dari server (tanpa NSIS): kode l
   const z = master2.buatZipSekolah(l);
   try {
     const nama = execFileSync('unzip', ['-Z1', z.file]).toString().trim().split('\n');
-    const folder = 'E-Rapor-SD-SEGAR-60107777';
+    const folder = 'E-Rapor-60107777';
     const ada = (rel) => nama.includes(`${folder}/${rel}`);
     assert.ok(nama.every((n) => n.startsWith(`${folder}/`)));
     assert.ok(!ada('app/src/berkas-yang-sudah-dihapus.js'), 'kode lama dibuang');
@@ -438,4 +438,29 @@ test('ZIP sekolah memakai kode aplikasi TERBARU dari server (tanpa NSIS): kode l
     assert.strictEqual(execFileSync('unzip', ['-p', z.file, `${folder}/data/kode-aktivasi.txt`]).toString(), l.kode);
     execFileSync('unzip', ['-tq', z.file]);
   } finally { fs.rmSync(z.file, { force: true }); }
+});
+
+test('ZIP yang dibagikan: berkas inti ditulis lebih dulu, jalur pendek, dan pemeriksa ketat menolak ZIP rusak', () => {
+  const { execFileSync } = require('child_process');
+  const { writeZip, verifikasiZip, buatZipDenganFolder } = require('../src/lib/zip');
+  const dasar = path.join(dir, 'dasar-urutan.zip');
+  writeZip(dasar, [
+    { name: 'X/node/node.exe', data: 'MZ' }, { name: 'X/Jalankan-Rapor.bat', data: '@echo off' },
+    { name: 'X/app/node_modules/a/b.js', data: 'a'.repeat(5000) }, { name: 'X/app/server.js', data: '//lama' },
+  ]);
+  const hasil = path.join(dir, 'hasil-urutan.zip');
+  buatZipDenganFolder(dasar, hasil, { folder: 'E-Rapor-1', hapus: (r) => r === 'app/server.js', entries: [{ name: 'app/server.js', data: '//baru' }, { name: 'data/kode-aktivasi.txt', data: 'K' }] });
+  const nama = execFileSync('unzip', ['-Z1', hasil]).toString().trim().split('\n');
+  assert.ok(nama.indexOf('E-Rapor-1/app/server.js') < nama.indexOf('E-Rapor-1/app/node_modules/a/b.js'), 'kode inti sebelum node_modules');
+  const info = verifikasiZip(hasil, ['app/server.js', 'node/node.exe', 'data/kode-aktivasi.txt']);
+  assert.strictEqual(info.folder, 'E-Rapor-1');
+  assert.throws(() => verifikasiZip(hasil, ['app/tidak-ada.js']), /tidak ada/);
+  // satu byte isi berubah → CRC tidak cocok; ZIP terpotong → ditolak
+  const rusak = Buffer.from(fs.readFileSync(hasil));
+  const i = rusak.indexOf(Buffer.from('//baru'));
+  rusak[i] = 0x58;
+  const berkasRusak = path.join(dir, 'rusak.zip'); fs.writeFileSync(berkasRusak, rusak);
+  assert.throws(() => verifikasiZip(berkasRusak), /CRC|rusak/);
+  const potong = path.join(dir, 'potong.zip'); fs.writeFileSync(potong, fs.readFileSync(hasil).subarray(0, 120));
+  assert.throws(() => verifikasiZip(potong), /tidak utuh|rusak/);
 });

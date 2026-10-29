@@ -11,6 +11,11 @@ CARA MEMASANG (SATU PAKET, DUA CARA)
 3. JIKA PEMASANG GAGAL: di folder yang sama, klik dua kali "Jalankan-Rapor.bat".
    Aplikasi tetap berjalan dari folder ini (langkah di bawah).
 
+JIKA EKSTRAK ZIP BERHENTI / MUNCUL "path terlalu panjang"
+Windows tidak bisa mengekstrak jalur lebih dari 260 karakter. Pindahkan file ZIP ke folder pendek, mis. C:\Rapor,
+lalu Extract All di sana (bukan di dalam folder Downloads yang bersarang dalam). Tunggu sampai jendela proses tertutup sendiri.
+Pastikan di folder hasil ekstrak ada: app\server.js dan node\node.exe sebelum membuka Pasang-E-Rapor-SD.exe.
+
 JIKA WINDOWS 11 MEMBLOKIR ("Smart App Control blocked a file that may be unsafe")
 Penyebab: file dari internet diberi tanda "dari internet" oleh Windows. Pemasang versi terbaru
 menghapus tanda itu otomatis. Jika masih muncul, lakukan SEKALI SAJA:

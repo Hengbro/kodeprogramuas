@@ -204,23 +204,7 @@ function buatZipDenganFolder(sumber, target, { folder, entries = [], hapus = nul
   const central = []; let offset = 0;
   const tulis = (b) => { fs.writeSync(fd, b); offset += b.length; };
   try {
-    for (const e of dipakai) {
-      const c = e.c;
-      const baru = Buffer.from(folderLama && e.name.startsWith(`${folderLama}/`) ? `${folder}/${e.name.slice(folderLama.length + 1)}` : `${folder}/${e.name}`, 'utf8');
-      const comp = zip.readUInt32LE(c + 20);
-      const lo = zip.readUInt32LE(c + 42);
-      const data = zip.subarray(lo + 30 + zip.readUInt16LE(lo + 26) + zip.readUInt16LE(lo + 28), lo + 30 + zip.readUInt16LE(lo + 26) + zip.readUInt16LE(lo + 28) + comp);
-      const flags = (zip.readUInt16LE(c + 8) | 0x0800) & ~0x0008;
-      const local = Buffer.alloc(30);
-      local.writeUInt32LE(0x04034b50, 0); local.writeUInt16LE(zip.readUInt16LE(c + 6), 4); local.writeUInt16LE(flags, 6);
-      local.writeUInt16LE(zip.readUInt16LE(c + 10), 8); local.writeUInt16LE(zip.readUInt16LE(c + 12), 10); local.writeUInt16LE(zip.readUInt16LE(c + 14), 12);
-      local.writeUInt32LE(zip.readUInt32LE(c + 16), 14); local.writeUInt32LE(comp, 18); local.writeUInt32LE(zip.readUInt32LE(c + 24), 22);
-      local.writeUInt16LE(baru.length, 26);
-      const h = Buffer.from(zip.subarray(c, c + 46));
-      h.writeUInt16LE(flags, 8); h.writeUInt16LE(baru.length, 28); h.writeUInt16LE(0, 30); h.writeUInt16LE(0, 32); h.writeUInt32LE(offset, 42);
-      central.push(h, baru);
-      tulis(local); tulis(baru); tulis(data);
-    }
+    // berkas baru (kode aplikasi, kode aktivasi) ditulis DULUAN: bila ekstraksi di Windows terhenti di tengah, berkas inti tetap ada
     for (const e of entries) {
       const raw = Buffer.from(e.data);
       const deflated = zlib.deflateRawSync(raw, { level: 6 });
@@ -238,6 +222,23 @@ function buatZipDenganFolder(sumber, target, { folder, entries = [], hapus = nul
       h.writeUInt32LE(crc, 16); h.writeUInt32LE(body.length, 20); h.writeUInt32LE(raw.length, 24); h.writeUInt16LE(name.length, 28); h.writeUInt32LE(offset, 42);
       central.push(h, name);
       tulis(local); tulis(name); tulis(body);
+    }
+    for (const e of dipakai) {
+      const c = e.c;
+      const baru = Buffer.from(folderLama && e.name.startsWith(`${folderLama}/`) ? `${folder}/${e.name.slice(folderLama.length + 1)}` : `${folder}/${e.name}`, 'utf8');
+      const comp = zip.readUInt32LE(c + 20);
+      const lo = zip.readUInt32LE(c + 42);
+      const data = zip.subarray(lo + 30 + zip.readUInt16LE(lo + 26) + zip.readUInt16LE(lo + 28), lo + 30 + zip.readUInt16LE(lo + 26) + zip.readUInt16LE(lo + 28) + comp);
+      const flags = (zip.readUInt16LE(c + 8) | 0x0800) & ~0x0008;
+      const local = Buffer.alloc(30);
+      local.writeUInt32LE(0x04034b50, 0); local.writeUInt16LE(zip.readUInt16LE(c + 6), 4); local.writeUInt16LE(flags, 6);
+      local.writeUInt16LE(zip.readUInt16LE(c + 10), 8); local.writeUInt16LE(zip.readUInt16LE(c + 12), 10); local.writeUInt16LE(zip.readUInt16LE(c + 14), 12);
+      local.writeUInt32LE(zip.readUInt32LE(c + 16), 14); local.writeUInt32LE(comp, 18); local.writeUInt32LE(zip.readUInt32LE(c + 24), 22);
+      local.writeUInt16LE(baru.length, 26);
+      const h = Buffer.from(zip.subarray(c, c + 46));
+      h.writeUInt16LE(flags, 8); h.writeUInt16LE(baru.length, 28); h.writeUInt16LE(0, 30); h.writeUInt16LE(0, 32); h.writeUInt32LE(offset, 42);
+      central.push(h, baru);
+      tulis(local); tulis(baru); tulis(data);
     }
     const cdStart = offset;
     for (const b of central) tulis(b);
@@ -274,4 +275,45 @@ function bacaEntriZip(file, relatif) {
   return null;
 }
 
-module.exports = { writeZip, listFiles, tambahkanKeZip, periksaZip, buatZipDenganFolder, bacaEntriZip };
+/**
+ * Memeriksa ZIP seperti pembaca ketat (Windows Explorer): tiap entri dibuka, nama di header lokal cocok,
+ * data bisa dikembangkan dan CRC/ukurannya benar. Mengembalikan { jumlah, terpanjang } atau melempar galat.
+ * @param {string} file
+ * @param {string[]} wajib berkas yang harus ada (nama relatif terhadap folder utama)
+ */
+function verifikasiZip(file, wajib = []) {
+  const zip = fs.readFileSync(file);
+  let eocd = -1;
+  for (let i = zip.length - 22; i >= Math.max(0, zip.length - 22 - 65535); i -= 1) {
+    if (zip.readUInt32LE(i) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('ZIP tidak utuh (daftar isi tidak ditemukan).');
+  const jumlah = zip.readUInt16LE(eocd + 10);
+  let pos = zip.readUInt32LE(eocd + 16);
+  const ada = new Set(); let terpanjang = 0; let folder = '';
+  for (let n = 0; n < jumlah; n += 1) {
+    if (zip.readUInt32LE(pos) !== 0x02014b50) throw new Error('Daftar isi ZIP rusak.');
+    const metode = zip.readUInt16LE(pos + 10); const crc = zip.readUInt32LE(pos + 16); const comp = zip.readUInt32LE(pos + 20); const size = zip.readUInt32LE(pos + 24);
+    const len = zip.readUInt16LE(pos + 28); const lo = zip.readUInt32LE(pos + 42);
+    const nama = zip.toString('utf8', pos + 46, pos + 46 + len);
+    if (zip.readUInt32LE(lo) !== 0x04034b50) throw new Error(`Header berkas rusak: ${nama}`);
+    const lnama = zip.toString('utf8', lo + 30, lo + 30 + zip.readUInt16LE(lo + 26));
+    if (lnama !== nama) throw new Error(`Nama berkas tidak cocok: ${nama}`);
+    if (!nama.endsWith('/')) {
+      const awal = lo + 30 + zip.readUInt16LE(lo + 26) + zip.readUInt16LE(lo + 28);
+      if (awal + comp > zip.length) throw new Error(`Data terpotong: ${nama}`);
+      const data = zip.subarray(awal, awal + comp);
+      const isi = metode === 8 ? zlib.inflateRawSync(data) : data;
+      if (isi.length !== size || (zlib.crc32(isi) >>> 0) !== crc) throw new Error(`Isi berkas rusak (CRC): ${nama}`);
+    }
+    if (!folder && nama.includes('/')) folder = nama.slice(0, nama.indexOf('/'));
+    ada.add(nama.includes('/') ? nama.slice(nama.indexOf('/') + 1) : nama);
+    terpanjang = Math.max(terpanjang, nama.length);
+    pos += 46 + len + zip.readUInt16LE(pos + 30) + zip.readUInt16LE(pos + 32);
+  }
+  const hilang = wajib.filter((w) => !ada.has(w));
+  if (hilang.length) throw new Error(`Berkas inti tidak ada di ZIP: ${hilang.join(', ')}`);
+  return { jumlah, terpanjang, folder };
+}
+
+module.exports = { writeZip, listFiles, tambahkanKeZip, periksaZip, buatZipDenganFolder, bacaEntriZip, verifikasiZip };

@@ -159,15 +159,33 @@ const SETUP_WINDOWS = process.env.SETUP_WINDOWS || path.join(ROOT, 'dist', 'Pasa
 
 /** Nama dasar berkas/folder khusus satu sekolah: E-Rapor-SD-<NAMA>-<NPSN> (huruf besar, tanpa spasi/simbol). */
 function namaPaketSekolah(l) {
-  const nama = String(l.sekolah || 'SEKOLAH').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50);
+  const nama = String(l.sekolah || 'SEKOLAH').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 28).replace(/-+$/, '');
   return `E-Rapor-${nama}-${String(l.npsn || '').replace(/[^A-Za-z0-9]/g, '')}`;
 }
+
+/** Folder DI DALAM ZIP sengaja pendek (E-Rapor-<NPSN>): Windows tidak bisa mengekstrak jalur lebih dari 260 karakter. */
+function folderPaketSekolah(l) {
+  return `E-Rapor-${String(l.npsn || 'SEKOLAH').replace(/[^A-Za-z0-9]/g, '')}`;
+}
+
+/** Berkas yang wajib ada di setiap ZIP sekolah/guru yang dibagikan. */
+const BERKAS_INTI_ZIP = ['app/server.js', 'app/package.json', 'node/node.exe', 'Jalankan-Rapor.bat'];
 
 /**
  * Membuat ZIP aplikasi Windows KHUSUS satu sekolah: folder bernama sekolah+NPSN dan Kode Aktivasi sekolah itu
  * sudah di dalamnya (data/kode-aktivasi.txt), sehingga aplikasi langsung dikenali sebagai milik sekolah tersebut.
  * @returns {{ file: string, nama: string }} file sementara (hapus setelah dipakai) dan nama berkas unduhan
  */
+/** Memeriksa ZIP hasil buatan (isi utuh, berkas inti ada, jalur tidak terlalu panjang); berkas dihapus bila gagal. */
+function periksaHasilZip(file, wajib) {
+  const { verifikasiZip } = require('./zip');
+  try {
+    const hasil = verifikasiZip(file, wajib);
+    if (hasil.terpanjang > 120) throw new Error(`Nama berkas di dalam ZIP terlalu panjang (${hasil.terpanjang} karakter); Windows bisa gagal mengekstrak.`);
+    return hasil;
+  } catch (e) { fs.rmSync(file, { force: true }); throw new Error(`ZIP gagal diperiksa dan tidak diberikan: ${e.message}`); }
+}
+
 function buatZipSekolah(l) {
   const { buatZipDenganFolder } = require('./zip');
   const os = require('os');
@@ -176,7 +194,8 @@ function buatZipSekolah(l) {
   // kode aplikasi di ZIP selalu versi terbaru dari server ini (tanpa perlu membangun ulang ZIP dasar)
   const { kodeTerbaru } = require('./segarkan-zip');
   const baru = kodeTerbaru();
-  buatZipDenganFolder(ZIP_WINDOWS, file, { folder: dasar, hapus: baru.hapus, entries: [...baru.entries, { name: 'data/kode-aktivasi.txt', data: l.kode }] });
+  buatZipDenganFolder(ZIP_WINDOWS, file, { folder: folderPaketSekolah(l), hapus: baru.hapus, entries: [...baru.entries, { name: 'data/kode-aktivasi.txt', data: l.kode }] });
+  periksaHasilZip(file, [...BERKAS_INTI_ZIP, 'data/kode-aktivasi.txt']);
   return { file, nama: `${dasar}.zip` };
 }
 
@@ -231,4 +250,4 @@ function buatLisensiOffline({ npsn, sekolah, catatan, sekolahKode }) {
   return m().prepare('SELECT * FROM lisensi_offline WHERE token = ?').get(token);
 }
 
-module.exports = { lisensiSekolah, namaPaketSekolah, buatZipSekolah, m, daftar, cari, dbSekolah, buatSekolah, siapkan, statistik, pengaturan, sandiAcak, slug, tutup, KODE_RE, MASTER_PATH, infoOffline, buatLisensiOffline, cekLisensiOffline, ZIP_WINDOWS, SETUP_WINDOWS, PANDUAN_PDF, PANDUAN_GURU_PDF };
+module.exports = { lisensiSekolah, namaPaketSekolah, folderPaketSekolah, periksaHasilZip, BERKAS_INTI_ZIP, buatZipSekolah, m, daftar, cari, dbSekolah, buatSekolah, siapkan, statistik, pengaturan, sandiAcak, slug, tutup, KODE_RE, MASTER_PATH, infoOffline, buatLisensiOffline, cekLisensiOffline, ZIP_WINDOWS, SETUP_WINDOWS, PANDUAN_PDF, PANDUAN_GURU_PDF };

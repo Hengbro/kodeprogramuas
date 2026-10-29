@@ -11,7 +11,7 @@ process.env.DATA_DIR = dir;
 execFileSync(process.execPath, [path.join(__dirname, '..', 'src', 'seed-demo.js')], { env: { ...process.env, DATA_DIR: dir } });
 // ZIP aplikasi Windows tiruan (kecil) sebagai dasar tombol "Unduh aplikasi (ZIP)" di server biasa
 const zipDasar = path.join(dir, 'E-Rapor-SD-Windows.zip');
-require('../src/lib/zip').writeZip(zipDasar, [{ name: 'E-Rapor-SD-Windows/Jalankan-Rapor.bat', data: '@echo off' }, { name: 'E-Rapor-SD-Windows/Pasang-E-Rapor-SD.exe', data: 'MZ' }, { name: 'E-Rapor-SD-Windows/data/', data: '' }]);
+require('../src/lib/zip').writeZip(zipDasar, [{ name: 'E-Rapor-SD-Windows/Jalankan-Rapor.bat', data: '@echo off' }, { name: 'E-Rapor-SD-Windows/Pasang-E-Rapor-SD.exe', data: 'MZ' }, { name: 'E-Rapor-SD-Windows/node/node.exe', data: 'MZ' }, { name: 'E-Rapor-SD-Windows/data/', data: '' }]);
 process.env.ZIP_WINDOWS = zipDasar;
 const app = require('../server');
 const { db } = require('../src/db');
@@ -329,6 +329,7 @@ test('unduh aplikasi (ZIP) untuk guru: membawa lisensi sekolah agar guru langsun
   const nama = execFileSync('unzip', ['-Z1', berkas]).toString().trim().split('\n');
   const folder = nama[0].split('/')[0];
   assert.ok(nama.every((n) => n.startsWith(`${folder}/`)));
+  assert.strictEqual(folder, 'E-Rapor-10200000-GURU', 'folder di dalam ZIP pendek (batas jalur Windows 260 karakter)');
   assert.ok(nama.includes(`${folder}/Jalankan-Rapor.bat`));
   assert.strictEqual(execFileSync('unzip', ['-p', berkas, `${folder}/data/kode-aktivasi.txt`]).toString(), KODE);
   const paket = JSON.parse(execFileSync('unzip', ['-p', berkas, `${folder}/data/paket-awal.rapor.json`]).toString());
