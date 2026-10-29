@@ -347,7 +347,7 @@ function pasangPaketGuru(pkg) {
     const set = db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value');
     for (const a of pkg.akun || []) {
       const ada = db.prepare('SELECT id FROM users WHERE username = ? COLLATE NOCASE').get(a.username);
-      if (ada) db.prepare("UPDATE users SET password_hash = ?, nama = ?, nip = ?, role = 'guru' WHERE id = ?").run(a.password_hash, a.nama, a.nip || null, ada.id);
+      if (ada) db.prepare("UPDATE users SET password_hash = ?, sandi_enc = NULL, nama = ?, nip = ?, role = 'guru' WHERE id = ?").run(a.password_hash, a.nama, a.nip || null, ada.id);
       else db.prepare("INSERT INTO users (username, password_hash, nama, nip, role) VALUES (?, ?, ?, ?, 'guru')").run(a.username, a.password_hash, a.nama, a.nip || null);
     }
     // akun bawaan admin/admin123 dihapus: pengaturan sekolah dikelola admin di komputer sekolah

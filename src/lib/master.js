@@ -29,6 +29,9 @@ function m() {
       id INTEGER PRIMARY KEY, npsn TEXT NOT NULL, sekolah TEXT NOT NULL, seri TEXT NOT NULL, kode TEXT NOT NULL,
       token TEXT NOT NULL UNIQUE, unduhan INTEGER NOT NULL DEFAULT 0, catatan TEXT, dibuat TEXT NOT NULL DEFAULT (datetime('now'))
     );
+    CREATE TABLE IF NOT EXISTS audit_sandi (
+      id INTEGER PRIMARY KEY, waktu TEXT NOT NULL DEFAULT (datetime('now')), superadmin TEXT, sekolah_kode TEXT, username TEXT
+    );
     CREATE TABLE IF NOT EXISTS sekolah (
       id INTEGER PRIMARY KEY, kode TEXT NOT NULL UNIQUE, nama TEXT NOT NULL, npsn TEXT, file TEXT NOT NULL,
       aktif INTEGER NOT NULL DEFAULT 1, catatan TEXT, dibuat TEXT NOT NULL DEFAULT (datetime('now'))
@@ -86,8 +89,9 @@ function buatSekolah({ nama, npsn, kode, adminUsername, adminPassword, adminNama
     if (npsn) set.run('npsn', String(npsn).trim());
     // akun bawaan admin/admin123 diganti dengan akun admin sekolah yang dibuat superadmin
     d.prepare('DELETE FROM users').run();
-    d.prepare("INSERT INTO users (username, password_hash, nama, role) VALUES (?, ?, ?, 'admin')")
-      .run(username, hashPassword(password), String(adminNama || '').trim() || `Admin ${nama}`);
+    const adminId = d.prepare("INSERT INTO users (username, password_hash, nama, role) VALUES (?, ?, ?, 'admin')")
+      .run(username, hashPassword(password), String(adminNama || '').trim() || `Admin ${nama}`).lastInsertRowid;
+    require('./sandi-simpan').catat(d, adminId, password);
   })();
   terbuka.set(kode, d);
   m().prepare('INSERT INTO sekolah (kode, nama, npsn, file) VALUES (?, ?, ?, ?)').run(kode, nama, npsn ? String(npsn).trim() : null, file);

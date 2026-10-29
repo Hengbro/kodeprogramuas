@@ -1,7 +1,7 @@
 <%- include('_top') %>
 <div class="card" style="max-width:860px;margin:0 auto">
   <h1>Cari akun</h1>
-  <p class="muted">Cari guru atau admin di <b>semua sekolah</b> lewat username atau nama. Kata sandi tidak bisa dilihat (disimpan sebagai sidik jari demi keamanan), tetapi Anda bisa <b>Reset sandi</b>: sandi baru langsung ditampilkan beserta pesan siap kirim.</p>
+  <p class="muted">Cari guru atau admin di <b>semua sekolah</b> lewat username atau nama. Klik <b>Lihat sandi</b> untuk mengetahui sandi akun (hanya superadmin, dan dicatat). Akun lama yang belum tercatat: klik <b>Reset sandi</b> sekali, lalu sandinya bisa dilihat kapan saja.</p>
   <form method="get" action="/super/pengguna" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
     <input name="q" value="<%= q %>" placeholder="username atau nama (mis. finsen)" autofocus style="flex:1;min-width:200px" autocomplete="off" autocapitalize="none">
     <button class="btn btn-primary"><%- h.icon('search') %> Cari</button>
@@ -15,7 +15,7 @@
       <td><b><%= a.username %></b><br><small class="muted"><%= a.nama %><%= a.kelas ? ' · Kelas ' + a.kelas : '' %></small></td>
       <td><a href="/super/sekolah/<%= a.sekolah.kode %>"><%= a.sekolah.nama %></a></td>
       <td><span class="badge <%= a.role === 'admin' ? 'badge-primary' : '' %>"><%= a.role === 'admin' ? 'Admin' : 'Guru' %></span></td>
-      <td class="actions"><form method="post" action="/super/sekolah/<%= a.sekolah.kode %>/reset" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="user_id" value="<%= a.id %>"><input type="hidden" name="kembali" value="/super/pengguna?q=<%= encodeURIComponent(q) %>"><button class="btn btn-sm" data-confirm="Buat kata sandi baru untuk <%= a.username %> (<%= a.sekolah.nama %>)? Sandi lama tidak berlaku lagi.">Reset sandi</button></form></td>
+      <td class="actions"><button type="button" class="btn btn-sm btn-primary" data-lihat-sandi data-url="/super/sekolah/<%= a.sekolah.kode %>/pengguna/<%= a.id %>/sandi" data-csrf="<%= csrf %>"><%- h.icon('search') %> Lihat sandi</button> <span class="sandi-tampil" data-sandi-hasil></span><form method="post" action="/super/sekolah/<%= a.sekolah.kode %>/reset" class="inline-form" style="display:inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="user_id" value="<%= a.id %>"><input type="hidden" name="kembali" value="/super/pengguna?q=<%= encodeURIComponent(q) %>"><button class="btn btn-sm" data-confirm="Buat kata sandi baru untuk <%= a.username %> (<%= a.sekolah.nama %>)? Sandi lama tidak berlaku lagi.">Reset sandi</button></form></td>
     </tr><% }) %>
     </tbody>
   </table></div>

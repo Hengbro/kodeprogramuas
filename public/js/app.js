@@ -516,4 +516,28 @@
         if (draftForms.indexOf(f) >= 0) dirty = true;
       });
   });
+
+  // Superadmin: "Lihat sandi" menampilkan sandi akun (diminta ke server, dicatat di log)
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-lihat-sandi]');
+    if (!b) return;
+    var out = b.parentNode.querySelector('[data-sandi-hasil]');
+    if (out.getAttribute('data-terbuka')) { out.textContent = ''; out.removeAttribute('data-terbuka'); return; }
+    b.disabled = true;
+    fetch(b.getAttribute('data-url'), { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: '_csrf=' + encodeURIComponent(b.getAttribute('data-csrf')) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        out.textContent = '';
+        if (!j.ok) { var m = document.createElement('small'); m.className = 'muted'; m.textContent = j.pesan || 'Gagal.'; out.appendChild(m); return; }
+        var c = document.createElement('code'); c.textContent = j.sandi; c.style.userSelect = 'all'; c.style.padding = '.15rem .4rem';
+        var salin = document.createElement('button'); salin.type = 'button'; salin.className = 'btn btn-sm'; salin.textContent = 'Salin'; salin.style.marginLeft = '.35rem';
+        salin.addEventListener('click', function () {
+          if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(j.sandi).then(function () { salin.textContent = 'Disalin ✓'; });
+          else { var r = document.createRange(); r.selectNodeContents(c); var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r); salin.textContent = 'Terpilih'; }
+        });
+        out.appendChild(c); out.appendChild(salin); out.setAttribute('data-terbuka', '1');
+      })
+      .catch(function () { out.textContent = 'Gagal menghubungi server.'; })
+      .then(function () { b.disabled = false; });
+  });
 })();

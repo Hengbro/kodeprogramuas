@@ -17,11 +17,11 @@
     <% if (!stat.error) { %><tr><th>Isi</th><td><%= stat.siswa %> siswa · <%= stat.kelas %> kelas · <%= stat.guru %> guru · <%= (stat.ukuran / 1024 / 1024).toFixed(1) %> MB</td></tr><% } %>
   </table>
   <h3>Akun pengguna sekolah (<%= stat.pengguna ? stat.pengguna.length : 0 %>)</h3>
-  <p class="muted" style="margin-top:0">Kata sandi tidak bisa dilihat (disimpan sebagai sidik jari, bukan teks, demi keamanan akun mereka). Jika admin/guru lupa, klik <b>Reset sandi</b>: sandi baru dibuat dan <b>pesan siap kirim</b> ditampilkan untuk Anda salin.</p>
+  <p class="muted" style="margin-top:0">Klik <b>Lihat sandi</b> untuk mengetahui sandi akun (hanya Anda sebagai superadmin yang bisa; setiap pembukaan dicatat). Akun lama yang belum tercatat: klik <b>Reset sandi</b> sekali, sesudah itu sandinya bisa dilihat kapan saja.</p>
   <table class="table"><thead><tr><th>Akun</th><th>Peran</th><th class="actions"></th></tr></thead><tbody>
     <% (stat.pengguna || []).forEach(a => { %><tr><td><b><%= a.username %></b><br><small class="muted"><%= a.nama %><%= a.kelas ? ' · Kelas ' + a.kelas : '' %></small></td>
       <td><span class="badge <%= a.role === 'admin' ? 'badge-primary' : '' %>"><%= a.role === 'admin' ? 'Admin' : 'Guru' %></span></td>
-      <td class="actions"><form method="post" action="/super/sekolah/<%= s.kode %>/reset" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="user_id" value="<%= a.id %>"><button class="btn btn-sm" data-confirm="Buat kata sandi baru untuk <%= a.username %>? Sandi lama tidak berlaku lagi.">Reset sandi</button></form></td></tr><% }) %>
+      <td class="actions"><button type="button" class="btn btn-sm btn-primary" data-lihat-sandi data-url="/super/sekolah/<%= s.kode %>/pengguna/<%= a.id %>/sandi" data-csrf="<%= csrf %>"><%- h.icon('search') %> Lihat sandi</button> <span class="sandi-tampil" data-sandi-hasil></span><form method="post" action="/super/sekolah/<%= s.kode %>/reset" class="inline-form" style="display:inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="user_id" value="<%= a.id %>"><button class="btn btn-sm" data-confirm="Buat kata sandi baru untuk <%= a.username %>? Sandi lama tidak berlaku lagi.">Reset sandi</button></form></td></tr><% }) %>
   </tbody></table>
   <form method="post" action="/super/sekolah/<%= s.kode %>/admin" style="display:flex;gap:.4rem;flex-wrap:wrap">
     <input type="hidden" name="_csrf" value="<%= csrf %>">

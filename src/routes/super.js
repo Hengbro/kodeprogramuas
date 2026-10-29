@@ -7,6 +7,7 @@ const { DATA_DIR } = require('../db');
 const master = require('../lib/master');
 const { periksaZip } = require('../lib/zip');
 const pembaruan = require('../lib/pembaruan');
+const sandiSimpan = require('../lib/sandi-simpan');
 const { hashPassword, verifyPassword } = require('../lib/password');
 const { rateLimit } = require('../lib/rate-limit');
 
@@ -221,7 +222,19 @@ router.post('/sekolah/:kode/reset', wajibSuper, sekolahDari, (req, res) => {
   if (!u) { req.flash('error', 'Akun tidak ditemukan.'); return res.redirect('/super'); }
   const password = master.sandiAcak();
   d.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hashPassword(password), u.id);
+  sandiSimpan.catat(d, u.id, password);
   res.render('super/hasil', { title: 'Kata sandi direset', judul: `Kata sandi ${u.username} (${req.sek.nama}) direset`, sekolah: req.sek, username: u.username, password, l: master.infoOffline().daftar.find((x) => x.sekolah_kode === req.sek.kode) || null, kembali: `/super/sekolah/${req.sek.kode}` });
+});
+
+// Melihat sandi akun (hanya superadmin). Setiap pembukaan dicatat (siapa, kapan, akun mana).
+router.post('/sekolah/:kode/pengguna/:id/sandi', wajibSuper, sekolahDari, (req, res) => {
+  const u = master.dbSekolah(req.sek).prepare('SELECT id, username, sandi_enc FROM users WHERE id = ?').get(req.params.id);
+  if (!u) return res.status(404).json({ ok: false, pesan: 'Akun tidak ditemukan.' });
+  const sandi = sandiSimpan.dekripsi(u.sandi_enc);
+  if (!sandi) return res.json({ ok: false, pesan: 'Sandi akun ini belum tercatat (dibuat sebelum fitur ini). Klik Reset sandi untuk membuat yang baru; setelah itu bisa dilihat kapan saja.' });
+  const a = master.m().prepare('SELECT username FROM superadmin WHERE id = ?').get(req.session.superId);
+  master.m().prepare('INSERT INTO audit_sandi (superadmin, sekolah_kode, username) VALUES (?, ?, ?)').run(a ? a.username : null, req.sek.kode, u.username);
+  res.set('Cache-Control', 'no-store').json({ ok: true, username: u.username, sandi });
 });
 
 router.post('/sekolah/:kode/admin', wajibSuper, sekolahDari, (req, res) => {
@@ -230,7 +243,7 @@ router.post('/sekolah/:kode/admin', wajibSuper, sekolahDari, (req, res) => {
   if (!username) { req.flash('error', 'Username wajib diisi.'); return res.redirect('/super'); }
   if (d.prepare('SELECT 1 FROM users WHERE username = ?').get(username)) { req.flash('error', `Username ${username} sudah dipakai di sekolah ini.`); return res.redirect('/super'); }
   const password = master.sandiAcak();
-  d.prepare("INSERT INTO users (username, password_hash, nama, role) VALUES (?, ?, ?, 'admin')").run(username, hashPassword(password), String(req.body.nama || '').trim() || username);
+  sandiSimpan.catat(d, d.prepare("INSERT INTO users (username, password_hash, nama, role) VALUES (?, ?, ?, 'admin')").run(username, hashPassword(password), String(req.body.nama || '').trim() || username).lastInsertRowid, password);
   res.render('super/hasil', { title: 'Admin ditambahkan', judul: `Admin ${username} ditambahkan ke ${req.sek.nama}`, sekolah: req.sek, username, password, kembali: `/super/sekolah/${req.sek.kode}` });
 });
 

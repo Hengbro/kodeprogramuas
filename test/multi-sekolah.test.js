@@ -496,3 +496,47 @@ test('superadmin mencari akun di semua sekolah dan mereset sandi guru (sandi lam
   const ok = await masuk('guru-zip', 'lupa.sandi@guru', baru);
   assert.match(ok.r.location || '', /\/app/);
 });
+
+test('superadmin bisa melihat sandi akun (tersimpan terenkripsi, hanya superadmin, tercatat); akun lama yang belum tercatat diminta di-reset', async () => {
+  const { hashPassword } = require('../src/lib/password');
+  const su = klien();
+  await su('POST', '/super/login', { _csrf: await su.token('/super/login'), username: 'superadmin', password: 'rahasia-super' });
+  const sek = master.cari('guru-zip');
+  const d = master.dbSekolah(sek);
+  const lihat = (id, klienSu = su) => fetch(`${base}/super/sekolah/guru-zip/pengguna/${id}/sandi`, { method: 'POST', headers: { cookie: klienSu.cookie(), origin: base, 'content-type': 'application/x-www-form-urlencoded' }, body: '', redirect: 'manual' });
+  // akun lama (dibuat tanpa pencatatan) → belum tercatat
+  const lama = d.prepare("INSERT INTO users (username, password_hash, nama, role) VALUES ('akun.lama', ?, 'Akun Lama', 'guru')").run(hashPassword('sandi-lama-9')).lastInsertRowid;
+  let j = await (await lihat(lama)).json();
+  assert.strictEqual(j.ok, false);
+  assert.match(j.pesan, /Reset/);
+  // reset oleh superadmin → tercatat; sandi yang ditampilkan di halaman hasil sama dengan yang bisa dilihat kemudian
+  let r = await su('POST', '/super/sekolah/guru-zip/reset', { _csrf: await su.token('/super'), user_id: String(lama) });
+  const baru = /<th>Kata sandi<\/th><td><code>([^<]+)<\/code>/.exec(r.text)[1];
+  j = await (await lihat(lama)).json();
+  assert.deepStrictEqual([j.ok, j.sandi, j.username], [true, baru, 'akun.lama']);
+  // tersimpan sebagai sandi terenkripsi (bukan teks biasa) dan tidak bisa dibaca tanpa kunci di master
+  const mentah = d.prepare('SELECT sandi_enc FROM users WHERE id = ?').get(lama).sandi_enc;
+  assert.match(mentah, /^v1\.[0-9a-f]+\.[0-9a-f]+\.[0-9a-f]+$/);
+  assert.ok(!mentah.includes(baru));
+  // admin sekolah membuat guru baru lewat menu Pengguna → sandi tercatat; sandi yang diganti sendiri oleh guru juga mengikuti
+  const kepsek = await masuk('guru-zip', 'kepsek', 'sandi-kepsek-1');
+  const tok = /name="_csrf" value="([^"]+)"/.exec((await kepsek.req('GET', kepsek.s('/app/pengguna'))).text)[1];
+  await kepsek.req('POST', kepsek.s('/app/pengguna'), { _csrf: tok, n: '1', nama__0: 'Guru Baru Catat', username__0: 'guru.catat', password__0: 'sandi-awal-77', role__0: 'guru' });
+  const idBaru = d.prepare("SELECT id FROM users WHERE username = 'guru.catat'").get().id;
+  assert.strictEqual((await (await lihat(idBaru)).json()).sandi, 'sandi-awal-77');
+  const guru = await masuk('guru-zip', 'guru.catat', 'sandi-awal-77');
+  const tokG = /name="_csrf" value="([^"]+)"/.exec((await guru.req('GET', guru.s('/app/akun'))).text)[1];
+  await guru.req('POST', guru.s('/app/akun'), { _csrf: tokG, nama: 'Guru Baru Catat', old_password: 'sandi-awal-77', new_password: 'sandi-ganti-88' });
+  assert.strictEqual((await (await lihat(idBaru)).json()).sandi, 'sandi-ganti-88');
+  // dicatat di log, dan bukan superadmin → ditolak
+  const log = master.m().prepare("SELECT COUNT(*) n FROM audit_sandi WHERE sekolah_kode = 'guru-zip' AND username = 'guru.catat'").get().n;
+  assert.ok(log >= 2);
+  const tamu = klien();
+  const tolak = await lihat(idBaru, tamu);
+  assert.ok(tolak.status === 302 || tolak.status === 401 || tolak.status === 403);
+  assert.ok(!(await tolak.text()).includes('sandi-ganti-88'));
+  // paket guru (ZIP/JSON) tidak membawa salinan sandi, hanya hash
+  const { konteks } = require('../src/db');
+  const pkg = JSON.stringify(konteks.run({ db: d, sekolah: sek }, () => require('../src/lib/paket').exportPaketGuru([idBaru])));
+  assert.ok(!pkg.includes('sandi_enc') && !pkg.includes('sandi-ganti-88') && pkg.includes('password_hash'));
+});

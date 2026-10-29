@@ -4,6 +4,7 @@ const { requireAdmin } = require('../../lib/auth');
 const { hashPassword, verifyPassword } = require('../../lib/password');
 const { str } = require('./_util');
 const { sandiAcak } = require('../../lib/sandi-acak');
+const { catat: catatSandi } = require('../../lib/sandi-simpan');
 
 const router = express.Router();
 
@@ -31,7 +32,7 @@ router.post('/pengguna', requireAdmin, (req, res) => {
     if (acak) password = sandiAcak();
     if (!username || !nama || password.length < 6) { gagal.push(`${label} (nama, username, dan kata sandi min. 6 karakter wajib)`); continue; }
     if (ada.get(username)) { gagal.push(`${username} (username sudah dipakai)`); continue; }
-    ins.run(username, hashPassword(password), nama, str(ambil('nip', i)), ambil('role', i) === 'admin' ? 'admin' : 'guru');
+    catatSandi(db, ins.run(username, hashPassword(password), nama, str(ambil('nip', i)), ambil('role', i) === 'admin' ? 'admin' : 'guru').lastInsertRowid, password);
     masuk.push(acak ? `${username} (sandi: ${password})` : username);
   }
   const catat = masuk.some((x) => x.includes('(sandi:')) ? ' Catat kata sandi yang dibuat otomatis sekarang — hanya ditampilkan sekali.' : '';
@@ -60,6 +61,7 @@ router.post('/pengguna/:id', requireAdmin, (req, res) => {
   if (req.body.action === 'sandi_acak') {
     const sandi = sandiAcak();
     db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hashPassword(sandi), u.id);
+    catatSandi(db, u.id, sandi);
     req.flash('success', `Kata sandi baru untuk ${u.username}: ${sandi} — catat sekarang, hanya ditampilkan sekali.`);
     return res.redirect(`/app/pengguna/${u.id}`);
   }
@@ -85,7 +87,7 @@ router.post('/pengguna/:id', requireAdmin, (req, res) => {
   } else if (req.body.password && String(req.body.password).length < 6) {
     req.flash('error', 'Data disimpan, tetapi kata sandi tidak diubah (minimal 6 karakter).');
   } else {
-    if (req.body.password) db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hashPassword(req.body.password), u.id);
+    if (req.body.password) { db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hashPassword(req.body.password), u.id); catatSandi(db, u.id, req.body.password); }
     req.flash('success', 'Data pengguna diperbarui.');
   }
   res.redirect('/app/pengguna');
@@ -106,6 +108,7 @@ router.post('/akun', (req, res) => {
       return res.redirect('/app/akun');
     }
     db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hashPassword(req.body.new_password), u.id);
+    catatSandi(db, u.id, req.body.new_password);
   }
   req.flash('success', 'Akun diperbarui.');
   res.redirect('/app/akun');
